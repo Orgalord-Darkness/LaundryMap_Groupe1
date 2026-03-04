@@ -3,11 +3,12 @@ version: "3.9"
 services:
   mariadb:
     image: mariadb:11
+    container_name: mariadb
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: laundry
-      MYSQL_USER: user
-      MYSQL_PASSWORD: user
+      MYSQL_DATABASE: laundrymap
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
     ports:
       - "3307:3306"
     volumes:
@@ -15,6 +16,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
     environment:
       PMA_HOST: mariadb
       PMA_USER: user
@@ -25,6 +27,7 @@ services:
       - mariadb
 
   php:
+    container_name: laundrymap-back
     build:
       context: ./laundrymap-back
       dockerfile: ../docker/php/Dockerfile
@@ -34,6 +37,7 @@ services:
       - mariadb
 
   nginx:
+    container_name: nginx
     build:
       context: ./docker/nginx
       dockerfile: Dockerfile
@@ -46,6 +50,7 @@ services:
 
 
   laundrymap-front:
+    container_name: laundrymap-front
     build:
       context: ./laundrymap-front
       dockerfile: ../docker/react/Dockerfile
