@@ -15,9 +15,6 @@ class Professionnel
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?int $utilisateur_id = null;
-
-    #[ORM\Column]
     private ?int $siren = null;
 
     #[ORM\Column(enumType: StatutEnum::class)]
@@ -26,8 +23,13 @@ class Professionnel
     #[ORM\Column(nullable: true)]
     private ?\DateTime $date_validation = null;
 
-    #[ORM\Column]
-    private ?int $adresse_id = null;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Utilisateur $utilisateur = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Adresse $adresse = null;
 
     public function getId(): ?int
     {
@@ -37,18 +39,6 @@ class Professionnel
     public function setId(int $id): static
     {
         $this->id = $id;
-
-        return $this;
-    }
-
-    public function getUtilisateurId(): ?int
-    {
-        return $this->utilisateur_id;
-    }
-
-    public function setUtilisateurId(int $utilisateur_id): static
-    {
-        $this->utilisateur_id = $utilisateur_id;
 
         return $this;
     }
@@ -89,14 +79,26 @@ class Professionnel
         return $this;
     }
 
-    public function getAdresseId(): ?int
+    public function getUtilisateurId(): ?Utilisateur
     {
-        return $this->adresse_id;
+        return $this->utilisateur;
     }
 
-    public function setAdresseId(int $adresse_id): static
+    public function setUtilisateurId(?Utilisateur $utilisateur): static
     {
-        $this->adresse_id = $adresse_id;
+        $this->utilisateur = $utilisateur;
+
+        return $this;
+    }
+
+    public function getAdresseId(): ?Adresse
+    {
+        return $this->adresse;
+    }
+
+    public function setAdresseId(?Adresse $adresse): static
+    {
+        $this->adresse = $adresse;
 
         return $this;
     }

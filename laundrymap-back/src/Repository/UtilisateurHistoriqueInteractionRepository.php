@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\Utilisateur;
+use App\Entity\UtilisateurHistoriqueInteraction;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Utilisateur>
+ * @extends ServiceEntityRepository<UtilisateurHistoriqueInteraction>
  */
-class UtilisateurRepository extends ServiceEntityRepository
+class UtilisateurHistoriqueInteractionRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Utilisateur::class);
+        parent::__construct($registry, UtilisateurHistoriqueInteraction::class);
     }
 
     //    /**
-    //     * @return Utilisateur[] Returns an array of Utilisateur objects
+    //     * @return UtilisateurHistoriqueInteraction[] Returns an array of UtilisateurHistoriqueInteraction objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class UtilisateurRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Utilisateur
+    //    public function findOneBySomeField($value): ?UtilisateurHistoriqueInteraction
     //    {
     //        return $this->createQueryBuilder('u')
     //            ->andWhere('u.exampleField = :val')

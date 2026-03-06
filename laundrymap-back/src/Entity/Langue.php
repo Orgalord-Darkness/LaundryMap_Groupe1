@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\LangueRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: LangueRepository::class)]
@@ -15,6 +17,7 @@ class Langue
 
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
+
 
     public function getId(): ?int
     {
@@ -39,4 +42,5 @@ class Langue
 
         return $this;
     }
+
 }

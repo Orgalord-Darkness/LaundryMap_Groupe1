@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MediaRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: MediaRepository::class)]
@@ -24,6 +26,11 @@ class Media
 
     #[ORM\Column(length: 255)]
     private ?string $mime_type = null;
+
+    public function __construct()
+    {
+        $this->laverieMedia = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -81,6 +88,33 @@ class Media
     public function setMimeType(string $mime_type): static
     {
         $this->mime_type = $mime_type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LaverieMedia>
+     */
+    public function getLaverieMedia(): Collection
+    {
+        return $this->laverieMedia;
+    }
+
+    public function addLaverieMedium(LaverieMedia $laverieMedium): static
+    {
+        if (!$this->laverieMedia->contains($laverieMedium)) {
+            $this->laverieMedia->add($laverieMedium);
+            $laverieMedium->addMediaId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLaverieMedium(LaverieMedia $laverieMedium): static
+    {
+        if ($this->laverieMedia->removeElement($laverieMedium)) {
+            $laverieMedium->removeMediaId($this);
+        }
 
         return $this;
     }
