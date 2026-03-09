@@ -61,7 +61,7 @@ final class UtilisateurController extends AbstractController
     /**
      * Route d'inscription
      */
-    #[Route('/api/v1/inscription', name: 'app_inscripion', methods: ['POST'])]
+    #[Route('/api/v1/utilisateur/inscription', name: 'app_inscripion', methods: ['POST'])]
     #[OA\Tag(name: 'Auth')]
     #[OA\RequestBody(
         required: true,
@@ -100,41 +100,77 @@ final class UtilisateurController extends AbstractController
         UtilisateurRepository $utilisateurRepository,
         TagAwareCacheInterface $cachePool,
     ): JsonResponse {
-
-        $donnees = json_decode($request->getContent(), true); 
+        
+        $donnees = json_decode($request->getContent(), true);
+        $messages = [];
+        $isGood = true; 
 
         foreach (['email', 'mot_de_passe', 'nom', 'prenom'] as $champ) {
             if (empty($donnees[$champ])) {
-                return $this->json(
-                    ['message' => "Le champ '$champ' est requis."],
-                    Response::HTTP_BAD_REQUEST
-                );
+                $message[$champ] = "Le champ '$champ' est requis.";
             }
+            $isGood = false;
+        }
+
+        $email = $donnees['email'];
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message['email'] = "Le format d'email est invalide.";
+            $isGood = false;
+        }
+        if ($utilisateurRepository->emailExiste($utilisateur->getEmail())) {
+            $message['email'] = "L'email est déjà utiliser.";
+            $isGood = false;
+        }
+
+        $nom = htmlspecialchars($donnees['nom']);
+        $prenom = htmlspecialchars($donnees['prenom']);
+        $motDePasse = $donnees['mot_de_passe'];
+
+        $verifMaj = preg_match('/[A-Z]/', $motDePasse);
+        $verifMin = preg_match('/[a-z]/', $motDePasse);
+        $verifSpec = preg_match('/[^a-zA-Z0-9]/', $motDePasse);
+
+        if (strlen($motDePasse) < 8) {
+            $message['mot_de_passe'] = "Le mot de passe doit contenir au moins 8 caractères.";
+            $isGood = false;
+        }
+        if (!$verifMaj) {
+            $message['mot_de_passe'] = "Le mot de passe doit contenir au moins 1 majuscule.";
+            $isGood = false;
+        }
+        if (!$verifMin) {
+            $message['mot_de_passe'] = "Le mot de passe doit contenir au moins 1 minuscule.";
+            $isGood = false;
+        }
+        if (!$verifSpec) {
+            $message['mot_de_passe'] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
+            $isGood = false;
         }
 
         $utilisateur = new Utilisateur();
-        $utilisateur->setEmail($donnees['email']);
-        $utilisateur->setNom($donnees['nom']);
-        $utilisateur->setPrenom($donnees['prenom']);
+        $utilisateur->setEmail($email);
+        $utilisateur->setNom($nom);
+        $utilisateur->setPrenom($prenom);
 
-        if($utilisateurRepository->emailExiste($utilisateur->getEmail())) {
-            return $this->json(
-                ['message' => 'Cet email est déjà utilisé.'],
-                Response::HTTP_CONFLICT
-            ); 
-        }
-
-        $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $donnees['mot_de_passe']); 
-        $utilisateur->setMotdePasse($motDePasseHashe); 
+        $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $donnees['mot_de_passe']);
+        $utilisateur->setMotdePasse($motDePasseHashe);
 
         $utilisateur->setStatut(StatutEnum::VALIDE);
-        $utilisateur->setDateCreation(new \DateTime()); 
-        $utilisateur->setDateModification(new \DateTime()); 
+        $utilisateur->setDateCreation(new \DateTime());
+        $utilisateur->setDateModification(new \DateTime());
         
-        $utilisateurRepository->inscription($utilisateur); 
+        $utilisateurRepository->inscription($utilisateur);
 
         $cachePool->invalidateTags(['utilisateurCache']);
         $location = $urlGenerator->generate('app_inscripion', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        if (!$isGood) {
+            return $this->json(
+                $messages,
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
         return $this->json(['message' => 'Inscription réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
         
     }
