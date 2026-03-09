@@ -26,7 +26,7 @@ final class UtilisateurController extends AbstractController
     /**
      * Route de connexion
      */
-    #[Route('/api/login_check', name: 'api_login_check_doc', methods: ['POST'])]
+    #[Route('/api/v1/utilisateur/connexion', name: 'api_login_check_doc', methods: ['POST'])]
     #[OA\Tag(name: 'Auth')]
     #[OA\RequestBody(
         required: true,
@@ -34,8 +34,8 @@ final class UtilisateurController extends AbstractController
             type: 'object',
             required: ['email', 'password'],
             properties: [
-                new OA\Property(property: 'username', type: 'string', example: 'admin'),
-                new OA\Property(property: 'password', type: 'string', example: 'adminpass')
+                new OA\Property(property: 'email', type: 'string', example: 'admin'),
+                new OA\Property(property: 'email', type: 'string', example: 'adminpass')
             ]
         )
     )]
@@ -53,9 +53,47 @@ final class UtilisateurController extends AbstractController
         response: 401,
         description: 'Identifiants invalides'
     )]
-    public function login_check_doc(): Response
+    public function login_check_doc(
+        Request $request,
+        EntityManagerInterface $em,
+        SerializerInterface $serializer,
+        UrlGeneratorInterface $urlGenerator,
+        UserPasswordHasherInterface $passwordHasher,
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool
+        ): Response
     {
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        $donnees = json_decode($request->getContent(), true);
+        $champs = ['email', 'mot_de_passe'];
+        foreach ($champs as $champ) {
+            if (empty($donnees[$champ])) {
+                return $this->json(
+                    ['message' => "Le champ '$champ' est requis."],
+                    Response::HTTP_BAD_REQUEST,
+                );
+            }
+        }
+
+        $email = $donnees['email'];
+
+        if(empty($utilisateurRepository->findActifByEmail($email))) {
+            return $this->json(
+                ['message' => "Cet email n'est pas enregistré"],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+
+        $utilisateurActif = $utilisateurRepository->findActifByEmail($email);
+        $motDePasse = $donnees['mot_de_passe'];
+        if (!password_verify($motDePasse, $utilisateurActif['mot_de_passe'])) {
+            return $this->json(
+                ['message' => "Identifiants incorrect incorrect"],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+
+
+
     }
  
     /**
@@ -102,8 +140,9 @@ final class UtilisateurController extends AbstractController
     ): JsonResponse {
 
         $donnees = json_decode($request->getContent(), true); 
+        $champs = ['email', 'mot_de_passe', 'nom', 'prenom'];
 
-        foreach (['email', 'mot_de_passe', 'nom', 'prenom'] as $champ) {
+        foreach ($champs as $champ) {
             if (empty($donnees[$champ])) {
                 return $this->json(
                     ['message' => "Le champ '$champ' est requis."],
