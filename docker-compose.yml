@@ -58,8 +58,9 @@ services:
     ports:
       - "8888:8888"
     volumes:
-      - ./laundrymap-front:/app
+      - ./laundrymap-front:/app:delegated
       - /app/node_modules
+
 
 
 volumes:
