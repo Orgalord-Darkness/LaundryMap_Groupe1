@@ -19,8 +19,8 @@ services:
     container_name: phpmyadmin
     environment:
       PMA_HOST: mariadb
-      PMA_USER: user
-      PMA_PASSWORD: user
+      PMA_USER: root
+      PMA_PASSWORD: root
     ports:
       - "3308:80"
     depends_on:
@@ -28,6 +28,9 @@ services:
 
   php:
     container_name: laundrymap-back
+    environment:
+      CORS_ALLOW_ORIGIN: "http://localhost:8888"
+
     build:
       context: ./laundrymap-back
       dockerfile: ../docker/php/Dockerfile
@@ -58,8 +61,9 @@ services:
     ports:
       - "8888:8888"
     volumes:
-      - ./laundrymap-front:/app
+      - ./laundrymap-front:/app:delegated
       - /app/node_modules
+
 
 
 volumes:
