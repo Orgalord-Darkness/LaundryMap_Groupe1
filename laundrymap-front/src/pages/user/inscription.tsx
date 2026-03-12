@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {useForm, type SubmitHandler} from "react-hook-form"
 
 type Inputs = {
@@ -16,7 +16,6 @@ export default function Inscription() {
     const {
         register, 
         handleSubmit, 
-        watch,
         formState: { errors },
         setError, 
     } = useForm<Inputs>()
