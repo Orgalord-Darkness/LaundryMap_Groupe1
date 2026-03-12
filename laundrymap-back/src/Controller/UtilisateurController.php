@@ -20,6 +20,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
+#[Route('/api/v1/utilisateur')]
 final class UtilisateurController extends AbstractController
 {
     
@@ -61,7 +62,7 @@ final class UtilisateurController extends AbstractController
     /**
      * Route d'inscription
      */
-    #[Route('/api/v1/utilisateur/inscription', name: 'app_inscripion', methods: ['POST'])]
+    #[Route('/inscription', name: 'app_inscription', methods: ['POST'])]
     #[OA\Tag(name: 'Auth')]
     #[OA\RequestBody(
         required: true,
@@ -71,6 +72,7 @@ final class UtilisateurController extends AbstractController
             properties: [
                 new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
                 new OA\Property(property: 'mot_de_passe', type: 'string', example: 'MonMotDePasse123!'),
+                new OA\Property(property: 'confirmation_mot_de_passe', type: 'string', example: 'MonMotDePasse123!'),
                 new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
                 new OA\Property(property: 'prenom', type: 'string', example: 'Jean'),
             ]
@@ -102,48 +104,60 @@ final class UtilisateurController extends AbstractController
     ): JsonResponse {
         
         $donnees = json_decode($request->getContent(), true);
+        if(!is_array($donnees)) {
+            return $this->json(
+                ['message' => 'Données invalides'],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
         $messages = [];
         $isGood = true; 
-
-        foreach (['email', 'mot_de_passe', 'nom', 'prenom'] as $champ) {
+        $champs = ['email', 'mot_de_passe', 'confirmation_mot_de_passe', 'nom', 'prenom'];
+        foreach ($champs as $champ) {
             if (empty($donnees[$champ])) {
-                $message[$champ] = "Le champ '$champ' est requis.";
+                $isGood = false;
+                $messages[$champ] = "Le champ '$champ' est requis.";
             }
-            $isGood = false;
+            
         }
 
         $email = $donnees['email'];
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $message['email'] = "Le format d'email est invalide.";
+            $messages['email']  = ($messages['email'] ?? '') . "Le format d'email est invalide.";
             $isGood = false;
         }
-        if ($utilisateurRepository->emailExiste($utilisateur->getEmail())) {
-            $message['email'] = "L'email est déjà utiliser.";
+        if ($utilisateurRepository->emailExiste($donnees['email'])) {
+            $messages['email'] = ($messages['email'] ?? '') . "L'email est déjà utilisé.";
             $isGood = false;
         }
 
         $nom = htmlspecialchars($donnees['nom']);
         $prenom = htmlspecialchars($donnees['prenom']);
         $motDePasse = $donnees['mot_de_passe'];
+        $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'];
 
+        if ($motDePasse !== $confirmationMotDePasse) {
+            $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
+            $isGood = false;
+        }
         $verifMaj = preg_match('/[A-Z]/', $motDePasse);
         $verifMin = preg_match('/[a-z]/', $motDePasse);
         $verifSpec = preg_match('/[^a-zA-Z0-9]/', $motDePasse);
 
         if (strlen($motDePasse) < 8) {
-            $message['mot_de_passe'] = "Le mot de passe doit contenir au moins 8 caractères.";
+            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 8 caractères.\n";
             $isGood = false;
         }
         if (!$verifMaj) {
-            $message['mot_de_passe'] = "Le mot de passe doit contenir au moins 1 majuscule.";
+            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 majuscule.\n";
             $isGood = false;
         }
         if (!$verifMin) {
-            $message['mot_de_passe'] = "Le mot de passe doit contenir au moins 1 minuscule.";
+            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 minuscule.\n";
             $isGood = false;
         }
         if (!$verifSpec) {
-            $message['mot_de_passe'] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
+            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 caractère spécial.\n";
             $isGood = false;
         }
 
@@ -159,10 +173,6 @@ final class UtilisateurController extends AbstractController
         $utilisateur->setDateCreation(new \DateTime());
         $utilisateur->setDateModification(new \DateTime());
         
-        $utilisateurRepository->inscription($utilisateur);
-
-        $cachePool->invalidateTags(['utilisateurCache']);
-        $location = $urlGenerator->generate('app_inscripion', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
         if (!$isGood) {
             return $this->json(
@@ -170,6 +180,11 @@ final class UtilisateurController extends AbstractController
                 Response::HTTP_BAD_REQUEST
             );
         }
+
+        $utilisateurRepository->inscription($utilisateur);
+
+        $cachePool->invalidateTags(['utilisateurCache']);
+        $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return $this->json(['message' => 'Inscription réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
         

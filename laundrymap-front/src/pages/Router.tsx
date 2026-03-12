@@ -8,11 +8,9 @@ import Inscription from "./user/inscription.tsx";
 export default function Router() {
   return (
     <Routes>
-      {/* Utilisateur */}
       <Route path="/" element={<App />} />
       <Route path="/user/inscription" element={<Inscription />} />
 
-      {/* Route pour les pages des professionnels */}
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
     </Routes>
