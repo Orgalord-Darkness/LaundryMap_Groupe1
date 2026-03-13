@@ -42,9 +42,12 @@ function App() {
         </p>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 justify-center flex gap-4">
         <Link to="/user/inscription" className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg text-white font-semibold">
           Inscription Utilisateur
+        </Link>
+        <Link to="/user/login" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-semibold">
+          Connexion Utilisateur
         </Link>
       </div>
 

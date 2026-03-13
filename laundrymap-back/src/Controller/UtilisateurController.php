@@ -27,16 +27,16 @@ final class UtilisateurController extends AbstractController
     /**
      * Route de connexion
      */
-    #[Route('/api/login_check', name: 'api_login_check_doc', methods: ['POST'])]
+    #[Route('/login_check', name: 'api_login_check_doc', methods: ['POST'])]
     #[OA\Tag(name: 'Auth')]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
             type: 'object',
-            required: ['email', 'password'],
+            required: ['email', 'mot_de_passe'],
             properties: [
                 new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
-                new OA\Property(property: 'password', type: 'string', example: 'MonMotDePasse123!')
+                new OA\Property(property: 'mot_de_passe', type: 'string', example: 'MonMotDePasse123!')
             ]
         )
     )]
@@ -66,38 +66,38 @@ final class UtilisateurController extends AbstractController
 
     ): Response
     {
+        $isGood = true; 
+        $messages = [];
         $donnees = json_decode($request->getContent(), true);
-        if (!is_array($donnees) || empty($donnees['email']) || empty($donnees['password'])) {
+        
+        if (empty($donnees['email']) || empty($donnees['mot_de_passe'])) {
+            $messages['email'] = "Le champ 'email' est requis.";
+            $messages['mot_de_passe'] = "Le champ 'mot de passe' est requis.";
+            $isGood = false;
             return $this->json(
-                ['message' => 'Données invalides'],
+                $messages,
                 Response::HTTP_BAD_REQUEST
-            );  
+            );
         }
 
         $email = $donnees['email'];
-        $motDePasse = $donnees['password'];
+        $motDePasse = $donnees['mot_de_passe'];
 
         if ($utilisateurRepository->emailExiste($email) === false) {
-            return $this->json(
-                ['message' => 'Identifiants invalides'],
-                Response::HTTP_UNAUTHORIZED
-            );
+            $messages['email'] = "Identifiants invalides.";
+            $isGood = false;
         }       
 
         $utilisateur = $utilisateurRepository->findActifByEmail($email); 
         if($utilisateur === null) {
-            return $this->json(
-                ['message' => 'Identifiants invalides'],
-                Response::HTTP_UNAUTHORIZED
-            );
+            $messages['email'] = "Identifiants invalides."; 
+            $isGood = false;
         }
         $motDePasseValide = $utilisateur->getMotDePasse(); 
         
         if(!password_verify($motDePasse, $motDePasseValide)) {
-            return $this->json(
-                ['message' => 'Identifiants invalides'],
-                Response::HTTP_UNAUTHORIZED
-            );
+            $messages['mot_de_passe'] = "Identifiants invalides.";
+            $isGood = false;
         }
 
         try {
@@ -115,6 +115,12 @@ final class UtilisateurController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 401);
         }
 
+        if (!$isGood) {
+            return $this->json(
+                $messages,
+                Response::HTTP_BAD_REQUEST
+            );
+        }
 
     }
 
@@ -177,7 +183,6 @@ final class UtilisateurController extends AbstractController
                 $isGood = false;
                 $messages[$champ] = "Le champ '$champ' est requis.";
             }
-            
         }
 
         $email = $donnees['email'];
