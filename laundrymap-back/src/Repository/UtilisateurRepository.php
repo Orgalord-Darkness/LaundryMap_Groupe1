@@ -55,7 +55,10 @@ class UtilisateurRepository extends ServiceEntityRepository
      */
     public function findOneByEmail(string $email): ?Utilisateur
     {
-        return $this->findOneBy(['email' => $email]);
+        $queryBuilder = $this->createQueryBuilder('u');
+        $queryBuilder->andWhere('u.email = :email')
+            ->setParameter('email', $email); 
+        return $queryBuilder->getQuery()->getOneOrNullResult();
     }
 
     /**
@@ -63,7 +66,7 @@ class UtilisateurRepository extends ServiceEntityRepository
      */
     public function emailExiste(string $email): bool
     {
-        return $this->findOneBy(['email' => $email]) !== null;
+        return $this->findOneByEmail($email) !== null;
     }
 
     /**

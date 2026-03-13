@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Repository\UtilisateurRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManager;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTDecoderInterface;
 use App\Entity\Utilisateur;
@@ -35,8 +35,8 @@ final class UtilisateurController extends AbstractController
             type: 'object',
             required: ['email', 'password'],
             properties: [
-                new OA\Property(property: 'username', type: 'string', example: 'admin'),
-                new OA\Property(property: 'password', type: 'string', example: 'adminpass')
+                new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
+                new OA\Property(property: 'password', type: 'string', example: 'MonMotDePasse123!')
             ]
         )
     )]
@@ -54,11 +54,70 @@ final class UtilisateurController extends AbstractController
         response: 401,
         description: 'Identifiants invalides'
     )]
-    public function login_check_doc(): Response
+    public function login_check_doc(
+        Request $request,
+        EntityManagerInterface $em,
+        SerializerInterface $serializer,
+        UrlGeneratorInterface $urlGenerator,
+        UserPasswordHasherInterface $passwordHasher,
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool,
+        JWTTokenManagerInterface $jwtManager
+
+    ): Response
     {
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        $donnees = json_decode($request->getContent(), true);
+        if (!is_array($donnees) || empty($donnees['email']) || empty($donnees['password'])) {
+            return $this->json(
+                ['message' => 'Données invalides'],
+                Response::HTTP_BAD_REQUEST
+            );  
+        }
+
+        $email = $donnees['email'];
+        $motDePasse = $donnees['password'];
+
+        if ($utilisateurRepository->emailExiste($email) === false) {
+            return $this->json(
+                ['message' => 'Identifiants invalides'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }       
+
+        $utilisateur = $utilisateurRepository->findActifByEmail($email); 
+        if($utilisateur === null) {
+            return $this->json(
+                ['message' => 'Identifiants invalides'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+        $motDePasseValide = $utilisateur->getMotDePasse(); 
+        
+        if(!password_verify($motDePasse, $motDePasseValide)) {
+            return $this->json(
+                ['message' => 'Identifiants invalides'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        try {
+            $token = $jwtManager->create($utilisateur);
+
+            return $this->json(
+                [
+                    'message' => 'Connexion réussie',
+                    'token_data' => $token,
+                ],
+                Response::HTTP_OK
+            );
+
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+
+
     }
- 
+
     /**
      * Route d'inscription
      */
