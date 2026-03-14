@@ -28,7 +28,7 @@ final class UtilisateurController extends AbstractController
      * Route de connexion
      */
     #[Route('/login_check', name: 'api_login_check_doc', methods: ['POST'])]
-    #[OA\Tag(name: 'Auth')]
+    #[OA\Tag(name: 'Utilisateur')]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
@@ -128,7 +128,7 @@ final class UtilisateurController extends AbstractController
      * Route d'inscription
      */
     #[Route('/inscription', name: 'app_inscription', methods: ['POST'])]
-    #[OA\Tag(name: 'Auth')]
+    #[OA\Tag(name: 'Utilisateur')]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
@@ -251,6 +251,162 @@ final class UtilisateurController extends AbstractController
         $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return $this->json(['message' => 'Inscription réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
+        
+    }
+
+    #[Route('/mes_informations', name: 'app_informations', methods: ['GET'])]
+    #[OA\Tag(name: 'Utilisateur')]
+    #[OA\Response(
+        response: 201,
+        description: 'Utilisateur créé avec succès',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
+                new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
+                new OA\Property(property: 'prenom', type: 'string', example: 'Jean'),
+            ]
+        )
+    )]
+    public function informations(
+        Request $request,
+        EntityManagerInterface $em,
+        SerializerInterface $serializer,
+        UrlGeneratorInterface $urlGenerator,
+        UserPasswordHasherInterface $passwordHasher,
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool,
+    ): JsonResponse {
+        $utilisateur = $this->getUser();
+
+        if (!$utilisateur) {
+            return $this->json(['message' => 'Utilisateur non authentifié'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        return $this->json($utilisateur, Response::HTTP_OK, [], [AbstractObjectNormalizer::GROUPS => ['informations']]);
+    }
+
+    /**
+     * Route de modification d'infos 
+     */
+    #[Route('/modification', name: 'app_modification', methods: ['POST'])]
+    #[OA\Tag(name: 'Utilisateur')]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            type: 'object',
+            required: ['email', 'mot_de_passe', 'nom', 'prenom'],
+            properties: [
+                new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
+                new OA\Property(property: 'mot_de_passe', type: 'string', example: 'MonMotDePasse123!'),
+                new OA\Property(property: 'confirmation_mot_de_passe', type: 'string', example: 'MonMotDePasse123!'),
+                new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
+                new OA\Property(property: 'prenom', type: 'string', example: 'Jean'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Utilisateur créé avec succès',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
+                new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
+                new OA\Property(property: 'prenom', type: 'string', example: 'Jean'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Données invalides')]
+    #[OA\Response(response: 409, description: 'Email déjà utilisé')]
+    public function modification(
+        Request $request,
+        EntityManagerInterface $em,
+        SerializerInterface $serializer,
+        UrlGeneratorInterface $urlGenerator,
+        UserPasswordHasherInterface $passwordHasher,
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool,
+    ): JsonResponse {
+
+        $donnees = json_decode($request->getContent(), true);
+        if(!is_array($donnees)) {
+            return $this->json(
+                ['message' => 'Données invalides'],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+        $messages = [];
+        $isGood = true; 
+        $champs = ['email', 'mot_de_passe', 'confirmation_mot_de_passe', 'nom', 'prenom'];
+        $email = $donnees['email'];
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $messages['email']  = ($messages['email'] ?? '') . "Le format d'email est invalide.";
+            $isGood = false;
+        }
+        if ($utilisateurRepository->emailExiste($donnees['email'])) {
+            $messages['email'] = ($messages['email'] ?? '') . "L'email est déjà utilisé.";
+            $isGood = false;
+        }
+
+        $nom = htmlspecialchars($donnees['nom']);
+        $prenom = htmlspecialchars($donnees['prenom']);
+        $motDePasse = $donnees['mot_de_passe'];
+        $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'];
+
+        if ($motDePasse !== $confirmationMotDePasse) {
+            $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
+            $isGood = false;
+        }
+        $verifMaj = preg_match('/[A-Z]/', $motDePasse);
+        $verifMin = preg_match('/[a-z]/', $motDePasse);
+        $verifSpec = preg_match('/[^a-zA-Z0-9]/', $motDePasse);
+
+        if (strlen($motDePasse) < 8) {
+            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 8 caractères.\n";
+            $isGood = false;
+        }
+        if (!$verifMaj) {
+            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 majuscule.\n";
+            $isGood = false;
+        }
+        if (!$verifMin) {
+            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 minuscule.\n";
+            $isGood = false;
+        }
+        if (!$verifSpec) {
+            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 caractère spécial.\n";
+            $isGood = false;
+        }
+
+        $utilisateur = new Utilisateur();
+        $utilisateur->setEmail($email);
+        $utilisateur->setNom($nom);
+        $utilisateur->setPrenom($prenom);
+
+        $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $donnees['mot_de_passe']);
+        $utilisateur->setMotdePasse($motDePasseHashe);
+
+        $utilisateur->setStatut(StatutEnum::VALIDE);
+        $utilisateur->setDateCreation(new \DateTime());
+        $utilisateur->setDateModification(new \DateTime());
+        
+
+        if (!$isGood) {
+            return $this->json(
+                $messages,
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $utilisateurRepository->modification($utilisateur);
+
+        $cachePool->invalidateTags(['utilisateurCache']);
+        $location = $urlGenerator->generate('app_informations', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        return $this->json(['message' => 'Informations mises à jour', 'id' => $utilisateur->getId()], Response::HTTP_OK, ['Location' => $location]);
         
     }
 }

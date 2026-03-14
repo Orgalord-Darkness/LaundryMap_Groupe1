@@ -141,4 +141,21 @@ class UtilisateurRepository extends ServiceEntityRepository
             'totalPages' => ceil($total / $limit),
         ];
     }
+
+    public function updateUser(Utilisateur $utilisateur): void
+    {
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $queryBuilder->update(Utilisateur::class, 'u')
+            ->set('u.nom', ':nom')
+            ->set('u.prenom', ':prenom')
+            ->set('u.mot_de_passe', ':motDePasse')
+            ->where('u.id = :id')
+            ->setParameter('id', $utilisateur->getId())
+            ->setParameter('nom', $utilisateur->getNom())
+            ->setParameter('prenom', $utilisateur->getPrenom())
+            ->setParameter('motDePasse', $utilisateur->getMotdePasse())
+            ->getQuery()
+            ->execute();
+        $this->getEntityManager()->flush();
+    }   
 }
