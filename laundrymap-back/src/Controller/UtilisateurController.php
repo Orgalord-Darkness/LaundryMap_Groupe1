@@ -19,6 +19,7 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Route('/api/v1/utilisateur')]
 final class UtilisateurController extends AbstractController
@@ -99,6 +100,8 @@ final class UtilisateurController extends AbstractController
             $messages['mot_de_passe'] = "Identifiants invalides.";
             $isGood = false;
         }
+
+        $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
 
         try {
             $token = $jwtManager->create($utilisateur);
@@ -254,8 +257,12 @@ final class UtilisateurController extends AbstractController
         
     }
 
+    /**
+    * Route mes informations 
+    */
     #[Route('/mes_informations', name: 'app_informations', methods: ['GET'])]
     #[OA\Tag(name: 'Utilisateur')]
+    #[OA\Security(name: 'Bearer')] 
     #[OA\Response(
         response: 201,
         description: 'Utilisateur créé avec succès',
@@ -270,21 +277,19 @@ final class UtilisateurController extends AbstractController
         )
     )]
     public function informations(
-        Request $request,
-        EntityManagerInterface $em,
-        SerializerInterface $serializer,
-        UrlGeneratorInterface $urlGenerator,
-        UserPasswordHasherInterface $passwordHasher,
         UtilisateurRepository $utilisateurRepository,
-        TagAwareCacheInterface $cachePool,
     ): JsonResponse {
-        $utilisateur = $this->getUser();
+        $utilisateur = $utilisateurRepository->findOneBy([
+            'email' => $this->getUser()->getUserIdentifier()
+        ]);
 
         if (!$utilisateur) {
-            return $this->json(['message' => 'Utilisateur non authentifié'], Response::HTTP_UNAUTHORIZED);
+            return $this->json(['message' => 'Utilisateur non trouvé'], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->json($utilisateur, Response::HTTP_OK, [], [AbstractObjectNormalizer::GROUPS => ['informations']]);
+        return $this->json($utilisateur, Response::HTTP_OK, [], [
+            AbstractObjectNormalizer::GROUPS => ['getUtilisateur']
+        ]);
     }
 
     /**
@@ -292,6 +297,7 @@ final class UtilisateurController extends AbstractController
      */
     #[Route('/modification', name: 'app_modification', methods: ['POST'])]
     #[OA\Tag(name: 'Utilisateur')]
+    #[OA\Security(name: 'Bearer')] 
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
@@ -320,7 +326,6 @@ final class UtilisateurController extends AbstractController
         )
     )]
     #[OA\Response(response: 400, description: 'Données invalides')]
-    #[OA\Response(response: 409, description: 'Email déjà utilisé')]
     public function modification(
         Request $request,
         EntityManagerInterface $em,
@@ -331,6 +336,12 @@ final class UtilisateurController extends AbstractController
         TagAwareCacheInterface $cachePool,
     ): JsonResponse {
 
+        $utilisateur = $this->getUser(); 
+
+        if (!$utilisateur) {
+            return new JsonResponse(['error' => 'Non authentifié'], 401);
+        }
+        
         $donnees = json_decode($request->getContent(), true);
         if(!is_array($donnees)) {
             return $this->json(
@@ -340,16 +351,8 @@ final class UtilisateurController extends AbstractController
         }
         $messages = [];
         $isGood = true; 
-        $champs = ['email', 'mot_de_passe', 'confirmation_mot_de_passe', 'nom', 'prenom'];
-        $email = $donnees['email'];
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $messages['email']  = ($messages['email'] ?? '') . "Le format d'email est invalide.";
-            $isGood = false;
-        }
-        if ($utilisateurRepository->emailExiste($donnees['email'])) {
-            $messages['email'] = ($messages['email'] ?? '') . "L'email est déjà utilisé.";
-            $isGood = false;
-        }
+        $champs = ['mot_de_passe', 'confirmation_mot_de_passe', 'nom', 'prenom'];
+        $email = $utilisateur->getEmail();
 
         $nom = htmlspecialchars($donnees['nom']);
         $prenom = htmlspecialchars($donnees['prenom']);
