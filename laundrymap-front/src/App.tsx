@@ -49,6 +49,9 @@ function App() {
         <Link to="/user/login" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-semibold">
           Connexion Utilisateur
         </Link>
+        <Link to="/user/informations" className="px-4 py-2 bg-yellow-500 hover:bg-blue-600 rounded-lg text-white font-semibold">
+          Mes informations
+        </Link>
       </div>
 
       <p className="mt-10 text-slate-300 text-sm">

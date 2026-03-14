@@ -103,26 +103,21 @@ final class UtilisateurController extends AbstractController
 
         $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
 
-        try {
-            $token = $jwtManager->create($utilisateur);
-
-            return $this->json(
-                [
-                    'message' => 'Connexion réussie',
-                    'token_data' => $token,
-                ],
-                Response::HTTP_OK
-            );
-
-        } catch (\Throwable $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 401);
-        }
-
         if (!$isGood) {
             return $this->json(
                 $messages,
                 Response::HTTP_BAD_REQUEST
             );
+        }
+
+        try {
+            $token = $jwtManager->create($utilisateur);
+            return $this->json([
+                'message' => 'Connexion réussie',
+                'token_data' => $token,
+            ], Response::HTTP_OK);
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
         }
 
     }
@@ -290,6 +285,7 @@ final class UtilisateurController extends AbstractController
             'id' => $utilisateur?->getId(),
             'email' => $utilisateur?->getEmail(),
             'nom' => $utilisateur?->getNom(),
+            'prenom' => $utilisateur?->getPrenom(), 
         ]);
     }
 

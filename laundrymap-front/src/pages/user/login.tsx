@@ -47,7 +47,7 @@ export default function Connexion() {
                 }
                 return
             }
-
+            localStorage.setItem("token", data.token_data)
             setSuccessMessage("Connexion réussie !")
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)
