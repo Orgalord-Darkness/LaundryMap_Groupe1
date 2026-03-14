@@ -16,4 +16,4 @@ nelmio_api_doc:
         default:
             path_patterns:
                 - ^/api
-            with_attribute: false  # ✅
+            with_attribute: false 

@@ -279,22 +279,23 @@ final class UtilisateurController extends AbstractController
     public function informations(
         UtilisateurRepository $utilisateurRepository,
     ): JsonResponse {
-        $utilisateur = $utilisateurRepository->findOneBy([
-            'email' => $this->getUser()->getUserIdentifier()
-        ]);
+        $utilisateurActuel = $this->getUser();
+        $utilisateur = $utilisateurRepository->findOneBy(['email' => $utilisateurActuel->getUserIdentifier()]);
 
-        if (!$utilisateur) {
+        if( $utilisateur === null) {
             return $this->json(['message' => 'Utilisateur non trouvé'], Response::HTTP_NOT_FOUND);
-        }
+        }   
 
-        return $this->json($utilisateur, Response::HTTP_OK, [], [
-            AbstractObjectNormalizer::GROUPS => ['getUtilisateur']
+        return $this->json([
+            'id' => $utilisateur?->getId(),
+            'email' => $utilisateur?->getEmail(),
+            'nom' => $utilisateur?->getNom(),
         ]);
     }
 
-    /**
-     * Route de modification d'infos 
-     */
+    /*
+    * Route de modification des informations personnelles 
+    */
     #[Route('/modification', name: 'app_modification', methods: ['POST'])]
     #[OA\Tag(name: 'Utilisateur')]
     #[OA\Security(name: 'Bearer')] 
@@ -304,7 +305,6 @@ final class UtilisateurController extends AbstractController
             type: 'object',
             required: ['email', 'mot_de_passe', 'nom', 'prenom'],
             properties: [
-                new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
                 new OA\Property(property: 'mot_de_passe', type: 'string', example: 'MonMotDePasse123!'),
                 new OA\Property(property: 'confirmation_mot_de_passe', type: 'string', example: 'MonMotDePasse123!'),
                 new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
@@ -319,7 +319,6 @@ final class UtilisateurController extends AbstractController
             type: 'object',
             properties: [
                 new OA\Property(property: 'id', type: 'integer', example: 1),
-                new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
                 new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
                 new OA\Property(property: 'prenom', type: 'string', example: 'Jean'),
             ]
@@ -329,33 +328,40 @@ final class UtilisateurController extends AbstractController
     public function modification(
         Request $request,
         EntityManagerInterface $em,
-        SerializerInterface $serializer,
-        UrlGeneratorInterface $urlGenerator,
         UserPasswordHasherInterface $passwordHasher,
-        UtilisateurRepository $utilisateurRepository,
+        UrlGeneratorInterface $urlGenerator,
         TagAwareCacheInterface $cachePool,
+        UtilisateurRepository $utilisateurRepository,
     ): JsonResponse {
 
-        $utilisateur = $this->getUser(); 
+        $utilisateur = $this->getUser();
 
         if (!$utilisateur) {
-            return new JsonResponse(['error' => 'Non authentifié'], 401);
+            return $this->json(['message' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $donnees = json_decode($request->getContent(), true);
-        if(!is_array($donnees)) {
-            return $this->json(
-                ['message' => 'Données invalides'],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-        $messages = [];
-        $isGood = true; 
-        $champs = ['mot_de_passe', 'confirmation_mot_de_passe', 'nom', 'prenom'];
-        $email = $utilisateur->getEmail();
 
-        $nom = htmlspecialchars($donnees['nom']);
-        $prenom = htmlspecialchars($donnees['prenom']);
+        $donnees = json_decode($request->getContent(), true);
+
+        if (!is_array($donnees)) {
+            return $this->json(['message' => 'Corps de la requête invalide ou vide'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $champs = [];
+        foreach (['mot_de_passe', 'confirmation_mot_de_passe', 'nom', 'prenom'] as $champ) {
+            if (empty($donnees[$champ])) {
+                $champs[] = $champ;
+            }
+        }
+        if (!empty($champs)) {
+            return $this->json([
+                'message' => 'Champs manquants',
+                'champs' => $champs
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $messages = [];
+        $isGood = true;
+
         $motDePasse = $donnees['mot_de_passe'];
         $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'];
 
@@ -363,53 +369,48 @@ final class UtilisateurController extends AbstractController
             $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
             $isGood = false;
         }
-        $verifMaj = preg_match('/[A-Z]/', $motDePasse);
-        $verifMin = preg_match('/[a-z]/', $motDePasse);
-        $verifSpec = preg_match('/[^a-zA-Z0-9]/', $motDePasse);
 
         if (strlen($motDePasse) < 8) {
-            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 8 caractères.\n";
+            $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 8 caractères.";
             $isGood = false;
         }
-        if (!$verifMaj) {
-            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 majuscule.\n";
+        if (!preg_match('/[A-Z]/', $motDePasse)) {
+            $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 majuscule.";
             $isGood = false;
         }
-        if (!$verifMin) {
-            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 minuscule.\n";
+        if (!preg_match('/[a-z]/', $motDePasse)) {
+            $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 minuscule.";
             $isGood = false;
         }
-        if (!$verifSpec) {
-            $messages['mot_de_passe'] = ($messages['mot_de_passe'] ?? '') . "Le mot de passe doit contenir au moins 1 caractère spécial.\n";
+        if (!preg_match('/[^a-zA-Z0-9]/', $motDePasse)) {
+            $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
             $isGood = false;
         }
-
-        $utilisateur = new Utilisateur();
-        $utilisateur->setEmail($email);
-        $utilisateur->setNom($nom);
-        $utilisateur->setPrenom($prenom);
-
-        $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $donnees['mot_de_passe']);
-        $utilisateur->setMotdePasse($motDePasseHashe);
-
-        $utilisateur->setStatut(StatutEnum::VALIDE);
-        $utilisateur->setDateCreation(new \DateTime());
-        $utilisateur->setDateModification(new \DateTime());
-        
 
         if (!$isGood) {
-            return $this->json(
-                $messages,
-                Response::HTTP_BAD_REQUEST
-            );
+            return $this->json([
+                'message' => 'Validation échouée',
+                'erreurs' => $messages
+            ], Response::HTTP_BAD_REQUEST);
         }
+
+        $utilisateur->setNom(htmlspecialchars($donnees['nom']));
+        $utilisateur->setPrenom(htmlspecialchars($donnees['prenom']));
+        $utilisateur->setMotDePasse($passwordHasher->hashPassword($utilisateur, $motDePasse));
+
 
         $utilisateurRepository->modification($utilisateur);
 
         $cachePool->invalidateTags(['utilisateurCache']);
-        $location = $urlGenerator->generate('app_informations', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
-        return $this->json(['message' => 'Informations mises à jour', 'id' => $utilisateur->getId()], Response::HTTP_OK, ['Location' => $location]);
-        
+        return $this->json([
+            'message' => 'Informations mises à jour avec succès',
+            'utilisateur' => [
+                'id' => $utilisateur->getId(),
+                'email' => $utilisateur->getEmail(),
+                'nom' => $utilisateur->getNom(),
+                'prenom' => $utilisateur->getPrenom(),
+            ]
+        ], Response::HTTP_OK);
     }
 }
