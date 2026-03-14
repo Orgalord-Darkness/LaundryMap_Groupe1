@@ -141,4 +141,10 @@ class UtilisateurRepository extends ServiceEntityRepository
             'totalPages' => ceil($total / $limit),
         ];
     }
+
+    public function modification(Utilisateur $utilisateur): void
+    {
+        $this->getEntityManager()->persist($utilisateur);
+        $this->getEntityManager()->flush();
+    }   
 }
