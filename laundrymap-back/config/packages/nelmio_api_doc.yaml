@@ -6,14 +6,14 @@ nelmio_api_doc:
             version: '1.0.0'
         components:
             securitySchemes:
-                Bearer:
+                BearerAuth:
                     type: http
                     scheme: bearer
                     bearerFormat: JWT
-
         security:
-            - Bearer: []
+            - BearerAuth: []
     areas:
         default:
-            path_patterns: 
-                - ['^/api']
+            path_patterns:
+                - ^/api
+            with_attribute: false 

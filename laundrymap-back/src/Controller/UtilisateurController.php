@@ -19,6 +19,7 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Route('/api/v1/utilisateur')]
 final class UtilisateurController extends AbstractController
@@ -28,7 +29,7 @@ final class UtilisateurController extends AbstractController
      * Route de connexion
      */
     #[Route('/login_check', name: 'api_login_check_doc', methods: ['POST'])]
-    #[OA\Tag(name: 'Auth')]
+    #[OA\Tag(name: 'Utilisateur')]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
@@ -100,20 +101,7 @@ final class UtilisateurController extends AbstractController
             $isGood = false;
         }
 
-        try {
-            $token = $jwtManager->create($utilisateur);
-
-            return $this->json(
-                [
-                    'message' => 'Connexion réussie',
-                    'token_data' => $token,
-                ],
-                Response::HTTP_OK
-            );
-
-        } catch (\Throwable $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 401);
-        }
+        $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
 
         if (!$isGood) {
             return $this->json(
@@ -122,13 +110,23 @@ final class UtilisateurController extends AbstractController
             );
         }
 
+        try {
+            $token = $jwtManager->create($utilisateur);
+            return $this->json([
+                'message' => 'Connexion réussie',
+                'token_data' => $token,
+            ], Response::HTTP_OK);
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
+        }
+
     }
 
     /**
      * Route d'inscription
      */
     #[Route('/inscription', name: 'app_inscription', methods: ['POST'])]
-    #[OA\Tag(name: 'Auth')]
+    #[OA\Tag(name: 'Utilisateur')]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
@@ -252,5 +250,160 @@ final class UtilisateurController extends AbstractController
 
         return $this->json(['message' => 'Inscription réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
         
+    }
+
+    /**
+    * Route mes informations 
+    */
+    #[Route('/mes_informations', name: 'app_informations', methods: ['GET'])]
+    #[OA\Tag(name: 'Utilisateur')]
+    #[OA\Security(name: 'Bearer')] 
+    #[OA\Response(
+        response: 201,
+        description: 'Utilisateur créé avec succès',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
+                new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
+                new OA\Property(property: 'prenom', type: 'string', example: 'Jean'),
+            ]
+        )
+    )]
+    public function informations(
+        UtilisateurRepository $utilisateurRepository,
+    ): JsonResponse {
+        $utilisateurActuel = $this->getUser();
+        $utilisateur = $utilisateurRepository->findOneBy(['email' => $utilisateurActuel->getUserIdentifier()]);
+
+        if( $utilisateur === null) {
+            return $this->json(['message' => 'Utilisateur non trouvé'], Response::HTTP_NOT_FOUND);
+        }   
+
+        return $this->json([
+            'id' => $utilisateur?->getId(),
+            'email' => $utilisateur?->getEmail(),
+            'nom' => $utilisateur?->getNom(),
+            'prenom' => $utilisateur?->getPrenom(), 
+        ]);
+    }
+
+    /*
+    * Route de modification des informations personnelles 
+    */
+    #[Route('/modification', name: 'app_modification', methods: ['POST'])]
+    #[OA\Tag(name: 'Utilisateur')]
+    #[OA\Security(name: 'Bearer')] 
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            type: 'object',
+            required: ['email', 'mot_de_passe', 'nom', 'prenom'],
+            properties: [
+                new OA\Property(property: 'mot_de_passe', type: 'string', example: 'MonMotDePasse123!'),
+                new OA\Property(property: 'confirmation_mot_de_passe', type: 'string', example: 'MonMotDePasse123!'),
+                new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
+                new OA\Property(property: 'prenom', type: 'string', example: 'Jean'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Utilisateur créé avec succès',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'nom', type: 'string', example: 'Dupont'),
+                new OA\Property(property: 'prenom', type: 'string', example: 'Jean'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Données invalides')]
+    public function modification(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $passwordHasher,
+        UrlGeneratorInterface $urlGenerator,
+        TagAwareCacheInterface $cachePool,
+        UtilisateurRepository $utilisateurRepository,
+    ): JsonResponse {
+
+        $utilisateur = $this->getUser();
+
+        if (!$utilisateur) {
+            return $this->json(['message' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $donnees = json_decode($request->getContent(), true);
+
+        if (!is_array($donnees)) {
+            return $this->json(['message' => 'Corps de la requête invalide ou vide'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $messages = [];
+        $isGood = true;
+
+        $nom = htmlspecialchars($donnees['nom'] ?? $utilisateur->getNom());
+        $prenom = htmlspecialchars($donnees['prenom'] ?? $utilisateur->getPrenom());
+        $motDePasse = $donnees['mot_de_passe'];
+        $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'];
+
+        if(password_verify($motDePasse, $utilisateur->getMotDePasse()) === true && $nom === $utilisateur->getNom() && $prenom === $utilisateur->getPrenom()) {
+            return $this->json(['message' => 'Aucune modification détectée'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if(!empty($confirmationMotDePasse)) {
+            
+            if ($motDePasse !== $confirmationMotDePasse) {
+                $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
+                $isGood = false;
+            }
+
+            if (strlen($motDePasse) < 8) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 8 caractères.";
+                $isGood = false;
+            }
+            if (!preg_match('/[A-Z]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 majuscule.";
+                $isGood = false;
+            }
+            if (!preg_match('/[a-z]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 minuscule.";
+                $isGood = false;
+            }
+            if (!preg_match('/[^a-zA-Z0-9]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
+                $isGood = false;
+            }    
+        }   
+        
+
+        if (!$isGood) {
+            return $this->json([
+                'message' => 'Validation échouée',
+                'erreurs' => $messages
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $utilisateur->setNom($nom);
+        $utilisateur->setPrenom($prenom);
+        $utilisateur->setMotDePasse($passwordHasher->hashPassword($utilisateur, $motDePasse));
+
+
+        $utilisateurRepository->modification($utilisateur);
+
+        $cachePool->invalidateTags(['utilisateurCache']);
+
+        return $this->json([
+            'message' => 'Informations mises à jour avec succès',
+            'utilisateur' => [
+                'id' => $utilisateur->getId(),
+                'email' => $utilisateur->getEmail(),
+                'nom' => $utilisateur->getNom(),
+                'prenom' => $utilisateur->getPrenom(),
+            ]
+        ], Response::HTTP_OK);
     }
 }
