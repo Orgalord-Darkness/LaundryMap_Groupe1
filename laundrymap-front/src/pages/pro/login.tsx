@@ -26,6 +26,8 @@ function ProLogin() {
 
     if (!password) {
       newErrors.password = "Le mot de passe est requis";
+    } else if (password.length < 8) {
+      newErrors.password = "Le mot de passe doit contenir au moins 8 caractères";
     }
 
     setErrors(newErrors);
@@ -70,7 +72,7 @@ function ProLogin() {
       <Field className="w-11/12 max-w-md mt-4">
         <FieldLabel htmlFor="password">Mot de passe <span className="text-orange-600">*</span></FieldLabel>
         <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} className="h-11" />
-        <FieldDescription>Choisissez un mot de passe fort & unique.</FieldDescription>
+        <FieldDescription>Ne communiquez pas votre mot de passe.</FieldDescription>
         {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
       </Field>
 
