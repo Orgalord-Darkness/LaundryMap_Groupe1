@@ -29,7 +29,7 @@ function AdminDashboard() {
 
       {/* Sections grises */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link to="/comptes-a-valider" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
+        <Link to="/admin/professionnalAdministration/professionnalAccountValidationList" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
           <div>
             <p className="font-semibold">Comptes à valider</p>
             <p className="text-sm text-gray-300"> Dernière demande il y a 48 min </p>
