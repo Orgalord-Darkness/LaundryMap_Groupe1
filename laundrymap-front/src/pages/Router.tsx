@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Routes, Route } from "react-router";
 import App from "../App";
@@ -9,6 +8,7 @@ import ProInscription from "./pro/inscription.tsx";
 import ProDashboard from "./pro/dashboard.tsx";
 import AdminLogin from "./admin/login.tsx";
 import AdminDashboard from "./admin/dashboard.tsx";
+import ProfessionnalAccountValidationList from "./admin/professionalAdministration/professionalAccountValidationList.tsx";
 
 export default function Router() {
   return (
@@ -26,6 +26,7 @@ export default function Router() {
       {/* Routes Admin */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/professionnalAdministration/professionnalAccountValidationList" element={<ProfessionnalAccountValidationList />} />
 
     </Routes>
   );

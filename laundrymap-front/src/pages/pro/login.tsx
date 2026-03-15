@@ -36,7 +36,7 @@ function ProLogin() {
 
   // Fonction pour gérer la soumission du formulaire
   const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Empêche le rechargement de la page
+    event.preventDefault(); 
 
     if (validateForm()) {
 
@@ -97,50 +97,3 @@ function ProLogin() {
 }
 
 export default ProLogin;
-
-
-
-
-
-
-// import { useState } from 'react'
-// import { Button } from "@/components/ui/button"
-// import { Input } from "@/components/ui/input"
-// import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
-
-// function ProLogin() {
-
-//   return (
-//     <>
-//       <h1 className='flex flex-col font-bold mt-10 items-center justify-center text-2xl'>Connexion</h1>
-//       <p className="flex flex-col items-center justify-center text-gray-500 ">Se connecter en tant que professionnel</p>
-      
-
-//         <Field className='w-85 m-auto items-center justify-center mt-20'>
-//           <FieldLabel htmlFor="input-field-email">Email <span className='text-orange-600'>*</span></FieldLabel>
-//           <Input id="input-field-email" type="email" placeholder="Email" className='h-11'/>
-//         </Field>
-
-//         <Field className='w-85 m-auto items-center justify-center mt-10'>
-//           <FieldLabel htmlFor="input-field-password">Mot de passe <span className='text-orange-600'>*</span></FieldLabel>
-//           <Input id="input-field-password" type="password" placeholder="Mot de passe" className="h-11 "/>
-//           <FieldDescription>Choisissez un mot de passe fort & unique.</FieldDescription>
-//         </Field>
-
-//         <p className="flex flex-col items-end mt-5 mr-5">Mot de passe oublié ?</p>
-//         <div className='flex flex-col items-center justify-center'>
-//         <p className="flex flex-col items-center mt-10 inline">Pas de compte ? 
-//           <a href="/pro/inscription" className="text-blue-500 hover:underline"> S'inscrire</a>
-//         </p>
-//         </div>
-
-//         <div className='flex flex-col items-center justify-center mt-20'>
-//           <Button>Connexion</Button>
-//         </div>
-
-
-//     </>
-//   )
-// }
-
-// export default ProLogin

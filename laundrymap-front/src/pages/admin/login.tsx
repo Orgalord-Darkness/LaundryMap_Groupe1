@@ -36,7 +36,7 @@ function AdminLogin() {
 
   // Fonction pour gérer la soumission du formulaire
   const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Empêche le rechargement de la page
+    event.preventDefault();
 
     if (validateForm()) {
 
