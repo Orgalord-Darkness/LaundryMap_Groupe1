@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,16 @@ const url = "http://localhost:8080/api/v1/utilisateur/inscription"
 
 export default function Inscription() {
     const [successMessage, setSuccessMessage] = useState("");
+    
+    useEffect(() => {
+        if (successMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage("")
+            }, 5000)
+            return () => clearTimeout(timer)
+        }
+    }, [successMessage])
+    
     const {
         register,
         handleSubmit,
@@ -54,7 +64,7 @@ export default function Inscription() {
             setSuccessMessage("Inscription réussie ! Vous pouvez maintenant vous connecter.")
             setTimeout(() => {
                 window.location.href = '/user/login'
-            }, 2000)
+            }, 5000)
 
         } catch (erreur) {
             console.error("Erreur lors de l'inscription :", erreur)

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 type Inputs = {
     prenom: string
     nom: string
-    // email: string
+    email: string
     mot_de_passe: string
     confirmation_mot_de_passe: string
 }
@@ -39,6 +39,7 @@ export default function Inscription() {
             const data = await reponse.json()
             setValue("nom", data.nom)
             setValue("prenom", data.prenom)
+            setValue("email", data.email) 
         } catch (erreur) {
             console.error("Erreur lors de la récupération des informations :", erreur)
         }
@@ -68,6 +69,15 @@ export default function Inscription() {
         }
 
     }, [data])
+
+    useEffect(() => {
+        if (successMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage("")
+            }, 5000)
+            return () => clearTimeout(timer)
+        }
+    }, [successMessage])
 
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
@@ -115,7 +125,6 @@ export default function Inscription() {
                 <Input
                     type="text"
                     {...register("prenom", { required: false })}
-                    placeholder="John"
                 />
                 {errors.prenom && <p className="text-red-500 text-xs mt-1">{errors.prenom.message}</p>}
             </div>
@@ -125,20 +134,18 @@ export default function Inscription() {
                 <Input
                     type="text"
                     {...register("nom", { required: false })}
-                    placeholder="Doe"
                 />
                 {errors.nom && <p className="text-red-500 text-xs mt-1">{errors.nom.message}</p>}
             </div>
 
-            {/* <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">Email <strong className="text-orange-500">*</strong></label>
+            <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Email</label>
                 <Input
                     type="email"
                     {...register("email", { required: false })}
-                    placeholder="john.doe@example.com"
+                    disabled={true}
                 />
-                {errors.email && <p className="text-red-500 text-xs mt-1 whitespace-pre-wrap">{errors.email.message}</p>}
-            </div> */}
+            </div>
 
             <div className="flex flex-col">
                 <label className="text-sm font-medium mb-1">Mot de passe</label>
