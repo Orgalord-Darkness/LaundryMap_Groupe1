@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,16 @@ const url = "http://localhost:8080/api/v1/utilisateur/login_check"
 
 export default function Connexion() {
     const [successMessage, setSuccessMessage] = useState("")
+    
+    useEffect(() => {
+        if (successMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage("")
+            }, 5000)
+            return () => clearTimeout(timer)
+        }
+    }, [successMessage])
+    
     const {
         register,
         handleSubmit,
@@ -47,12 +57,14 @@ export default function Connexion() {
                 }
                 return
             }
-
+            localStorage.setItem("token", data.token_data)
             setSuccessMessage("Connexion réussie !")
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)
         }
+
     }
+
 
     return (
         <form

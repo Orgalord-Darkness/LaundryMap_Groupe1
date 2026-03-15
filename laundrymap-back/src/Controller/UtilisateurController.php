@@ -103,26 +103,21 @@ final class UtilisateurController extends AbstractController
 
         $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
 
-        try {
-            $token = $jwtManager->create($utilisateur);
-
-            return $this->json(
-                [
-                    'message' => 'Connexion réussie',
-                    'token_data' => $token,
-                ],
-                Response::HTTP_OK
-            );
-
-        } catch (\Throwable $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 401);
-        }
-
         if (!$isGood) {
             return $this->json(
                 $messages,
                 Response::HTTP_BAD_REQUEST
             );
+        }
+
+        try {
+            $token = $jwtManager->create($utilisateur);
+            return $this->json([
+                'message' => 'Connexion réussie',
+                'token_data' => $token,
+            ], Response::HTTP_OK);
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 401);
         }
 
     }
@@ -290,6 +285,7 @@ final class UtilisateurController extends AbstractController
             'id' => $utilisateur?->getId(),
             'email' => $utilisateur?->getEmail(),
             'nom' => $utilisateur?->getNom(),
+            'prenom' => $utilisateur?->getPrenom(), 
         ]);
     }
 
@@ -346,46 +342,43 @@ final class UtilisateurController extends AbstractController
             return $this->json(['message' => 'Corps de la requête invalide ou vide'], Response::HTTP_BAD_REQUEST);
         }
 
-        $champs = [];
-        foreach (['mot_de_passe', 'confirmation_mot_de_passe', 'nom', 'prenom'] as $champ) {
-            if (empty($donnees[$champ])) {
-                $champs[] = $champ;
-            }
-        }
-        if (!empty($champs)) {
-            return $this->json([
-                'message' => 'Champs manquants',
-                'champs' => $champs
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
         $messages = [];
         $isGood = true;
 
+        $nom = htmlspecialchars($donnees['nom'] ?? $utilisateur->getNom());
+        $prenom = htmlspecialchars($donnees['prenom'] ?? $utilisateur->getPrenom());
         $motDePasse = $donnees['mot_de_passe'];
         $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'];
 
-        if ($motDePasse !== $confirmationMotDePasse) {
-            $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
-            $isGood = false;
+        if(password_verify($motDePasse, $utilisateur->getMotDePasse()) === true && $nom === $utilisateur->getNom() && $prenom === $utilisateur->getPrenom()) {
+            return $this->json(['message' => 'Aucune modification détectée'], Response::HTTP_BAD_REQUEST);
         }
 
-        if (strlen($motDePasse) < 8) {
-            $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 8 caractères.";
-            $isGood = false;
-        }
-        if (!preg_match('/[A-Z]/', $motDePasse)) {
-            $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 majuscule.";
-            $isGood = false;
-        }
-        if (!preg_match('/[a-z]/', $motDePasse)) {
-            $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 minuscule.";
-            $isGood = false;
-        }
-        if (!preg_match('/[^a-zA-Z0-9]/', $motDePasse)) {
-            $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
-            $isGood = false;
-        }
+        if(!empty($confirmationMotDePasse)) {
+            
+            if ($motDePasse !== $confirmationMotDePasse) {
+                $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
+                $isGood = false;
+            }
+
+            if (strlen($motDePasse) < 8) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 8 caractères.";
+                $isGood = false;
+            }
+            if (!preg_match('/[A-Z]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 majuscule.";
+                $isGood = false;
+            }
+            if (!preg_match('/[a-z]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 minuscule.";
+                $isGood = false;
+            }
+            if (!preg_match('/[^a-zA-Z0-9]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
+                $isGood = false;
+            }    
+        }   
+        
 
         if (!$isGood) {
             return $this->json([
@@ -394,8 +387,8 @@ final class UtilisateurController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        $utilisateur->setNom(htmlspecialchars($donnees['nom']));
-        $utilisateur->setPrenom(htmlspecialchars($donnees['prenom']));
+        $utilisateur->setNom($nom);
+        $utilisateur->setPrenom($prenom);
         $utilisateur->setMotDePasse($passwordHasher->hashPassword($utilisateur, $motDePasse));
 
 
