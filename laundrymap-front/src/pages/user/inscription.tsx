@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { GoogleLogin } from "@react-oauth/google"
 
 type Inputs = {
     prenom: string
@@ -148,6 +149,20 @@ export default function Inscription() {
             <p className="text-center text-sm text-gray-700 underline font-medium mt-2 cursor-pointer">
                 S'inscrire en tant que professionnel ?
             </p>
+
+            <GoogleLogin
+                onSuccess={(response) => {
+                    fetch("http://localhost:8080/api/v1/utilisateur/inscription/google", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token: response.credential })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                    localStorage.setItem("jwt", data.token);
+                    });
+                }}
+            />
         </form>
     )
 }
