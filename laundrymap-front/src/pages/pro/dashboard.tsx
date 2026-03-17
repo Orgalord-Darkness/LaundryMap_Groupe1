@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router';
+import { Header } from "@/components/layout/Header";
 
 // Composant pour une carte de laverie // Test laveries a revoir !!!!!!!!!!!!!
 function LaundryCard({ name, rating, reviews, imageUrl, status }: {
@@ -72,6 +73,9 @@ function ProDashboard() {
   };
 
   return (
+    <>
+    <Header/>
+
     <div className="flex flex-col items-center p-4 min-h-screen">
       <h1 className="font-bold text-2xl mt-6">Tableau de bord</h1>
       <p className="text-gray-500 text-center mt-2"> Aperçu globale de toutes vos laveries </p>
@@ -103,6 +107,8 @@ function ProDashboard() {
         ))}
       </div>
     </div>
+
+  </>
   );
 }
 
