@@ -3,6 +3,7 @@ import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { GoogleLogin } from "@react-oauth/google"
+import GoogleLoginButton from "@/components/utils/google"
 
 type Inputs = {
     prenom: string
@@ -150,7 +151,7 @@ export default function Inscription() {
                 S'inscrire en tant que professionnel ?
             </p>
 
-            <GoogleLogin
+            {/* <GoogleLogin
                 onSuccess={(response) => {
                     fetch("http://localhost:8080/api/v1/utilisateur/inscription/google", {
                     method: "POST",
@@ -162,7 +163,8 @@ export default function Inscription() {
                     localStorage.setItem("jwt", data.token);
                     });
                 }}
-            />
+            /> */}
+            <GoogleLoginButton />
         </form>
     )
 }

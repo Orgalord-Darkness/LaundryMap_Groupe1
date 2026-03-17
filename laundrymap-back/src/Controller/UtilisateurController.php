@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use Google\GoogleClient;
+use Google\Client as GoogleClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -290,11 +290,21 @@ final class UtilisateurController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         UtilisateurRepository $utilisateurRepository,
         TagAwareCacheInterface $cachePool,
+        JWTTokenManagerInterface $jwtManager, 
     ): JsonResponse {
-        $token = json_decode($request->getContent(), true)['token']; 
+        $code = json_decode($request->getContent(), true)['token'];
 
         $client = new GoogleClient(['client_id' => $_ENV['GOOGLE_CLIENT_ID']]);
-        $payload = $client->verifyIdToken($token);    
+        $client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
+        $client->setRedirectUri('postmessage'); // ← obligatoire avec auth-code + popup
+        
+        $tokenData = $client->fetchAccessTokenWithAuthCode($code);
+        
+        if (isset($tokenData['error'])) {
+            return $this->json(['message' => 'Code Google invalide'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $payload = $client->verifyIdToken($tokenData['id_token']);
 
         if (!$payload) {
             return $this->json(['message' => 'Token Google invalide'], Response::HTTP_BAD_REQUEST);
@@ -311,7 +321,10 @@ final class UtilisateurController extends AbstractController
             $utilisateur->setEmail($email);
             $utilisateur->setNom($nom);
             $utilisateur->setPrenom($prenom);
-            $utilisateur->setGoogleId($googleId);
+            $motDePasseAleatoire = bin2hex(random_bytes(32)); // On génère un mot de passe aléatoire pour les utilisateurs Google SSO et pour la sécurité
+            $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $motDePasseAleatoire);
+            $utilisateur->setMotDePasse($motDePasseHashe);
+            $utilisateur->setOauthId($googleId);
             $utilisateur->setStatut(StatutEnum::VALIDE);    
             $utilisateur->setDateCreation(new \DateTime());
             $utilisateur->setDateModification(new \DateTime());
@@ -322,6 +335,8 @@ final class UtilisateurController extends AbstractController
         }
 
         $jwt = $jwtManager->create($utilisateur);
+        $tokenData = $client->fetchAccessTokenWithAuthCode($code);
+
         return $this->json(['message' => 'Connexion Google réussie', 'token' => $jwt], Response::HTTP_OK);
     }
 

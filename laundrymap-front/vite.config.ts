@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from "path"
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -12,6 +11,15 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  server: {          // ← ajout
+    host: "0.0.0.0",
+    port: 8888,
+    hmr: {
+      host: "localhost",
+      port: 8888,
+      protocol: "ws",
     },
   },
 })
