@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Header } from "@/components/layout/Header";
 
 
 function AdminLogin() {
@@ -57,6 +58,7 @@ function AdminLogin() {
 
   return (
     <>
+    <Header/>
 
     <form onSubmit={handleSubmit} className="flex flex-col items-center p-4">
 
