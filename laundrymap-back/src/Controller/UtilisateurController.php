@@ -312,7 +312,7 @@ final class UtilisateurController extends AbstractController
 
         $email = $payload['email']; 
         $googleId = $payload['sub'];
-        $nom = $payload['name']; 
+        $nom = $payload['family_name']; 
         $prenom = $payload['given_name'];
 
         $utilisateur = $utilisateurRepository->findOneByEmail($email);
