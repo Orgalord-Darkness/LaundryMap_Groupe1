@@ -35,22 +35,45 @@ function ProLogin() {
   };
 
   // Fonction pour gérer la soumission du formulaire
-  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+  // const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {   // FormEvent est noté commme déprécié par mon Ide donc a voir/test
     event.preventDefault(); 
 
     if (validateForm()) {
 
-      fetch("/api/pro/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
+    
+      // doit être const url = "http://localhost:8080/api/v1/professionnel/login_check"
+
+      // fetch("/api/pro/login", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     email: email,
+      //     password: password,
+      //   }),
+      // })
+      // .then((response) => response.json())
+
+
+      fetch("http://localhost:8080/api/v1/professionnel/login_check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Identifiants invalides");
+        return response.json();
       })
-      .then((response) => response.json())
+      .then((data) => {
+        // data.token = le JWT retourné par Symfony
+        localStorage.setItem("pro_token", data.token);
+        window.location.href = "/pro/dashboard";
+      })
+      .catch(() => {
+        setErrors({ email: "", password: "Email ou mot de passe incorrect" });
+      });
  
     }
   };
