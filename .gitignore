@@ -1,0 +1,72 @@
+##############################
+# ENVIRONNEMENT & SECRETS
+##############################
+.env.local
+.env.dev
+.env.test
+
+# Symfony secrets (clé privée)
+config/secrets/*/private.key
+config/secrets/*/private.pem
+
+##############################
+# DOCKER (uniquement local)
+##############################
+docker-compose.yml
+docker-compose.override.yml
+docker/
+.docker/
+*.dockerfile
+*.Dockerfile
+docker-compose*.yaml
+docker-compose*.yml
+
+##############################
+# SYMFONY / PHP
+##############################
+/var/
+/vendor/
+/public/bundles/
+/public/build/
+/public/uploads/
+/public/media/
+/public/storage/
+
+# Cache & logs
+/var/cache/
+/var/log/
+
+# PHPUnit
+.phpunit.result.cache
+
+##############################
+# NODE / REACT
+##############################
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnp/
+.pnp.js
+.pnpm-debug.log
+
+# Build React
+/build/
+/dist/
+
+##############################
+# EDITORS & SYSTEM FILES
+##############################
+.idea/
+.vscode/
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+##############################
+# MISC
+##############################
+/coverage/
+*.cache
+*.lock
