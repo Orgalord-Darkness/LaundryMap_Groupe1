@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import GoogleLoginButton from "@/components/utils/google"
 
 type Inputs = {
     prenom: string
@@ -148,6 +149,9 @@ export default function Inscription() {
             <p className="text-center text-sm text-gray-700 underline font-medium mt-2 cursor-pointer">
                 S'inscrire en tant que professionnel ?
             </p>
+            <GoogleLoginButton
+                onSuccess={() => setSuccessMessage("Connexion Google réussie !")}
+            />
         </form>
     )
 }
