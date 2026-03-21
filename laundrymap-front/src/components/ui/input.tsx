@@ -1,10 +1,13 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { late } from "zod/v3"
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input
+      aria-label={props['aria-label'] || undefined}
+      aria-describedby={props['aria-describedby'] || undefined}
       type={type}
       data-slot="input"
       className={cn(

@@ -78,9 +78,9 @@ export default function Connexion() {
                 Se connecter en tant qu'utilisateur
             </p>
 
-            <p className="text-center text-sm text-gray-700 underline font-medium cursor-pointer">
+            <a href="/pro/login" className="text-center text-sm text-gray-700 underline font-medium cursor-pointer" aria-label="Se connecter en tant que professionnel">
                 Se connecter en tant que professionnel ?
-            </p>
+            </a>
 
             {successMessage && (
                 <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
@@ -89,13 +89,14 @@ export default function Connexion() {
             )}
 
             <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">
+                <label className="text-sm font-medium mb-1" aria-label="Email">
                     Email <strong className="text-red-500">*</strong>
                 </label>
                 <Input
                     type="email"
                     {...register("email", { required: true })}
                     placeholder="Email"
+                    aria-label="Email"
                 />
                 {errors.email && (
                     <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
@@ -109,6 +110,8 @@ export default function Connexion() {
                 <Input
                     type="password"
                     {...register("mot_de_passe", { required: true })}
+                    placeholder="Mot de passe"
+                    aria-label="Mot de passe"   
                 />
                 {errors.mot_de_passe && (
                     <p className="text-red-500 text-xs mt-1 whitespace-pre-wrap">
@@ -118,16 +121,16 @@ export default function Connexion() {
             </div>
 
             <div className="flex justify-end">
-                <a href="#" className="text-sm text-gray-700 underline underline-offset-2 hover:text-[#1e90d6] transition-colors">
+                <a href="#" className="text-sm text-gray-700 underline underline-offset-2 hover:text-[#1e90d6] transition-colors" aria-label="Mot de passe oublié">
                     Mot de passe oublié ?
                 </a>
             </div>
 
-            <p className="text-center text-sm text-gray-700 underline font-medium cursor-pointer">
+            <a href='/user/inscription' className="text-center text-sm text-gray-700 underline font-medium cursor-pointer" aria-label="S'inscrire en tant qu'utilisateur">
                 Pas de compte ? Cliquer ici pour s'inscrire
-            </p>
-            
-            <Button type="submit" className="mt-2 w-full h-12 rounded-xl">
+            </a>
+
+            <Button type="submit" className="mt-2 w-full h-12 rounded-xl" aria-label='Se connecter'>
                 Se connecter
             </Button>
         </form>
