@@ -11,3 +11,7 @@ app.swagger_ui:
 
 api_login_check:
     path: /api/login_check
+
+api_pro_login_check:
+    path: /api/v1/professionnel/login_check
+    methods: [POST]
