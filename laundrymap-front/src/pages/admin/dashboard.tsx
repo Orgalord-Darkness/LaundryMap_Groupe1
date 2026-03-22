@@ -1,6 +1,4 @@
-// import { useState } from 'react';
 import { Link } from 'react-router';
-import { Header } from "@/components/layout/Header";
 
 function AdminDashboard() {
   const stats = {
@@ -13,8 +11,6 @@ function AdminDashboard() {
 
   return (
     <>
-    <Header/>
-
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <h1 className="font-bold text-2xl mt-6 text-center">Tableau de bord</h1>
       <p className="text-gray-500 text-center mt-2"> Bienvenue dans votre espace administratif </p>
