@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Utilisateur;
 use Google\Client as GoogleClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,7 +14,6 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTDecoderInterface;
-use App\Entity\Utilisateur;
 use App\Enum\StatutEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
@@ -64,7 +64,7 @@ final class UtilisateurController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         UtilisateurRepository $utilisateurRepository,
         TagAwareCacheInterface $cachePool,
-        JWTTokenManagerInterface $jwtManager
+        JWTTokenManagerInterface $jwtManager,
 
     ): Response
     {
@@ -112,7 +112,7 @@ final class UtilisateurController extends AbstractController
         }
 
         try {
-            $token = $jwtManager->create($utilisateur);
+            $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRole()[0]]);
             return $this->json([
                 'message' => 'Connexion réussie',
                 'token_data' => $token,
@@ -296,7 +296,7 @@ final class UtilisateurController extends AbstractController
 
         $client = new GoogleClient(['client_id' => $_ENV['GOOGLE_CLIENT_ID']]);
         $client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
-        $client->setRedirectUri('postmessage'); // ← obligatoire avec auth-code + popup
+        $client->setRedirectUri('postmessage');
         
         $tokenData = $client->fetchAccessTokenWithAuthCode($code);
         

@@ -2,15 +2,17 @@ import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/components/context/AuthContext"
 
 type Inputs = {
     email: string
     mot_de_passe: string
 }
 
-const url = "http://localhost:8080/api/v1/utilisateur/login_check"
+const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/login_check`
 
 export default function Connexion() {
+     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
     
     useEffect(() => {
@@ -58,6 +60,7 @@ export default function Connexion() {
                 return
             }
             localStorage.setItem("token", data.token_data)
+            login(data.token_data)
             setSuccessMessage("Connexion réussie !")
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)

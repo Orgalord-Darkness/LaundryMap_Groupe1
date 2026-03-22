@@ -12,7 +12,7 @@ type Inputs = {
     confirmation_mot_de_passe: string
 }
 
-const url = "http://localhost:8080/api/v1/utilisateur/inscription"
+const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription`
 
 export default function Inscription() {
     const [successMessage, setSuccessMessage] = useState("");

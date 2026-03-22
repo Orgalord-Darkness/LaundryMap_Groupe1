@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\RoleEnum;
 use App\Repository\AdministrateurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -117,4 +118,9 @@ class Administrateur
 
         return $this;
     }
+
+    public static function getRole(): string 
+    {
+        return RoleEnum::ADMIN;
+    }   
 }

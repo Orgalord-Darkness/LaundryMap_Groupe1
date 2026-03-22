@@ -2,12 +2,13 @@
 
 namespace App\Entity;
 
+use App\Enum\RoleEnum;
 use App\Enum\StatutEnum;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UtilisateurRepository;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\Groups;  
 
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
 class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
@@ -187,5 +188,10 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         // rien à faire pour l'instant
+    }
+
+    public function getRole(): array
+    {
+        return [RoleEnum::USER->value];
     }
 }

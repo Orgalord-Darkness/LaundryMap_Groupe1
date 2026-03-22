@@ -18,3 +18,208 @@
   width: 20px;
   height: 20px;
 }
+
+/* ===========================
+   HEADER
+=========================== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(135deg, #2bbcd4, #1a9ab0);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(43,188,212,0.3);
+}
+
+.header-title {
+  font-weight: 700;
+  font-size: 17px;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
+}
+
+/* ===========================
+   BURGER BUTTON
+=========================== */
+
+.burger-btn {
+  background: #2bbcd4;
+  border: none;
+  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(43,188,212,0.3);
+}
+
+/* ===========================
+   MENU OVERLAY
+=========================== */
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.menu-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ===========================
+   MENU PANEL
+=========================== */
+
+.menu-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 999;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+}
+
+.menu-panel.open {
+  transform: translateX(0);
+}
+
+/* ===========================
+   MENU HEADER
+=========================== */
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.menu-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-header-logo {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #2bbcd4, #1a9ab0);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  color: #555;
+  display: flex;
+}
+
+/* ===========================
+   MENU ITEMS
+=========================== */
+
+.menu-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.menu-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: #333;
+  font-size: 15px;
+  font-family: inherit;
+  border-left: 3px solid transparent;
+  transition: 0.15s, color 0.15s;
+}
+
+.menu-item-btn.active {
+  background: #e8f8fb;
+  color: #2bbcd4;
+  font-weight: 600;
+  border-left-color: #2bbcd4;
+}
+
+.menu-item-icon {
+  color: #777;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.menu-item-btn.active .menu-item-icon {
+  color: #2bbcd4;
+}
+
+.menu-separator {
+  border: none;
+  border-top: 1px solid #f0f0f0;
+  margin: 6px 0;
+}
+
+/* ===========================
+   ROLE BADGE
+=========================== */
+
+.menu-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}

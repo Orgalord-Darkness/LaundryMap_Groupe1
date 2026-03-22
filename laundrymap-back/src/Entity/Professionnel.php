@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\RoleEnum;
 use App\Enum\StatutEnum;
 use App\Repository\ProfessionnelRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -101,5 +102,9 @@ class Professionnel
         $this->adresse = $adresse;
 
         return $this;
+    }
+
+    public static function getRole(): string {
+        return RoleEnum::PRO;
     }
 }
