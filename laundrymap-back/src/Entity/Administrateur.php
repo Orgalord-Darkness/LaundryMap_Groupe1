@@ -6,9 +6,11 @@ use App\Repository\AdministrateurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: AdministrateurRepository::class)]
-class Administrateur
+class Administrateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -63,7 +65,33 @@ class Administrateur
 
         return $this;
     }
-    
+
+
+
+    // UserInterface - A tester
+
+    // identifiant unique : l'email 
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+
+    public function getRoles(): array
+    {
+        return ['ROLE_ADMIN'];
+    }
+
+
+    // PasswordAuthenticatedUserInterface
+
+    public function getPassword(): string
+    {
+        return (string) $this->mot_de_passe;
+    }
+
+
+
     /**
      * @return Collection<int, UtilisateurHistoriqueInteraction>
      */

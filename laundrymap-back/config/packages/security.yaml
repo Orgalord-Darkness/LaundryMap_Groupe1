@@ -8,13 +8,21 @@ security:
                 class: App\Entity\Utilisateur
                 property: email 
 
+        # Nouveau provider dédié à l'Administrateur
+        admin_provider:
+            entity:
+                class: App\Entity\Administrateur
+                property: email
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
         public_api:
-            pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/doc
+            # pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/doc
+            # pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/doc
+            pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/v1/admin/login_check|^/api/doc
             stateless: true
             security: false
 
@@ -26,8 +34,27 @@ security:
                 check_path: /api/v1/professionnel/login_check
                 username_path: email
                 password_path: password
-                success_handler: App\Security\ProAuthenticationSuccessHandler
+                # success_handler: App\Security\ProAuthenticationSuccessHandler
+                success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        admin_login:
+            pattern: ^/api/v1/admin/login_check
+            stateless: true
+            provider: admin_provider
+            json_login:
+                check_path: /api/v1/admin/login_check
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        # Routes admin protégées — provider Administrateur
+        admin_api:
+            pattern: ^/api/v1/admin
+            stateless: true
+            provider: admin_provider
+            jwt: ~
 
         api:
             pattern: ^/api
@@ -38,5 +65,9 @@ security:
     access_control:
         - { path: ^/api/v1/utilisateur/(login_check|inscription), roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/professionnel/login_check, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/professionnel/inscription, roles: PUBLIC_ACCESS } 
+        - { path: ^/api/v1/admin/login_check, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         # - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        # - { path: ^/api/v1/admin, roles: ROLE_ADMIN }    // A discuter de façon/méthode pour sécuriser les routes
+        # - { path: ^/api/v1/professionnel, roles: ROLE_PRO }
