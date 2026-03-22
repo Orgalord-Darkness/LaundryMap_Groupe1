@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-import { Header } from "@/components/layout/Header";
 
 function ProLogin() {
 
+  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/pro/login`
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({
@@ -40,7 +40,7 @@ function ProLogin() {
 
     if (validateForm()) {
 
-      fetch("/api/pro/login", {
+      fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,9 +57,6 @@ function ProLogin() {
 
   return (
     <>
-
-    <Header />
-
     <form onSubmit={handleSubmit} className="flex flex-col items-center p-4">
 
       <h1 className="font-bold text-2xl mt-6">Connexion</h1>

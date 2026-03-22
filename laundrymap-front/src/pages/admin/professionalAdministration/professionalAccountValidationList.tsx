@@ -1,16 +1,8 @@
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Link } from 'react-router';
-import { Header } from "@/components/layout/Header";
-
-
 function ProfessionnalAccountValidationList() {
 
 
   return (
     <>
-    <Header/>
-
         <div className="flex flex-col items-center p-4 min-h-screen">
             <h1 className="font-bold text-2xl mt-6">Validation des comptes professionnels</h1>
             <p className="text-gray-500 text-center mt-2">Gérez les comptes professionnels en attente de validation</p>
