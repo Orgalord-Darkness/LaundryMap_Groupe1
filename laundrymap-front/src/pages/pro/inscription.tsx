@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
-import { Header } from "@/components/layout/Header";
 
 function ProInscription() {
 
+  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/pro/inscription`
   // Infos Pro
   const [lastname, setLastname] = useState("");
   const [firstname, setFirstname] = useState("");
@@ -90,7 +90,6 @@ function ProInscription() {
 
   return (
     <>
-
       <form onSubmit={handleSubmit} className="flex flex-col items-center p-4">
 
         <h1 className='flex flex-col font-bold mt-10 items-center justify-center text-2xl'>Inscription</h1>

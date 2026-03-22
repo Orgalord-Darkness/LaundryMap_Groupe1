@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Utilisateur;
+use Google\Client as GoogleClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -12,7 +14,6 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTDecoderInterface;
-use App\Entity\Utilisateur;
 use App\Enum\StatutEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
@@ -63,7 +64,7 @@ final class UtilisateurController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         UtilisateurRepository $utilisateurRepository,
         TagAwareCacheInterface $cachePool,
-        JWTTokenManagerInterface $jwtManager
+        JWTTokenManagerInterface $jwtManager,
 
     ): Response
     {
@@ -111,7 +112,7 @@ final class UtilisateurController extends AbstractController
         }
 
         try {
-            $token = $jwtManager->create($utilisateur);
+            $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRole()[0]]);
             return $this->json([
                 'message' => 'Connexion réussie',
                 'token_data' => $token,
@@ -250,6 +251,93 @@ final class UtilisateurController extends AbstractController
 
         return $this->json(['message' => 'Inscription réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
         
+    }
+
+    /**
+     * Route d'inscription via Google SSO
+     */
+    #[Route('/inscription/google', name: 'app_inscription_google', methods: ['POST'])]
+    #[OA\Tag(name: 'Utilisateur')]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            type: 'object',
+            required: ['token'],
+            properties: [
+                new OA\Property(property: 'token', type: 'string', example: 'eyJhbGciOiJSUzI1NiIs...')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Utilisateur créé via Google SSO',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'jwt', type: 'string'),
+                new OA\Property(property: 'email', type: 'string'),
+                new OA\Property(property: 'nom', type: 'string'),
+                new OA\Property(property: 'prenom', type: 'string'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Token Google invalide')]
+    public function inscriptionGoogle(
+        Request $request,
+        EntityManagerInterface $em,
+        SerializerInterface $serializer,
+        UrlGeneratorInterface $urlGenerator,
+        UserPasswordHasherInterface $passwordHasher,
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool,
+        JWTTokenManagerInterface $jwtManager, 
+    ): JsonResponse {
+        $code = json_decode($request->getContent(), true)['token'];
+
+        $client = new GoogleClient(['client_id' => $_ENV['GOOGLE_CLIENT_ID']]);
+        $client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
+        $client->setRedirectUri('postmessage');
+        
+        $tokenData = $client->fetchAccessTokenWithAuthCode($code);
+        
+        if (isset($tokenData['error'])) {
+            return $this->json(['message' => 'Code Google invalide'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $payload = $client->verifyIdToken($tokenData['id_token']);
+
+        if (!$payload) {
+            return $this->json(['message' => 'Token Google invalide'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $email = $payload['email']; 
+        $googleId = $payload['sub'];
+        $nom = $payload['family_name']; 
+        $prenom = $payload['given_name'];
+
+        $utilisateur = $utilisateurRepository->findOneByEmail($email);
+        if (!$utilisateur) {
+            $utilisateur = new Utilisateur();
+            $utilisateur->setEmail($email);
+            $utilisateur->setNom($nom);
+            $utilisateur->setPrenom($prenom);
+            $motDePasseAleatoire = bin2hex(random_bytes(32)); // On génère un mot de passe aléatoire pour les utilisateurs Google SSO et pour la sécurité
+            $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $motDePasseAleatoire);
+            $utilisateur->setMotDePasse($motDePasseHashe);
+            $utilisateur->setOauthId($googleId);
+            $utilisateur->setStatut(StatutEnum::VALIDE);    
+            $utilisateur->setDateCreation(new \DateTime());
+            $utilisateur->setDateModification(new \DateTime());
+            $utilisateurRepository->inscription($utilisateur);
+            $cachePool->invalidateTags(['utilisateurCache']);
+            $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
+            return $this->json(['message' => 'Inscription Google réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
+        }
+
+        $jwt = $jwtManager->create($utilisateur);
+        $tokenData = $client->fetchAccessTokenWithAuthCode($code);
+
+        return $this->json(['message' => 'Connexion Google réussie', 'token' => $jwt], Response::HTTP_OK);
     }
 
     /**

@@ -44,7 +44,7 @@ function LaundryCard({ name, rating, reviews, imageUrl, status }: {
 
 function ProDashboard() {
   // Données simulées pour les laveries // Test laveries a revoir !!!!!!!!!!!!!
-  const [laundries, setLaundries] = useState<Array<{
+  const [laundries] = useState<Array<{
     name: string;
     rating: number;
     reviews: number;

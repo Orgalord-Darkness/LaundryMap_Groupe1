@@ -11,8 +11,8 @@ type Inputs = {
     confirmation_mot_de_passe: string
 }
 
-const url = "http://localhost:8080/api/v1/utilisateur/modification"
-const urlInfo = "http://localhost:8080/api/v1/utilisateur/mes_informations"
+const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/modification`
+const urlInfo = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/mes_informations`
 
 export default function Inscription() {
 
