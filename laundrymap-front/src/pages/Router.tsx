@@ -40,6 +40,7 @@ import type { Role } from "../components/utils/auth";
 import App from "../App";
 import Inscription from "./user/inscription";
 import Login from "./user/login";
+import MonProfil from "./user/informations";
 import ProLogin from "./pro/login";
 import ProInscription from "./pro/inscription";
 import ProDashboard from "./pro/dashboard";
@@ -73,6 +74,7 @@ export default function Router() {
       <Route path="/" element={<App />} />
       <Route path="/user/inscription" element={<Inscription />} />
       <Route path="/user/login" element={<Login />} />
+      <Route path="/user/informations" element={<MonProfil />} />
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
