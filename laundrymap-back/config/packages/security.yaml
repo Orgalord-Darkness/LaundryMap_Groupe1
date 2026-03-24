@@ -26,7 +26,7 @@ security:
                 check_path: /api/v1/professionnel/login_check
                 username_path: email
                 password_path: password
-                success_handler: App\Security\ProAuthenticationSuccessHandler
+                success_handler: App\Security\ProAuthentificationSuccessHandler
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
         api:
