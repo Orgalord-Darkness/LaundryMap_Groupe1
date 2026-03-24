@@ -12,7 +12,7 @@ type Inputs = {
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/login_check`
 
 export default function Connexion() {
-     const { login } = useAuth()
+    const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
     
     useEffect(() => {
@@ -101,9 +101,6 @@ export default function Connexion() {
                     placeholder="Email"
                     aria-label="Email"
                 />
-                {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-                )}
             </div>
 
             <div className="flex flex-col">
@@ -116,6 +113,9 @@ export default function Connexion() {
                     placeholder="Mot de passe"
                     aria-label="Mot de passe"   
                 />
+                {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                )}
                 {errors.mot_de_passe && (
                     <p className="text-red-500 text-xs mt-1 whitespace-pre-wrap">
                         {errors.mot_de_passe.message}
