@@ -6,7 +6,6 @@ import { Field, FieldLabel } from "@/components/ui/field";
 function AdminLogin() {
 
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/login`
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/login`
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");

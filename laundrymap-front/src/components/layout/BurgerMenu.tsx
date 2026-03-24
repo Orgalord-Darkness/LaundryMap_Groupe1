@@ -22,7 +22,7 @@ function getMenuItems(role: Role): MenuItem[] {
     case "utilisateur":
       return [
         { label: "Accueil", href: "/", icon: <Icon.Home /> },
-        { label: "Mon profil", href: "/user/profil", icon: <Icon.User /> },
+        { label: "Mon profil", href: "/user/informations", icon: <Icon.User /> },
         { label: "Mes favoris", href: "/user/favoris", icon: <Icon.Heart /> },
         { label: "Mes préférences", href: "/user/preferences", icon: <Icon.Sliders /> },
         { label: "Mes avis et commentaires", href: "/user/avis", icon: <Icon.Chat /> },
