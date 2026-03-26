@@ -22,7 +22,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
       const token = localStorage.getItem("token")
       const role = getRoleFromToken(token)
-      console.log("Role extrait du token:", role)
+      if (!token) {
+        return; 
+      } 
+      const decoded = jwtDecode<{ email: string }>(token)
+      setUser({ email: decoded.email, role })
   }, [])
 
   const login = (token: string) => {
