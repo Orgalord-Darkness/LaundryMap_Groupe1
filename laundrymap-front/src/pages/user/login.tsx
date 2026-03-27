@@ -138,7 +138,7 @@ export default function Connexion() {
                 Se connecter
             </Button>
             <GoogleLoginButton
-                route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/login/google`}
+                route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`}
                 title='Se connecter avec Google'
                 onSuccess={() => setSuccessMessage("Connexion Google réussie !")}
             />
