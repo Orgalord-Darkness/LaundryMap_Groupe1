@@ -382,7 +382,7 @@ final class UtilisateurController extends AbstractController
     /*
     * Route de modification des informations personnelles 
     */
-    #[Route('/modification', name: 'app_modification', methods: ['POST'])]
+    #[Route('/modification', name: 'app_modification', methods: ['PUT'])]
     #[OA\Tag(name: 'Utilisateur')]
     #[OA\Security(name: 'Bearer')] 
     #[OA\RequestBody(
