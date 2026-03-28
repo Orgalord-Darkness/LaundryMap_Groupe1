@@ -107,11 +107,6 @@ class LaverieController extends AbstractController
             return $this->json(['message' => 'Laverie non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
-        // Vérification que le professionnel connecté est bien propriétaire de la laverie
-        if ($laverie->getProfessionnel()->getUtilisateur() !== $utilisateur) {
-            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
-        }
-
         $donnees = json_decode($request->getContent(), true);
 
         if (!is_array($donnees)) {
