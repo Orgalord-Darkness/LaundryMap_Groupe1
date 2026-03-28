@@ -29,10 +29,13 @@ use App\Entity\Service;
 use App\Entity\UtilisateurHistoriqueInteraction;
 use App\Entity\UtilisateurPreference;
 
+use App\Enum\ActionEnum;
 use App\Enum\EquipementEnum;
 use App\Enum\GeoStatutEnum;
 use App\Enum\JourEnum;
 use App\Enum\LaverieStatutEnum;
+use App\Enum\MotifEnum;
+use App\Enum\RoleEnum;
 use App\Enum\StatutEnum;
 use App\Enum\ThemeEnum;
 
@@ -45,7 +48,7 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-
+ 
          
         // Données pour les utilisateurs (mdp de base = user123)
          
@@ -54,7 +57,7 @@ class AppFixtures extends Fixture
                 'email'                   => 'luce@example.net',
                 'nom'                     => 'Luce',
                 'prenom'                  => 'Édith',
-                'mot_de_passe'            => 'user123',
+                'mot_de_passe'            => 'Utilisateur1234.',
                 'statut'                  => StatutEnum::VALIDE,
                 'date_creation'           => new \DateTime('2026-01-01 20:39:20'),
                 'date_modification'       => new \DateTime('2026-03-02 06:57:11'),
@@ -65,7 +68,7 @@ class AppFixtures extends Fixture
                 'email'                   => 'roussel@example.net',
                 'nom'                     => 'Roussel',
                 'prenom'                  => 'Olivier',
-                'mot_de_passe'            => 'user123',
+                'mot_de_passe'            => 'Utilisateur1234.',
                 'statut'                  => StatutEnum::VALIDE,
                 'date_creation'           => new \DateTime('2026-01-18 05:38:06'),
                 'date_modification'       => new \DateTime('2026-03-02 00:42:12'),
@@ -76,7 +79,7 @@ class AppFixtures extends Fixture
                 'email'                   => 'buisson@example.net',
                 'nom'                     => 'Buisson',
                 'prenom'                  => 'Léon',
-                'mot_de_passe'            => 'user123',
+                'mot_de_passe'            => 'Utilisateur1234.',
                 'statut'                  => StatutEnum::EN_ATTENTE,
                 'date_creation'           => new \DateTime('2026-03-01 05:57:31'),
                 'date_modification'       => new \DateTime('2026-03-03 04:22:25'),
@@ -87,7 +90,7 @@ class AppFixtures extends Fixture
                 'email'                   => 'lambert@example.net',
                 'nom'                     => 'Lambert',
                 'prenom'                  => 'Thomas',
-                'mot_de_passe'            => 'user123',
+                'mot_de_passe'            => 'Utilisateur1234.',
                 'statut'                  => StatutEnum::EN_ATTENTE,
                 'date_creation'           => new \DateTime('2026-02-15 10:42:38'),
                 'date_modification'       => new \DateTime('2026-03-01 15:05:44'),
@@ -95,10 +98,10 @@ class AppFixtures extends Fixture
                 'date_derniere_connexion' => new \DateTime('2026-03-04 07:48:04'),
             ],
             [
-                'email'                   => 'deschampsdiane@example.net',
+                'email'                   => 'deschamps@example.net',
                 'nom'                     => 'Deschamps',
                 'prenom'                  => 'Diane',
-                'mot_de_passe'            => 'user123',
+                'mot_de_passe'            => 'Utilisateur1234.',
                 'statut'                  => StatutEnum::REFUSE,
                 'date_creation'           => new \DateTime('2026-01-28 11:18:08'),
                 'date_modification'       => new \DateTime('2026-03-01 13:56:50'),
@@ -136,7 +139,7 @@ class AppFixtures extends Fixture
         $admin = new Administrateur();
         $admin->setEmail('admin@example.com');
         $admin->setMotDePasse(
-            $this->hasher->hashPassword($admin, 'admin123')
+            $this->hasher->hashPassword($admin, 'Admin1234.')
         );
 
         $manager->persist($admin);
@@ -216,14 +219,14 @@ class AppFixtures extends Fixture
         $professionnalsData = [
             [
                 'utilisateur'     => $users[3], // Lambert
-                'siren'           => '362 521 879',
+                'siren'           => 362521879,
                 'statut'          => StatutEnum::VALIDE,
                 'date_validation' => new \DateTime('2026-01-02 20:40:20'),
                 'adresse'         => $adresses[0],
             ],
             [
                 'utilisateur'     => $users[4], // Deschamps
-                'siren'           => '362 521 880',
+                'siren'           => 362521880,
                 'statut'          => StatutEnum::EN_ATTENTE,
                 'date_validation' => new \DateTime('2026-01-02 20:40:20'),
                 'adresse'         => $adresses[1],
@@ -357,13 +360,13 @@ class AppFixtures extends Fixture
         $laveries = [];
         foreach ($laundryData as $data) {
             $laverie = new Laverie();
-            $laverie->setProfessionnelId($data['professionnel']); // setProfessionnelId & setAdresseId semble non créé/utilisé dans laverie.php
-            $laverie->setStatut($data['statut']);
+            $laverie->setProfessionnel($data['professionnel']); // setProfessionnelId & setAdresseId semble non créé/utilisé dans laverie.php
+            $laverie->setStatut($data['statut']); 
             $laverie->setWiLineReference($data['wi_line_reference']);
             $laverie->setNomEtablissement($data['nom_etablissement']);
             $laverie->setContactEmail($data['contact_email']);
             $laverie->setDescription($data['description']);
-            $laverie->setAdresseId($data['adresse']);
+            $laverie->setAdresse($data['adresse']);
             $laverie->setDateAjout($data['date_ajout']);
             $laverie->setDateModification($data['date_modification']);
             $laverie->setSupprimeLe($data['supprimee_le']);
@@ -406,11 +409,12 @@ class AppFixtures extends Fixture
                 'commentaire_supprime_le'    => null,
             ],
         ];
-
+ 
+        $laverieNotes = [];
         foreach ($laverieNotesData as $data) {
             $laverieNote = new LaverieNote();
-            $laverieNote->setLaverieId($data['laverie']);
-            $laverieNote->setUtilisateurId($data['utilisateur']);
+            $laverieNote->setLaverie($data['laverie']);
+            $laverieNote->setUtilisateur($data['utilisateur']);
             $laverieNote->setNote($data['note']);
             $laverieNote->setNoteLe($data['note_le']);
             $laverieNote->setCommentaire($data['commentaire']);
@@ -421,7 +425,10 @@ class AppFixtures extends Fixture
             $laverieNote->setCommentaireSupprimeLe($data['commentaire_supprime_le']);
 
             $manager->persist($laverieNote);
+            $laverieNotes[] = $laverieNote;
         }
+        // $laverieNotes[0] = note Luce sur Laverie Express
+        // $laverieNotes[1] = note Roussel sur Laverie Express 2
 
 
          
@@ -450,7 +457,7 @@ class AppFixtures extends Fixture
 
         foreach ($laverieEquipmentData as $data) {
             $laverieEquipment = new LaverieEquipement();
-            $laverieEquipment->setLaverieId($data['laverie']);
+            $laverieEquipment->setLaverie($data['laverie']);
             $laverieEquipment->setEquipementReference($data['equipement_reference']);
             $laverieEquipment->setNom($data['nom']);
             $laverieEquipment->setType($data['type']);
@@ -486,7 +493,7 @@ class AppFixtures extends Fixture
 
         foreach ($laverieFermetureData as $data) {
             $laverieFermeture = new LaverieFermeture();
-            $laverieFermeture->setLaverieId($data['laverie']);
+            $laverieFermeture->setLaverie($data['laverie']);
             $laverieFermeture->setJour($data['jour']);
             $laverieFermeture->setDateAjout($data['date_ajout']);
             $laverieFermeture->setDateModification($data['date_modification']);
@@ -597,7 +604,246 @@ class AppFixtures extends Fixture
             $manager->persist($preference);
         }
 
+
+
+        // LAVERIE FERMETURES EXCEPTIONNELLES
+        
+
+        $laverieFermetureExceptionnelleData = [
+            [
+                'laverie'    => $laveries[0], // Laverie Express
+                'date_debut' => new \DateTime('2026-02-14 00:00:00'),
+                'date_fin'   => new \DateTime('2026-02-15 23:59:59'),
+                'raison'     => 'Fermeture exceptionnelle pour travaux.',
+                'date_ajout' => new \DateTime('2026-01-10 09:00:00'),
+            ],
+            [
+                'laverie'    => $laveries[1], // Laverie Express 2
+                'date_debut' => new \DateTime('2026-03-01 00:00:00'),
+                'date_fin'   => new \DateTime('2026-03-01 23:59:59'),
+                'raison'     => 'Jour férié — fermeture exceptionnelle.',
+                'date_ajout' => new \DateTime('2026-02-01 10:00:00'),
+            ],
+            [
+                'laverie'    => $laveries[2], // AutoLaverie
+                'date_debut' => new \DateTime('2026-04-18 00:00:00'),
+                'date_fin'   => new \DateTime('2026-04-21 23:59:59'),
+                'raison'     => 'Fermeture pour congés de Pâques.',
+                'date_ajout' => new \DateTime('2026-03-15 08:30:00'),
+            ],
+            [
+                'laverie'    => $laveries[0], // Laverie Express
+                'date_debut' => new \DateTime('2026-12-24 12:00:00'),
+                'date_fin'   => new \DateTime('2026-12-26 23:59:59'),
+                'raison'     => null, // Pas de raison renseignée
+                'date_ajout' => new \DateTime('2026-11-01 08:00:00'),
+            ],
+        ];
+
+        foreach ($laverieFermetureExceptionnelleData as $data) {
+            $fermetureExceptionnelle = new LaverieFermetureExceptionnelle();
+            $fermetureExceptionnelle->setLaverie($data['laverie']);
+            $fermetureExceptionnelle->setDateDebut($data['date_debut']);
+            $fermetureExceptionnelle->setDateFin($data['date_fin']);
+            $fermetureExceptionnelle->setRaison($data['raison']);
+            $fermetureExceptionnelle->setDateAjout($data['date_ajout']);
+
+            $manager->persist($fermetureExceptionnelle);
+        }
+
+
+
+        // LAVERIE HISTORIQUE INTERACTIONS
+
+        $laverieHistoriqueInteractionData = [
+            [
+                'administrateur' => $admin,
+                'laverie'        => $laveries[0], // Laverie Express
+                'action'         => ActionEnum::VALIDE,
+                'motif_action'   => null,
+                'date'           => new \DateTime('2026-01-03 10:00:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'laverie'        => $laveries[1], // Laverie Express 2
+                'action'         => ActionEnum::VALIDE,
+                'motif_action'   => null,
+                'date'           => new \DateTime('2026-01-03 10:15:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'laverie'        => $laveries[2], // AutoLaverie
+                'action'         => ActionEnum::REFUSE,
+                'motif_action'   => 'Informations du professionnel incomplètes.',
+                'date'           => new \DateTime('2026-01-04 14:30:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'laverie'        => $laveries[3], // AutoLaverie 2
+                'action'         => ActionEnum::REFUSE,
+                'motif_action'   => 'Doublon avec une laverie déjà enregistrée.',
+                'date'           => new \DateTime('2026-01-04 15:00:00'),
+            ],
+        ];
+
+        foreach ($laverieHistoriqueInteractionData as $data) {
+            $historiqueInteraction = new LaverieHistoriqueInteraction();
+            $historiqueInteraction->setAdministrateur($data['administrateur']);
+            $historiqueInteraction->setLaverie($data['laverie']);
+            $historiqueInteraction->setAction($data['action']);
+            $historiqueInteraction->setMotifAction($data['motif_action']);
+            $historiqueInteraction->setDate($data['date']);
+
+            $manager->persist($historiqueInteraction);
+        }
+
          
+
+        // LAVERIE NOTE SIGNALEMENTS
+
+        $laverieNoteSignalementData = [
+            [
+                'laverie_note' => $laverieNotes[0], // Note de Luce
+                'utilisateur'  => $users[1],        // Signalé par Roussel
+                'date'         => new \DateTime('2026-01-06 10:00:00'),
+                'motif'        => MotifEnum::SPAM,
+                'commentaire'  => 'Ce commentaire ressemble à de la publicité déguisée.',
+            ],
+            [
+                'laverie_note' => $laverieNotes[0], // Note de Luce
+                'utilisateur'  => $users[2],        // Signalé par Buisson
+                'date'         => new \DateTime('2026-01-07 11:30:00'),
+                'motif'        => MotifEnum::PROPOS_INJURIEUX,
+                'commentaire'  => null,
+            ],
+            [
+                'laverie_note' => $laverieNotes[1], // Note de Roussel
+                'utilisateur'  => $users[0],        // Signalé par Luce
+                'date'         => new \DateTime('2026-01-08 09:15:00'),
+                'motif'        => MotifEnum::PUBLICITE,
+                'commentaire'  => 'Contenu non sollicité dans le commentaire.',
+            ],
+        ];
+
+        foreach ($laverieNoteSignalementData as $data) {
+            $signalement = new LaverieNoteSignalement();
+            $signalement->setLaverieNote($data['laverie_note']);
+            $signalement->setUtilisateur($data['utilisateur']);
+            $signalement->setDate($data['date']);
+            $signalement->setMotif($data['motif']);
+            $signalement->setCommentaire($data['commentaire']);
+
+            $manager->persist($signalement);
+        }
+
+
+
+        
+        // PROFESSIONNEL HISTORIQUE INTERACTIONS
+
+        $professionnelHistoriqueInteractionData = [
+            [
+                'administrateur' => $admin,
+                'professionnel'  => $professionnels[0], // Lambert
+                'action'         => StatutEnum::VALIDE,
+                'motif_action'   => null,
+                'date'           => new \DateTime('2026-01-03 09:00:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'professionnel'  => $professionnels[0], // Lambert — second passage EN_ATTENTE avant validation
+                'action'         => StatutEnum::EN_ATTENTE,
+                'motif_action'   => 'Vérification du SIREN en cours.',
+                'date'           => new \DateTime('2026-01-02 08:30:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'professionnel'  => $professionnels[1], // Deschamps
+                'action'         => StatutEnum::EN_ATTENTE,
+                'motif_action'   => 'Dossier incomplet, en attente de pièces justificatives.',
+                'date'           => new \DateTime('2026-01-03 10:00:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'professionnel'  => $professionnels[1], // Deschamps — refus après vérification
+                'action'         => StatutEnum::REFUSE,
+                'motif_action'   => 'SIREN invalide, correspondance introuvable au registre.',
+                'date'           => new \DateTime('2026-01-05 14:00:00'),
+            ],
+        ];
+
+        foreach ($professionnelHistoriqueInteractionData as $data) {
+            $historiqueInteraction = new ProfessionnelHistoriqueInteraction();
+            $historiqueInteraction->setAdministrateur($data['administrateur']);
+            $historiqueInteraction->setProfessionnel($data['professionnel']);
+            $historiqueInteraction->setAction($data['action']);
+            $historiqueInteraction->setMotifAction($data['motif_action']);
+            $historiqueInteraction->setDate($data['date']);
+
+            $manager->persist($historiqueInteraction);
+        }
+
+
+
+        // UTILISATEUR HISTORIQUE INTERACTIONS
+
+        $utilisateurHistoriqueInteractionData = [
+            [
+                'administrateur' => $admin,
+                'utilisateur'    => $users[0], // Luce — validé
+                'action'         => StatutEnum::VALIDE,
+                'motif_action'   => null,
+                'date'           => new \DateTime('2026-01-02 08:00:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'utilisateur'    => $users[1], // Roussel — validé
+                'action'         => StatutEnum::VALIDE,
+                'motif_action'   => null,
+                'date'           => new \DateTime('2026-01-19 09:00:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'utilisateur'    => $users[2], // Buisson — en attente
+                'action'         => StatutEnum::EN_ATTENTE,
+                'motif_action'   => 'Vérification de l\'adresse email en cours.',
+                'date'           => new \DateTime('2026-03-02 10:00:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'utilisateur'    => $users[3], // Lambert — en attente
+                'action'         => StatutEnum::EN_ATTENTE,
+                'motif_action'   => 'Compte en cours de vérification.',
+                'date'           => new \DateTime('2026-02-16 08:00:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'utilisateur'    => $users[4], // Deschamps — refusé
+                'action'         => StatutEnum::EN_ATTENTE,
+                'motif_action'   => null,
+                'date'           => new \DateTime('2026-01-29 08:00:00'),
+            ],
+            [
+                'administrateur' => $admin,
+                'utilisateur'    => $users[4], // Deschamps — refusé après vérification
+                'action'         => StatutEnum::REFUSE,
+                'motif_action'   => 'Informations d\'identité non conformes.',
+                'date'           => new \DateTime('2026-02-01 14:00:00'),
+            ],
+        ];
+
+        foreach ($utilisateurHistoriqueInteractionData as $data) {
+            $historiqueInteraction = new UtilisateurHistoriqueInteraction();
+            $historiqueInteraction->setAdministrateur($data['administrateur']);
+            $historiqueInteraction->setUtilisateur($data['utilisateur']);
+            $historiqueInteraction->setAction($data['action']);
+            $historiqueInteraction->setMotifAction($data['motif_action']);
+            $historiqueInteraction->setDate($data['date']);
+
+            $manager->persist($historiqueInteraction);
+        }
+
+
 
         $manager->flush();
     }

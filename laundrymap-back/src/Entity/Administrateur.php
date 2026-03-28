@@ -18,7 +18,7 @@ class Administrateur implements UserInterface, PasswordAuthenticatedUserInterfac
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -36,12 +36,12 @@ class Administrateur implements UserInterface, PasswordAuthenticatedUserInterfac
         return $this->id;
     }
 
-    public function setId(int $id): static
-    {
-        $this->id = $id;
+    // public function setId(int $id): static
+    // {
+    //     $this->id = $id;
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
     public function getEmail(): ?string
     {
@@ -82,6 +82,8 @@ class Administrateur implements UserInterface, PasswordAuthenticatedUserInterfac
     {
         return ['ROLE_ADMIN'];
     }
+
+    public function eraseCredentials(): void {}
 
 
     // PasswordAuthenticatedUserInterface

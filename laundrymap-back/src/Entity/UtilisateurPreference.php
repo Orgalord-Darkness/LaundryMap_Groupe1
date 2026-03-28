@@ -4,8 +4,8 @@ namespace App\Entity;
 
 use App\Enum\ThemeEnum;
 use App\Repository\UtilisateurPreferenceRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+// use Doctrine\Common\Collections\ArrayCollection;
+// use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UtilisateurPreferenceRepository::class)]
@@ -30,23 +30,23 @@ class UtilisateurPreference
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $utilisateur = null;
 
-    public function __construct()
-    {
-        $this->utilisateur_id = new ArrayCollection();
-        $this->langue_id = new ArrayCollection();
-    }
+    // public function __construct()
+    // {
+    //     $this->utilisateur_id = new ArrayCollection();
+    //     $this->langue_id = new ArrayCollection();
+    // }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setId(int $id): static
-    {
-        $this->id = $id;
+    // public function setId(int $id): static
+    // {
+    //     $this->id = $id;
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
     public function getTheme(): ?ThemeEnum
     {

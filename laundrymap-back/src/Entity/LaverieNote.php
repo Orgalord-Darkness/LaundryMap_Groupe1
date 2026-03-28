@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Laverie;
 
 #[ORM\Entity(repositoryClass: LaverieNoteRepository::class)]
 class LaverieNote
@@ -16,11 +17,17 @@ class LaverieNote
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $laverie_id = null;
+    // #[ORM\Column]
+    // private ?int $laverie_id = null;
+    #[ORM\ManyToOne(targetEntity: Laverie::class)]
+    #[ORM\JoinColumn(name: 'laverie_id', referencedColumnName: 'id', nullable: false)]
+    private ?Laverie $laverie = null;
 
-    #[ORM\Column]
-    private ?int $utilisateur_id = null;
+    // #[ORM\Column]
+    // private ?int $utilisateur_id = null;
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(name: 'utilisateur_id', referencedColumnName: 'id', nullable: false)]
+    private ?Utilisateur $utilisateur = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
     private ?int $note = null;
@@ -63,27 +70,47 @@ class LaverieNote
         return $this;
     }
 
-    public function getLaverieId(): ?int
+    // public function getLaverieId(): ?int
+    // {
+    //     return $this->laverie_id;
+    // }
+
+    // public function setLaverieId(int $laverie_id): static
+    // {
+    //     $this->laverie_id = $laverie_id;
+
+    //     return $this;
+    // }
+    public function getLaverie(): ?Laverie
     {
-        return $this->laverie_id;
+        return $this->laverie;
     }
 
-    public function setLaverieId(int $laverie_id): static
+    public function setLaverie(Laverie $laverie): static
     {
-        $this->laverie_id = $laverie_id;
-
+        $this->laverie = $laverie;
         return $this;
     }
 
-    public function getUtilisateurId(): ?int
+    // public function getUtilisateurId(): ?int
+    // {
+    //     return $this->utilisateur_id;
+    // }
+
+    // public function setUtilisateurId(int $utilisateur_id): static
+    // {
+    //     $this->utilisateur_id = $utilisateur_id;
+
+    //     return $this;
+    // }
+    public function getUtilisateur(): ?Utilisateur
     {
-        return $this->utilisateur_id;
+        return $this->utilisateur;
     }
 
-    public function setUtilisateurId(int $utilisateur_id): static
+    public function setUtilisateur(Utilisateur $utilisateur): static
     {
-        $this->utilisateur_id = $utilisateur_id;
-
+        $this->utilisateur = $utilisateur;
         return $this;
     }
 
