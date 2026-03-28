@@ -22,7 +22,7 @@ security:
         public_api:
             # pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/doc
             # pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/doc
-            pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/v1/admin/login_check|^/api/doc
+            pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/doc
             stateless: true
             security: false
 

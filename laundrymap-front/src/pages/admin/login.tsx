@@ -3,12 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 
+import { useNavigate } from 'react-router';
+import { useAuth } from "@/components/context/AuthContext";
+
 function AdminLogin() {
 
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/login`
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/login`
-  const [email, setEmail] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
+  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/login_check`;
+  
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors]     = useState({ email: "", password: "" });
 
@@ -50,8 +55,8 @@ function AdminLogin() {
           return response.json();
         })
         .then((data) => {
-          localStorage.setItem("admin_token", data.token);
-          window.location.href = "/admin/dashboard";
+          login(data.token); 
+          navigate("/admin/dashboard"); 
         })
         .catch(() => {
           setErrors({ email: "", password: "Email ou mot de passe incorrect" });
@@ -62,13 +67,10 @@ function AdminLogin() {
   return (
     <>
 
-
       <form onSubmit={handleSubmit} className="flex flex-col items-center p-4">
 
         <h1 className="font-bold text-2xl mt-6">Connexion</h1>
-        <p className="text-gray-500 text-center mt-2">
-          Se connecter en tant qu'administrateur
-        </p>
+        <p className="text-gray-500 text-center mt-2"> Se connecter en tant qu'administrateur </p>
 
         <Field className="w-11/12 max-w-md mt-16">
           <FieldLabel htmlFor="email">

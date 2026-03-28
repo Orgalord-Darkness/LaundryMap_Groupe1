@@ -15,3 +15,8 @@ api_login_check:
 api_pro_login_check:
     path: /api/v1/professionnel/login_check
     methods: [POST]
+
+
+api_admin_login_check:
+    path: /api/v1/admin/login_check
+    methods: [POST]
