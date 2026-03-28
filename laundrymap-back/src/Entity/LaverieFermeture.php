@@ -15,8 +15,12 @@ class LaverieFermeture
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $laverie_id = null;
+    // #[ORM\Column]
+    // private ?int $laverie_id = null;
+    #[ORM\ManyToOne(targetEntity: Laverie::class)]
+    #[ORM\JoinColumn(name: 'laverie_id', referencedColumnName: 'id', nullable: false)]
+    private ?Laverie $laverie = null;
+
 
     #[ORM\Column(enumType: JourEnum::class)]
     private ?JourEnum $jour = null;
@@ -45,15 +49,25 @@ class LaverieFermeture
         return $this;
     }
 
-    public function getLaverieId(): ?int
+    // public function getLaverieId(): ?int
+    // {
+    //     return $this->laverie_id;
+    // }
+
+    // public function setLaverieId(int $laverie_id): static
+    // {
+    //     $this->laverie_id = $laverie_id;
+
+    //     return $this;
+    // }
+    public function getLaverie(): ?Laverie
     {
-        return $this->laverie_id;
+        return $this->laverie;
     }
 
-    public function setLaverieId(int $laverie_id): static
+    public function setLaverie(Laverie $laverie): static
     {
-        $this->laverie_id = $laverie_id;
-
+        $this->laverie = $laverie;
         return $this;
     }
 

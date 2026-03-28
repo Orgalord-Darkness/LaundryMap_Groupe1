@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Enum\EquipementEnum;
 use App\Repository\LaverieEquipementRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Laverie;
 
 #[ORM\Entity(repositoryClass: LaverieEquipementRepository::class)]
 class LaverieEquipement
@@ -14,8 +15,11 @@ class LaverieEquipement
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $laverie_id = null;
+    // #[ORM\Column]
+    // private ?int $laverie_id = null;
+    #[ORM\ManyToOne(targetEntity: Laverie::class)]
+    #[ORM\JoinColumn(name: 'laverie_id', referencedColumnName: 'id', nullable: false)]
+    private ?Laverie $laverie = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $equipement_reference = null;
@@ -47,15 +51,25 @@ class LaverieEquipement
         return $this;
     }
 
-    public function getLaverieId(): ?int
+    // public function getLaverieId(): ?int
+    // {
+    //     return $this->laverie_id;
+    // }
+
+    // public function setLaverieId(int $laverie_id): static
+    // {
+    //     $this->laverie_id = $laverie_id;
+
+    //     return $this;
+    // }
+    public function getLaverie(): ?Laverie
     {
-        return $this->laverie_id;
+        return $this->laverie;
     }
 
-    public function setLaverieId(int $laverie_id): static
+    public function setLaverie(Laverie $laverie): static
     {
-        $this->laverie_id = $laverie_id;
-
+        $this->laverie = $laverie;
         return $this;
     }
 

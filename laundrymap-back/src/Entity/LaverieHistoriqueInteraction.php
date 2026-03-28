@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\LaverieHistoriqueInteractionRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Enum\ActionEnum;
 
 #[ORM\Entity(repositoryClass: LaverieHistoriqueInteractionRepository::class)]
 class LaverieHistoriqueInteraction
@@ -21,8 +22,10 @@ class LaverieHistoriqueInteraction
     #[ORM\JoinColumn(nullable: false)]
     private ?Laverie $laverie = null;
 
-    #[ORM\Column(length: 50)]
-    private ?string $action = null;
+    // #[ORM\Column(length: 50)]
+    // private ?string $action = null;
+    #[ORM\Column(enumType: ActionEnum::class)]
+    private ?ActionEnum $action = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $motif_action = null;
@@ -59,16 +62,26 @@ class LaverieHistoriqueInteraction
         return $this;
     }
 
-    public function getAction(): ?string
-    {
-        return $this->action;
-    }
+    // public function getAction(): ?string
+    // {
+    //     return $this->action;
+    // }
 
-    public function setAction(string $action): static
+    // public function setAction(string $action): static
+    // {
+    //     $this->action = $action;
+
+    //     return $this;
+    // }
+    public function setAction(ActionEnum $action): static
     {
         $this->action = $action;
-
         return $this;
+    }
+
+    public function getAction(): ?ActionEnum
+    {
+        return $this->action;
     }
 
     public function getMotifAction(): ?string

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\LaverieFermetureExceptionnelleRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Laverie;
 
 #[ORM\Entity(repositoryClass: LaverieFermetureExceptionnelleRepository::class)]
 class LaverieFermetureExceptionnelle
@@ -13,8 +14,11 @@ class LaverieFermetureExceptionnelle
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $laverie_id = null;
+    // #[ORM\Column]
+    // private ?int $laverie_id = null;
+    #[ORM\ManyToOne(targetEntity: Laverie::class)]
+    #[ORM\JoinColumn(name: 'laverie_id', referencedColumnName: 'id', nullable: false)]
+    private ?Laverie $laverie = null;
 
     #[ORM\Column]
     private ?\DateTime $date_debut = null;
@@ -40,15 +44,25 @@ class LaverieFermetureExceptionnelle
         return $this;
     }
 
-    public function getLaverieId(): ?int
+    // public function getLaverieId(): ?int
+    // {
+    //     return $this->laverie_id;
+    // }
+
+    // public function setLaverieId(int $laverie_id): static
+    // {
+    //     $this->laverie_id = $laverie_id;
+
+    //     return $this;
+    // }
+    public function getLaverie(): ?Laverie
     {
-        return $this->laverie_id;
+        return $this->laverie;
     }
 
-    public function setLaverieId(int $laverie_id): static
+    public function setLaverie(Laverie $laverie): static
     {
-        $this->laverie_id = $laverie_id;
-
+        $this->laverie = $laverie;
         return $this;
     }
 
