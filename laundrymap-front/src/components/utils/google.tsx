@@ -1,17 +1,19 @@
 import { useGoogleLogin } from "@react-oauth/google"
 import GoogleButton from "../ui/GoogleButton"
+import { useAuth } from "../context/AuthContext";
 
-export default function GoogleLoginButton({ onSuccess }: { onSuccess?: () => void }) {   
-  const login = useGoogleLogin({
+export default function GoogleLoginButton({ onSuccess , title, route}: { onSuccess?: () => void; title: string; route: string }) {   
+  const { login } = useAuth() 
+  const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
-      fetch("http://localhost:8080/api/v1/utilisateur/inscription/google", {
+      fetch(route, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: tokenResponse.code })
       })
       .then(r => r.json())
       .then(data => {
-        localStorage.setItem("jwt", data.token)
+        login(data.token_data)
         onSuccess && onSuccess() 
       })
     },
@@ -19,6 +21,6 @@ export default function GoogleLoginButton({ onSuccess }: { onSuccess?: () => voi
   })
 
   return (
-    <GoogleButton onClick={() => login()} />
+    <GoogleButton onClick={() => googleLogin()} title={title} />
   )
 }

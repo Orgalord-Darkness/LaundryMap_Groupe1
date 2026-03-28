@@ -330,16 +330,24 @@ final class UtilisateurController extends AbstractController
             $utilisateur->setStatut(StatutEnum::VALIDE);    
             $utilisateur->setDateCreation(new \DateTime());
             $utilisateur->setDateModification(new \DateTime());
-            $utilisateurRepository->inscription($utilisateur);
-            $cachePool->invalidateTags(['utilisateurCache']);
-            $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
-            return $this->json(['message' => 'Inscription Google réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
+            $utilisateurRepository->inscription($utilisateur); 
         }
 
-        $jwt = $jwtManager->create($utilisateur);
         $tokenData = $client->fetchAccessTokenWithAuthCode($code);
 
-        return $this->json(['message' => 'Connexion Google réussie', 'token' => $jwt], Response::HTTP_OK);
+        $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
+
+        try {
+            $cachePool->invalidateTags(['utilisateurCache']);
+            $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
+            $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRole()[0]]);
+            return $this->json([
+                'message' => 'Connexion réussie',
+                'token_data' => $token,
+            ], Response::HTTP_OK);
+        } catch (\Throwable $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 401);
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-export default function GoogleButton({ onClick }: { onClick: () => void }) {
+export default function GoogleButton({ onClick, title }: { onClick: () => void; title: string }) {
   return (
     <button
       onClick={onClick}
@@ -24,7 +24,7 @@ export default function GoogleButton({ onClick }: { onClick: () => void }) {
         className="google-icon"
         />
 
-      <span>S’inscrire avec Google</span>
+      <span>{title}</span>
     </button>
   );
 }

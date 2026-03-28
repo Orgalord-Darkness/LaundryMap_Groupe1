@@ -3,6 +3,7 @@ import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/context/AuthContext"
+import GoogleLoginButton from "@/components/utils/google"
 
 type Inputs = {
     email: string
@@ -136,6 +137,11 @@ export default function Connexion() {
             <Button type="submit" className="mt-2 w-full h-12 rounded-xl" aria-label='Se connecter'>
                 Se connecter
             </Button>
+            <GoogleLoginButton
+                route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`}
+                title='Se connecter avec Google'
+                onSuccess={() => setSuccessMessage("Connexion Google réussie !")}
+            />
         </form>
     )
 }
