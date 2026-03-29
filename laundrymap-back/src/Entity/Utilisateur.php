@@ -194,4 +194,9 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return [RoleEnum::USER->value];
     }
+
+    public function getRolePro(): array
+    {
+        return [RoleEnum::PRO->value];
+    }
 }

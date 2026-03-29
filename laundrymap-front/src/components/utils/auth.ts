@@ -7,6 +7,7 @@ export function getRoleFromToken(token: string | null): Role {
     try {
         const decoded = jwtDecode<{ roles: string[], username: string }>(token)
         const roles = decoded.roles ?? []
+        console.log("Roles dans le token auth.ts:", roles) 
 
         if (roles.includes("ROLE_ADMIN")) {
             return "administrateur"

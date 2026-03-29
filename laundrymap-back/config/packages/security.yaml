@@ -26,17 +26,6 @@ security:
             stateless: true
             security: false
 
-        pro_login:
-            pattern: ^/api/v1/professionnel/login_check
-            stateless: true
-            provider: app_user_provider
-            json_login:
-                check_path: /api/v1/professionnel/login_check
-                username_path: email
-                password_path: password
-                success_handler: App\Security\ProAuthentificationSuccessHandler
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
-
         admin_login:
             pattern: ^/api/v1/admin/login_check
             stateless: true
@@ -63,7 +52,7 @@ security:
 
     access_control:
         - { path: ^/api/v1/utilisateur/(login_check|inscription), roles: PUBLIC_ACCESS }
-        - { path: ^/api/v1/professionnel/login_check, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/professionnel/(login_check|inscription), roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/professionnel/inscription, roles: PUBLIC_ACCESS } 
         - { path: ^/api/v1/admin/login_check, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }

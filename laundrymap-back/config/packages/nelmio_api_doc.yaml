@@ -71,39 +71,6 @@ nelmio_api_doc:
                         '401':
                             description: Identifiants invalides
 
-            /api/v1/professionnel/login_check:
-                post:
-                    tags:
-                        - Authentification Professionnel
-                    summary: Connexion professionnel
-                    security: [] 
-                    requestBody:
-                        required: true
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    required: [email, password]
-                                    properties:
-                                        email:
-                                            type: string
-                                            example: pro@test.fr
-                                        password:
-                                            type: string
-                                            example: MotDePasse123
-                    responses:
-                        '200':
-                            description: Token JWT retourné
-                            content:
-                                application/json:
-                                    schema:
-                                        type: object
-                                        properties:
-                                            token:
-                                                type: string
-                        '401':
-                            description: Identifiants invalides
-
     areas:
         default:
             path_patterns:
