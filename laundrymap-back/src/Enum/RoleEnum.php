@@ -4,10 +4,10 @@ namespace App\Enum;
 
 enum RoleEnum: string {
 
-    case USER = 'utilisateur';
+    case USER = 'ROLE_USER';
 
-    case PRO = 'professionnel';
+    case PRO = 'ROLE_PRO';
     
-    case ADMIN = 'administrateur';
+    case ADMIN = 'ROLE_ADMIN';
 
 }

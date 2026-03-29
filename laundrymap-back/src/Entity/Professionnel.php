@@ -105,6 +105,6 @@ class Professionnel
     }
 
     public static function getRole(): string {
-        return RoleEnum::PRO;
+       return [RoleEnum::PRO->value];
     }
 }

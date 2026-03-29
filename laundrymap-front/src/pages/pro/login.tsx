@@ -1,120 +1,129 @@
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { useEffect, useState } from "react"
+import { useForm, type SubmitHandler } from "react-hook-form"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useAuth } from "@/components/context/AuthContext"
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 
-function ProLogin() {
-
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/login_check`
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-  });
-
- // validation formulaire
-  const validateForm = () => {
-  
-    const newErrors = { email: "", password: "" };
-
-    if (!email) {
-      newErrors.email = "L'email est requis";
-    } else if (!email.includes("@") || !email.includes(".")) {
-      newErrors.email = "Email invalide";
-    }
-
-    if (!password) {
-      newErrors.password = "Le mot de passe est requis";
-    } else if (password.length < 8) {
-      newErrors.password = "Le mot de passe doit contenir au moins 8 caractères";
-    }
-
-    setErrors(newErrors);
-    return !newErrors.email && !newErrors.password;
-  };
-
-  // Fonction pour gérer la soumission du formulaire
-  // const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {   // FormEvent est noté commme déprécié par mon Ide donc a voir/test
-    event.preventDefault(); 
-
-    if (validateForm()) {
-    
-      // doit être const url = "http://localhost:8080/api/v1/professionnel/login_check"
-
-      // fetch("/api/pro/login", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     email: email,
-      //     password: password,
-      //   }),
-      // })
-      // .then((response) => response.json())
-
-
-      fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Identifiants invalides");
-        return response.json();
-      })
-      .then((data) => {
-        // data.token = le JWT retourné par Symfony
-        localStorage.setItem("pro_token", data.token);
-        window.location.href = "/pro/dashboard";
-      })
-      .catch(() => {
-        setErrors({ email: "", password: "Email ou mot de passe incorrect" });
-      });
- 
-    }
-  };
-
-  return (
-    <>
-    <form onSubmit={handleSubmit} className="flex flex-col items-center p-4">
-
-      <h1 className="font-bold text-2xl mt-6">Connexion</h1>
-      <p className="text-gray-500 text-center mt-2">Se connecter en tant que professionnel</p>
-
-      <Field className="w-11/12 max-w-md mt-16">
-        <FieldLabel htmlFor="email">Email <span className="text-orange-600">*</span></FieldLabel>
-        <Input id="email" type="email" placeholder="votre@email.com" value={email} onChange={(event) => setEmail(event.target.value)} className="h-11"/>
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-      </Field>
-
-      <Field className="w-11/12 max-w-md mt-4">
-        <FieldLabel htmlFor="password">Mot de passe <span className="text-orange-600">*</span></FieldLabel>
-        <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} className="h-11" />
-        <FieldDescription>Ne communiquez pas votre mot de passe.</FieldDescription>
-        {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-      </Field>
-
-      <p className="text-sm text-right w-11/12 max-w-md mt-2">
-        <a href="/pro/mot-de-passe-oublie" className="text-blue-500 hover:underline">Mot de passe oublié ?</a>
-      </p>
-
-      <div className="w-11/12 max-w-md mt-4 text-center">
-        <p className="text-sm inline"> Pas de compte ?{" "}
-          <a href="/pro/inscription" className="text-blue-500 hover:underline">S'inscrire</a>
-        </p>
-      </div>
-
-      <div className="w-11/12 max-w-md mt-8">
-        <Button type="submit" className="w-full">Connexion</Button>
-      </div>
-
-    </form>
-
-    </>
-  )
+type Inputs = {
+    email: string
+    mot_de_passe: string
 }
 
-export default ProLogin;
+const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/login_check`
+
+function ProLogin() {
+    const { login } = useAuth()
+    const [successMessage, setSuccessMessage] = useState("")
+
+    useEffect(() => {
+        if (successMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage("")
+            }, 5000)
+            return () => clearTimeout(timer)
+        }
+    }, [successMessage])
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        setError,
+    } = useForm<Inputs>()
+
+    const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
+        try {
+            const reponse = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(donnees),
+            })
+
+            const text = await reponse.text()
+            let data
+            try {
+                data = JSON.parse(text)
+            } catch (e) {
+                console.error("Réponse non-JSON:", text)
+                throw new Error("Réponse invalide du serveur")
+            }
+
+            if (!reponse.ok) {
+                if (data && typeof data === "object") {
+                    Object.keys(data).forEach((champ) => {
+                        setError(champ as keyof Inputs, {
+                            type: "server",
+                            message: data[champ],
+                        })
+                    })
+                }
+                return
+            }
+
+            localStorage.setItem("token", data.token_data)
+            login(data.token_data)
+            setSuccessMessage("Connexion réussie !")
+            // window.location.href = "/pro/dashboard"
+
+        } catch (erreur) {
+            console.error("Erreur lors de la connexion :", erreur)
+        }
+    }
+
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center p-4">
+
+            <h1 className="font-bold text-2xl mt-6">Connexion</h1>
+            <p className="text-gray-500 text-center mt-2">Se connecter en tant que professionnel</p>
+
+            {successMessage && (
+                <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                    {successMessage}
+                </div>
+            )}
+
+            <Field className="w-11/12 max-w-md mt-16">
+                <FieldLabel htmlFor="email">Email <span className="text-orange-600">*</span></FieldLabel>
+                <Input
+                    id="email"
+                    type="email"
+                    placeholder="votre@email.com"
+                    className="h-11"
+                    {...register("email", { required: "L'email est requis" })}
+                />
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+            </Field>
+
+            <Field className="w-11/12 max-w-md mt-4">
+                <FieldLabel htmlFor="mot_de_passe">Mot de passe <span className="text-orange-600">*</span></FieldLabel>
+                <Input
+                    id="mot_de_passe"
+                    type="password"
+                    placeholder="••••••••"
+                    className="h-11"
+                    {...register("mot_de_passe", { required: "Le mot de passe est requis" })}
+                />
+                <FieldDescription>Ne communiquez pas votre mot de passe.</FieldDescription>
+                {errors.mot_de_passe && <p className="text-red-500 text-sm mt-1">{errors.mot_de_passe.message}</p>}
+            </Field>
+
+            <p className="text-sm text-right w-11/12 max-w-md mt-2">
+                <a href="/pro/mot-de-passe-oublie" className="text-blue-500 hover:underline">Mot de passe oublié ?</a>
+            </p>
+
+            <div className="w-11/12 max-w-md mt-4 text-center">
+                <p className="text-sm inline">Pas de compte ?{" "}
+                    <a href="/pro/inscription" className="text-blue-500 hover:underline">S'inscrire</a>
+                </p>
+            </div>
+
+            <div className="w-11/12 max-w-md mt-8">
+                <Button type="submit" className="w-full">Connexion</Button>
+            </div>
+
+        </form>
+    )
+}
+
+export default ProLogin

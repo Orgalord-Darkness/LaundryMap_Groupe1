@@ -91,7 +91,7 @@ class AppFixtures extends Fixture
                 'nom'                     => 'Lambert',
                 'prenom'                  => 'Thomas',
                 'mot_de_passe'            => 'Utilisateur1234.',
-                'statut'                  => StatutEnum::EN_ATTENTE,
+                'statut'                  => StatutEnum::VALIDE,
                 'date_creation'           => new \DateTime('2026-02-15 10:42:38'),
                 'date_modification'       => new \DateTime('2026-03-01 15:05:44'),
                 'oauth_id'                => '9fa11d9b-e1f7-4337-b93d-5bc4fe6f91ae',
