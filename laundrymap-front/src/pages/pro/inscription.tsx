@@ -61,7 +61,7 @@ function ProInscription() {
 
     if (!validateForm()) return;
 
-    fetch("/api/v1/professionnel/inscription", {
+    fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
