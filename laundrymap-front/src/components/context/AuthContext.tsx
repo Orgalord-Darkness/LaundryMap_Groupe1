@@ -22,19 +22,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
       const token = localStorage.getItem("token")
       const role = getRoleFromToken(token)
-      if (!token) {
-        return; 
-      } 
-      const decoded = jwtDecode<{ email: string }>(token)
-      setUser({ email: decoded.email, role })
+
+      if (role !== "guest" && token) {
+        try {
+          const decoded = jwtDecode<{ email: string }>(token);
+          setUser({ email: decoded.email, role }); 
+        } catch {
+          localStorage.removeItem("token");
+        }
+      }
+
+      console.log("Role extrait du token:", role)
   }, [])
 
   const login = (token: string) => {
       const role = getRoleFromToken(token)
       if (role === "guest") return
-      const decoded = jwtDecode<{ email: string }>(token)
-      localStorage.setItem("token", token);
-      setUser({ email: decoded.email, role })
+
+      try {
+        const decoded = jwtDecode<{ email: string }>(token);
+        localStorage.setItem("token", token); 
+        setUser({ email: decoded.email, role });
+      } catch {
+        return;
+      }
+
+
+      // const decoded = jwtDecode<{ email: string }>(token)
+      // localStorage.setItem("token", token);
+      // setUser({ email: decoded.email, role })
   }
 
   const logout = () => {
