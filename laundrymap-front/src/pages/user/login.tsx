@@ -3,6 +3,7 @@ import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/context/AuthContext"
+import GoogleLoginButton from "@/components/utils/google"
 
 type Inputs = {
     email: string
@@ -12,7 +13,7 @@ type Inputs = {
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/login_check`
 
 export default function Connexion() {
-     const { login } = useAuth()
+    const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
     
     useEffect(() => {
@@ -101,9 +102,6 @@ export default function Connexion() {
                     placeholder="Email"
                     aria-label="Email"
                 />
-                {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-                )}
             </div>
 
             <div className="flex flex-col">
@@ -116,6 +114,9 @@ export default function Connexion() {
                     placeholder="Mot de passe"
                     aria-label="Mot de passe"   
                 />
+                {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                )}
                 {errors.mot_de_passe && (
                     <p className="text-red-500 text-xs mt-1 whitespace-pre-wrap">
                         {errors.mot_de_passe.message}
@@ -136,6 +137,11 @@ export default function Connexion() {
             <Button type="submit" className="mt-2 w-full h-12 rounded-xl" aria-label='Se connecter'>
                 Se connecter
             </Button>
+            <GoogleLoginButton
+                route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`}
+                title='Se connecter avec Google'
+                onSuccess={() => setSuccessMessage("Connexion Google réussie !")}
+            />
         </form>
     )
 }

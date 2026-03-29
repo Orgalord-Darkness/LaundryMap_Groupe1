@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 
-class ProAuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterface
+class ProAuthentificationSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
     public function __construct(
         private readonly JWTTokenManagerInterface $jwtManager,

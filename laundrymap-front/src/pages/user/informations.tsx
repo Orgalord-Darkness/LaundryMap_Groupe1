@@ -14,7 +14,7 @@ type Inputs = {
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/modification`
 const urlInfo = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/mes_informations`
 
-export default function Inscription() {
+export default function MonProfi() {
 
     const {
         register,

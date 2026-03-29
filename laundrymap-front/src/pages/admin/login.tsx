@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router';
 import { useAuth } from "@/components/context/AuthContext";
 
 function AdminLogin() {
-
+  
   const { login } = useAuth();
   const navigate = useNavigate();
 

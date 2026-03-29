@@ -68,7 +68,6 @@ final class UtilisateurController extends AbstractController
 
     ): Response
     {
-        $isGood = true; 
         $messages = [];
         $donnees = json_decode($request->getContent(), true);
         
@@ -88,28 +87,31 @@ final class UtilisateurController extends AbstractController
         if ($utilisateurRepository->emailExiste($email) === false) {
             $messages['email'] = "Identifiants invalides.";
             $isGood = false;
+            return $this->json(
+                $messages,
+                Response::HTTP_BAD_REQUEST
+            );
         }       
 
         $utilisateur = $utilisateurRepository->findActifByEmail($email); 
         if($utilisateur === null) {
             $messages['email'] = "Identifiants invalides."; 
-            $isGood = false;
-        }
-        $motDePasseValide = $utilisateur->getMotDePasse(); 
-        
-        if(!password_verify($motDePasse, $motDePasseValide)) {
-            $messages['mot_de_passe'] = "Identifiants invalides.";
-            $isGood = false;
-        }
-
-        $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
-
-        if (!$isGood) {
             return $this->json(
                 $messages,
                 Response::HTTP_BAD_REQUEST
             );
         }
+        $motDePasseValide = $utilisateur->getMotDePasse(); 
+        
+        if(!password_verify($motDePasse, $motDePasseValide)) {
+            $messages['mot_de_passe'] = "Identifiants invalides.";
+            return $this->json(
+                $messages,
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
 
         try {
             $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRole()[0]]);
@@ -328,16 +330,24 @@ final class UtilisateurController extends AbstractController
             $utilisateur->setStatut(StatutEnum::VALIDE);    
             $utilisateur->setDateCreation(new \DateTime());
             $utilisateur->setDateModification(new \DateTime());
-            $utilisateurRepository->inscription($utilisateur);
-            $cachePool->invalidateTags(['utilisateurCache']);
-            $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
-            return $this->json(['message' => 'Inscription Google réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
+            $utilisateurRepository->inscription($utilisateur); 
         }
 
-        $jwt = $jwtManager->create($utilisateur);
         $tokenData = $client->fetchAccessTokenWithAuthCode($code);
 
-        return $this->json(['message' => 'Connexion Google réussie', 'token' => $jwt], Response::HTTP_OK);
+        $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
+
+        try {
+            $cachePool->invalidateTags(['utilisateurCache']);
+            $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
+            $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRole()[0]]);
+            return $this->json([
+                'message' => 'Connexion réussie',
+                'token_data' => $token,
+            ], Response::HTTP_OK);
+        } catch (\Throwable $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 401);
+        }
     }
 
     /**
@@ -465,7 +475,12 @@ final class UtilisateurController extends AbstractController
                 $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
                 $isGood = false;
             }    
-        }   
+        } else {
+            if (!empty($motDePasse)) {
+                $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe est requise lorsque le mot de passe est modifié.";
+                $isGood = false;
+            }
+        }
         
 
         if (!$isGood) {
