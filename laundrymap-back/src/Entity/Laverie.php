@@ -348,30 +348,6 @@ class Laverie
         return $this;
     }
 
-    public function getProfessionnel(): ?Professionnel
-    {
-        return $this->professionnel;
-    }       
-
-    public function setProfessionnel(?Professionnel $professionnel): static
-    {
-        $this->professionnel = $professionnel;
-
-        return $this;
-    }
-
-    public function getAdresse(): ?Adresse 
-    {
-        return $this->adresse;
-    }
-
-    public function setAdresse(?Adresse $adresse): static
-    {
-        $this->adresse = $adresse;
-
-        return $this;
-    }
-
 
 
 }

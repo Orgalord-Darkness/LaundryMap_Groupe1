@@ -40,4 +40,29 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function getHistorique(): ?array
+    {
+        $qb = $this->createQueryBuilder('h') //h.laverie est une relation ManyToOne Doctrine ne permet pas h.laverie_id IDENTITY(h.laverie) récupère l’ID de la relation
+            ->select(
+                'h.id',
+                'h.date',
+                'h.action',
+                'h.motif_action',
+                'IDENTITY(h.laverie) AS laverie_id',
+                'l.nom_etablissement AS laverie_nom',
+                'u.nom AS proprietaire_nom',
+                'u.prenom AS proprietaire_prenom',
+                'm.nom_original AS logo_nom',
+                'IDENTITY(h.administrateur) AS administrateur_id'
+            )
+            ->join('h.laverie', 'l')
+            ->join('l.professionnel', 'p')
+            ->join('p.utilisateur', 'u')
+            ->leftJoin('l.logo', 'm')
+            ->orderBy('h.date', 'DESC');
+
+        return $qb->getQuery()->getArrayResult();
+    }
+
 }

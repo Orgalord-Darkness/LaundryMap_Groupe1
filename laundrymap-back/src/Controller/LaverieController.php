@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use App\Repository\LaverieHistoriqueInteractionRepository;
 
 
 #[Route('/api/v1/laverie')]
@@ -165,13 +166,11 @@ class LaverieController extends AbstractController
             }
         }
 
-        // --- Relation ManyToMany : Méthodes de paiement ---
         if (isset($donnees['methodes_paiement']) && is_array($donnees['methodes_paiement'])) {
-            // On retire toutes les méthodes actuelles
+
             foreach ($laverie->getMethodePaiements() as $methode) {
                 $laverie->removeMethodePaiement($methode);
             }
-            // On ajoute les nouvelles
             foreach ($donnees['methodes_paiement'] as $methodeId) {
                 $methode = $em->getRepository(MethodePaiement::class)->find((int) $methodeId);
                 if (!$methode) {
@@ -208,5 +207,37 @@ class LaverieController extends AbstractController
                 ])->toArray(),
             ]
         ], Response::HTTP_OK);
+    }
+
+
+    #[Route('/historique', name: 'app_historique_laverie', methods: ['GET'])]
+    #[OA\Tag(name: 'Laverie')]
+    #[OA\Security(name: 'Bearer')] 
+    #[OA\Response(
+        response: 200,
+        description: 'Historique récupéré avec succès',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'id', type: 'integer', example: 12),
+                    new OA\Property(property: 'type_interaction', type: 'string', example: 'connexion'),
+                    new OA\Property(property: 'timestamp', type: 'string', format: 'date-time', example: '2024-03-15T14:23:00Z'),
+                    new OA\Property(property: 'laverie_nom', type: 'string', example: 'Laverie du Centre'),
+                    new OA\Property(property: 'motif_interaction', type: 'string', example: 'Consultation du tableau de bord'),
+                    new OA\Property(property: 'action', type: 'string', example: 'lecture'),
+                    new OA\Property(property: 'administateur_id', type: 'integer', example: 3),
+                ]
+            )
+        )
+    )]
+    public function historique(
+        LaverieHistoriqueInteractionRepository $laverieHistoriqueInteractionRepository,
+        TagAwareCacheInterface $cachePool
+    ) {
+        $laveries = $laverieHistoriqueInteractionRepository->getHistorique();
+
+        return $this->json($laveries, Response::HTTP_OK);       
     }
 }
