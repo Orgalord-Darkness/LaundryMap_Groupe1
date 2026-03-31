@@ -41,7 +41,7 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    public function getHistorique(): ?array
+    public function getHistorique($offset = 0, $limit=10): ?array
     {
         $qb = $this->createQueryBuilder('h') //h.laverie est une relation ManyToOne Doctrine ne permet pas h.laverie_id IDENTITY(h.laverie) récupère l’ID de la relation
             ->select(
@@ -60,9 +60,19 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
             ->join('l.professionnel', 'p')
             ->join('p.utilisateur', 'u')
             ->leftJoin('l.logo', 'm')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
             ->orderBy('h.date', 'DESC');
 
         return $qb->getQuery()->getArrayResult();
+    }
+
+    public function getHistoriqueCount(): ?int 
+    {
+        $qb = $this->createQueryBuilder('h')
+            ->select('COUNT(h.id)');
+
+        return (int) $qb->getQuery()->getSingleScalarResult();  
     }
 
 }

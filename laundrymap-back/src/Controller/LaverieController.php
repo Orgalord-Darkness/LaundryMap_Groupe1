@@ -233,11 +233,22 @@ class LaverieController extends AbstractController
         )
     )]
     public function historique(
+        Request $request,
         LaverieHistoriqueInteractionRepository $laverieHistoriqueInteractionRepository,
         TagAwareCacheInterface $cachePool
     ) {
-        $laveries = $laverieHistoriqueInteractionRepository->getHistorique();
+        $offset = (int) $request->query->get('offset', 0);
+        $limit = 10;
 
-        return $this->json($laveries, Response::HTTP_OK);       
+        $total = $laverieHistoriqueInteractionRepository->getHistoriqueCount();
+
+        $enregistrements = $laverieHistoriqueInteractionRepository->getHistorique($offset, $limit);
+
+        return $this->json([
+            'total' => $total, 
+            'offset' => $offset,
+            'limit' => $limit, 
+            'enregistrements' => $enregistrements
+        ], RESPONSE::HTTP_OK); 
     }
 }
