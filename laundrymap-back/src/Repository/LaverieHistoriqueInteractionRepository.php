@@ -40,4 +40,46 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function laverieValidation(Laverie $laverie, Administrateur $administrateur, StatutEnum $statut, string $action, string $motif): void 
+    {
+        $entityManager = $this->getEntityManager();
+
+        $formatDate = new \DateTime('now');
+
+        $laverieHistoriqueInteraction = new LaverieHistoriqueInteraction();
+        $laverieHistoriqueInteraction->setLaverie($laverie);
+        $laverieHistoriqueInteraction->setAdministrateur($administrateur);
+        $laverieHistoriqueInteraction->setAction($action);
+        $laverieHistoriqueInteraction->setMotifAction($motif);
+        $laverieHistoriqueInteraction->setDate(new \DateTime());
+        $laverieHistoriqueInteraction->setStatut($statut);
+        $laverieHistoriqueInteraction->setDate($formatDate);
+
+        $entityManager->persist($laverieHistoriqueInteraction);
+        $entityManager->flush();
+    }
 }

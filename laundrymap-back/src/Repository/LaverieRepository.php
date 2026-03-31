@@ -40,4 +40,16 @@ class LaverieRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    public function findAllWithDetails($offset = 0, $limit = 10, $statut = 'EN_ATTENTE'): array
+    {
+        $qb = $this->createQueryBuilder('l')
+            ->select('l', 'p', 'u', 'm')
+            ->where('l.statut = :statut')
+            ->setParameter('statut', $statut)
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ;
+        return $qb->getQuery()->getArrayResult();
+    }
 }
