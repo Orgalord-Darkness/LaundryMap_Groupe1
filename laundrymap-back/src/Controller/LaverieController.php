@@ -212,24 +212,36 @@ class LaverieController extends AbstractController
 
     #[Route('/historique', name: 'app_historique_laverie', methods: ['GET'])]
     #[OA\Tag(name: 'Laverie')]
-    #[OA\Security(name: 'Bearer')] 
+    #[OA\Security(name: 'Bearer')]
+    #[OA\Parameter(
+        name: 'page',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'integer', example: 1)
+    )]
     #[OA\Response(
         response: 200,
         description: 'Historique récupéré avec succès',
         content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(
-                type: 'object',
-                properties: [
-                    new OA\Property(property: 'id', type: 'integer', example: 12),
-                    new OA\Property(property: 'type_interaction', type: 'string', example: 'connexion'),
-                    new OA\Property(property: 'timestamp', type: 'string', format: 'date-time', example: '2024-03-15T14:23:00Z'),
-                    new OA\Property(property: 'laverie_nom', type: 'string', example: 'Laverie du Centre'),
-                    new OA\Property(property: 'motif_interaction', type: 'string', example: 'Consultation du tableau de bord'),
-                    new OA\Property(property: 'action', type: 'string', example: 'lecture'),
-                    new OA\Property(property: 'administateur_id', type: 'integer', example: 3),
-                ]
-            )
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'data', type: 'array',
+                    items: new OA\Items(type: 'object', properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 12),
+                        new OA\Property(property: 'type_interaction', type: 'string', example: 'connexion'),
+                        new OA\Property(property: 'timestamp', type: 'string', format: 'date-time', example: '2024-03-15T14:23:00Z'),
+                        new OA\Property(property: 'laverie_nom', type: 'string', example: 'Laverie du Centre'),
+                        new OA\Property(property: 'motif_interaction', type: 'string', example: 'Consultation du tableau de bord'),
+                        new OA\Property(property: 'action', type: 'string', example: 'lecture'),
+                        new OA\Property(property: 'administateur_id', type: 'integer', example: 3),
+
+                    ])
+                ),
+                new OA\Property(property: 'page', type: 'integer'),
+                new OA\Property(property: 'limit', type: 'integer'),
+                new OA\Property(property: 'total', type: 'integer'),
+                new OA\Property(property: 'total_pages', type: 'integer'),
+            ]
         )
     )]
     public function historique(
@@ -237,18 +249,20 @@ class LaverieController extends AbstractController
         LaverieHistoriqueInteractionRepository $laverieHistoriqueInteractionRepository,
         TagAwareCacheInterface $cachePool
     ) {
-        $offset = (int) $request->query->get('offset', 0);
+        
+        $page   = max(1, (int) $request->query->get('page', 1));
+        $offset = ($page - 1) * $limit; 
         $limit = 10;
-
+        
         $total = $laverieHistoriqueInteractionRepository->getHistoriqueCount();
-
         $enregistrements = $laverieHistoriqueInteractionRepository->getHistorique($offset, $limit);
 
         return $this->json([
             'total' => $total, 
             'offset' => $offset,
             'limit' => $limit, 
-            'enregistrements' => $enregistrements
+            'enregistrements' => $enregistrements,
+            'total_pages' => (int) ceil($total / $limit),
         ], RESPONSE::HTTP_OK); 
     }
 }
