@@ -99,15 +99,15 @@ function ProInscription() {
         {success  && <p className="text-green-600 text-sm mt-4 font-semibold">{success}</p>}
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-lastname">Nom<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-lastname" type="text" placeholder="Nom" value={lastname} onChange={(e) => setLastname(e.target.value)} className='h-11'/>
-          {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
           <FieldLabel htmlFor="input-field-firstname">Prénom<span className='text-orange-600'>*</span></FieldLabel>
           <Input id="input-field-firstname" type="text" placeholder="Prénom" value={firstname} onChange={(e) => setFirstname(e.target.value)} className='h-11'/>
           {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname}</p>}
+        </Field>
+
+        <Field className='w-85 m-auto items-center justify-center mt-5'>
+          <FieldLabel htmlFor="input-field-lastname">Nom<span className='text-orange-600'>*</span></FieldLabel>
+          <Input id="input-field-lastname" type="text" placeholder="Nom" value={lastname} onChange={(e) => setLastname(e.target.value)} className='h-11'/>
+          {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>}
         </Field>
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
@@ -134,15 +134,15 @@ function ProInscription() {
         </Field>
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-adress">Adresse<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-adress" type="text" placeholder="Ex : Bâtiment A, Résidence des Fleurs" value={adress} onChange={(e) => setAdress(e.target.value)} className='h-11'/>
-          {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
+          <FieldLabel htmlFor="input-field-rue">Numéro de rue<span className='text-orange-600'>*</span></FieldLabel>
+          <Input id="input-field-rue" type="text" placeholder="Ex : 12" value={rue} onChange={(e) => setRue(e.target.value)} className='h-11'/>
+          {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
         </Field>
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-rue">Rue<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-rue" type="text" placeholder="Ex : 12 rue de la Paix" value={rue} onChange={(e) => setRue(e.target.value)} className='h-11'/>
-          {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
+          <FieldLabel htmlFor="input-field-adress">Adresse<span className='text-orange-600'>*</span></FieldLabel>
+          <Input id="input-field-adress" type="text" placeholder="Ex : Rue de la place" value={adress} onChange={(e) => setAdress(e.target.value)} className='h-11'/>
+          {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
         </Field>
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
