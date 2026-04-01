@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import axios from "axios"
 
 type Inputs = {
     prenom: string
@@ -15,6 +17,7 @@ const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/modificatio
 const urlInfo = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/mes_informations`
 
 export default function MonProfi() {
+    const { t } = useTranslation()
 
     const {
         register,
@@ -29,17 +32,19 @@ export default function MonProfi() {
     const infos = async () => {
         try {
             const token = localStorage.getItem("token")
-            const reponse = await fetch(urlInfo, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-            })
-            const data = await reponse.json()
+            const reponse = await axios.get(
+                urlInfo, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                }
+            )
+            const data = await reponse.data
+
             setValue("nom", data.nom)
             setValue("prenom", data.prenom)
             setValue("email", data.email) 
+        
         } catch (erreur) {
             console.error("Erreur lors de la récupération des informations :", erreur)
         }
@@ -49,26 +54,7 @@ export default function MonProfi() {
         infos()
     }, [])  
 
-    const [data, setData] = useState<any>(null);
-    useEffect(() => {
-        if (!data) return
 
-        if (data?.erreurs && typeof data.erreurs === "object") {
-            Object.entries(data.erreurs).forEach(([champ, messages]) => {
-                setError(champ as keyof Inputs, {
-                    type: "server",
-                    message: Array.isArray(messages)
-                        ? (messages as string[]).join(" ")
-                        : messages as string,
-                })
-            })
-        }
-
-        if (data?.message === "Informations mises à jour avec succès") {
-            setSuccessMessage(data.message)
-        }
-
-    }, [data])
 
     useEffect(() => {
         if (successMessage) {
@@ -82,24 +68,71 @@ export default function MonProfi() {
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
             const token = localStorage.getItem("token")
-            const reponse = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(donnees),
-            })
 
-            const text = await reponse.text()
-            try {
-                setData(JSON.parse(text)) 
-            } catch (e) {
-                throw new Error("Réponse invalide du serveur")
+            // validation front sur les mots de passe pour éviter le 400 de confirmation
+            if ((donnees.mot_de_passe || "").trim() || (donnees.confirmation_mot_de_passe || "").trim()) {
+                if (donnees.mot_de_passe !== donnees.confirmation_mot_de_passe) {
+                    setError("confirmation_mot_de_passe", {
+                        type: "server",
+                        message: "La confirmation du mot de passe ne correspond pas.",
+                    })
+                    return
+                }
             }
 
+            const payload: Partial<Inputs> = {
+                email: donnees.email,
+                prenom: donnees.prenom,
+                nom: donnees.nom,
+            }
+
+            if ((donnees.mot_de_passe || "").trim()) {
+                payload.mot_de_passe = donnees.mot_de_passe
+                payload.confirmation_mot_de_passe = donnees.confirmation_mot_de_passe
+            }
+
+            const reponse = await axios.put(url, payload, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            })
+
+            const data = reponse.data
+            if (data.errors) {
+                Object.keys(data.errors).forEach((champ) => {
+                    setError(champ as keyof Inputs, {
+                    type: "server",
+                    message: data.errors[champ],
+                    })
+                })
+                return 
+            }
+            if (data.message) {
+                setSuccessMessage(data.message)
+            }
+            
         } catch (erreur) {
             console.error("Erreur lors de la modification :", erreur)
+
+            if (axios.isAxiosError(erreur) && erreur.response) {
+                const data = erreur.response.data
+
+                if (data && typeof data === "object") {
+                    Object.keys(data).forEach((champ) => {
+                        setError(champ as keyof Inputs, {
+                            type: "server",
+                            message: data[champ],
+                        })
+                    })
+                    return
+                }
+            }
+
+            setError("nom", {
+                type: "server",
+                message: "Impossible de modifier vos informations. Réessayez plus tard.",
+            })
         }
     }
     return (
@@ -108,10 +141,10 @@ export default function MonProfi() {
             className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-white rounded-2xl shadow-lg"
         >
             <h2 className="text-2xl font-semibold text-gray-900 text-center mb-2">
-                Mes informations
+                {t('mes_informations', 'Mes informations')}
             </h2>
             <p className="text-gray-600 text-center">
-                Modifier mes informations
+                {t('modifier_mes_informations', 'Modifier mes informations')}
             </p>
 
             {successMessage && (

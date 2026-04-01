@@ -3,6 +3,7 @@ import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import GoogleLoginButton from "@/components/utils/google"
+import axios from "axios"
 
 type Inputs = {
     prenom: string
@@ -32,36 +33,33 @@ export default function Inscription() {
         formState: { errors },
         setError,
     } = useForm<Inputs>()
-
+    
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
-            const reponse = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(donnees),
-            })
-
-            const text = await reponse.text();
-            let data
-            try {
-                data = JSON.parse(text)
-            } catch (e) {
-                console.error("Réponse non-JSON:", text)
-                throw new Error("Réponse invalide du serveur")
-            }
-
-            if (!reponse.ok) {
-                if (data && typeof data === 'object') {
-                    Object.keys(data).forEach((champ) => {
-                        setError(champ as keyof Inputs, {
-                            type: "server",
-                            message: data[champ]
-                        })
-                    })
+            const reponse = await axios.post(
+                url, {
+                    email: donnees.email,   
+                    mot_de_passe: donnees.mot_de_passe,
+                    prenom: donnees.prenom,
+                    nom: donnees.nom,
+                    confirmation_mot_de_passe: donnees.confirmation_mot_de_passe
+                }, 
+                {
+                    headers: { "Content-Type": "application/json" }
                 }
+            )
+
+            const data = await reponse.data
+
+            if(data.errors) {
+                Object.keys(data.errors).forEach((champ) => {
+                    setError(champ as keyof Inputs, {
+                    type: "server",
+                    message: data.errors[champ],
+                    })
+                })
                 return
             }
-
             setSuccessMessage("Inscription réussie ! Vous pouvez maintenant vous connecter.")
             setTimeout(() => {
                 window.location.href = '/user/login'
@@ -180,7 +178,7 @@ export default function Inscription() {
                     </label>
                     <p id="mot_de_passe-hint" className="text-xs text-gray-500 mt-1">
                     Longueur minimale : 8 caractères.{" "}
-                    Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial.
+                    Utiliser minimum 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial.
                     </p>
                     <Input
                     id="mot_de_passe"

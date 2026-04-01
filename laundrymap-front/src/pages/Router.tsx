@@ -34,19 +34,23 @@
 
 
 // router/Router.tsx
-import { Routes, Route, Navigate } from "react-router";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../components/context/AuthContext";
 import type { Role } from "../components/utils/auth";
 import App from "../App";
 import Inscription from "./user/inscription";
 import Login from "./user/login";
 import MonProfil from "./user/informations";
+import Verification from "./user/verification";
+import ResendVerification from "./user/resend-verification";
+import ForgotPassword from "./user/forgot-password";
+import ResetPassword from "./user/reset-password";
 import ProLogin from "./pro/login";
 import ProInscription from "./pro/inscription";
 import ProDashboard from "./pro/dashboard";
 import AdminLogin from "./admin/login";
 import AdminDashboard from "./admin/dashboard";
-import ProfessionnalAccountValidationList from "./admin/professionalAdministration/professionalAccountValidationList";
+import ProfessionnalAccountValidationList from "./admin/professional/validation";
 
 function ProtectedRoute({
   children,
@@ -75,6 +79,10 @@ export default function Router() {
       <Route path="/user/inscription" element={<Inscription />} />
       <Route path="/user/login" element={<Login />} />
       <Route path="/user/informations" element={<MonProfil />} />
+      <Route path="/user/verification/:token" element={<Verification />} />
+      <Route path="/user/resend-verification" element={<ResendVerification />} />
+      <Route path="/user/mot-de-passe-oublie" element={<ForgotPassword />} />
+      <Route path="/user/mot-de-passe/reinitialisation/:token" element={<ResetPassword />} />
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
@@ -83,6 +91,11 @@ export default function Router() {
       <Route path="/pro/dashboard" element={
         <ProtectedRoute allowedRoles={["professionnel"]}>
           <ProDashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/pro/informations" element={
+        <ProtectedRoute allowedRoles={["professionnel"]}>
+          <MonProfil />
         </ProtectedRoute>
       } />
 
@@ -94,7 +107,7 @@ export default function Router() {
       } />
 
       <Route
-        path="/admin/professionnalAdministration/professionnalAccountValidationList"
+        path="/admin/professionnal/validation"
         element={
           <ProtectedRoute allowedRoles={["administrateur"]}>
             <ProfessionnalAccountValidationList />

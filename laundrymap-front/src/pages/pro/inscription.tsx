@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -54,39 +55,37 @@ function ProInscription() {
     return Object.values(newErrors).every((e) => e === "");
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setApiError("");
     setSuccess("");
 
     if (!validateForm()) return;
 
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lastname,
-        firstname,
-        email,
-        password,
-        siren,
-        adress,
-        rue,        
-        codePostal,
-        city,
-        country,
-      }),
+    const response = await axios.post(url, {
+      lastname,
+      firstname,
+      email,
+      password,
+      siren,
+      adress,
+      rue,        
+      codePostal,
+      city,
+      country,
     })
-      .then(async (response) => {
-        const data = await response.json();
-        if (response.ok) {
-          setSuccess(data.message);
-        } else {
-          setApiError(data.message || "Une erreur est survenue.");
-        }
-      })
-      .catch(() => setApiError("Impossible de contacter le serveur."));
-  };
+    const data = response.data
+
+    if(data.errors) { 
+      setApiError("Une erreur est survenue lors de l'inscription. Veuillez vérifier les informations saisies.")
+      return
+    }
+
+    setSuccess("Inscription réussie ! Vous pouvez maintenant vous connecter.")
+    setTimeout(() => {
+      window.location.href = '/pro/dashboard'
+    }, 5000)
+  }
 
   return (
     <>

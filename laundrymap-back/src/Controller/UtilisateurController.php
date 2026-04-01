@@ -197,8 +197,21 @@ final class UtilisateurController extends AbstractController
         }
 
         $nom = htmlspecialchars($donnees['nom']);
+        if(strlen($nom) > 50) {
+            $messages['nom'] = "Le nom ne doit pas dépasser 50 caractères.";
+            $isGood = false;
+        }
+        
         $prenom = htmlspecialchars($donnees['prenom']);
+        if(strlen($prenom) > 50) {
+            $messages['prenom'] = "Le prénom ne doit pas dépasser 50 caractères.";
+            $isGood = false;
+        }
         $motDePasse = $donnees['mot_de_passe'];
+        if(strlen($motDePasse) > 255) {
+            $messages['mot_de_passe'] = "Le mot de passe ne doit pas dépasser 255 caractères.";
+            $isGood = false;
+        }   
         $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'];
 
         if ($motDePasse !== $confirmationMotDePasse) {
@@ -251,8 +264,121 @@ final class UtilisateurController extends AbstractController
         $cachePool->invalidateTags(['utilisateurCache']);
         $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
-        return $this->json(['message' => 'Inscription réussie', 'id' => $utilisateur->getId()], Response::HTTP_CREATED, ['Location' => $location]);
-        
+        // TODO: envoyer un email avec le lien de validation
+        $verificationUrl = $urlGenerator->generate('app_valider_email', ['token' => $verificationToken], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        return $this->json(
+            ['message' => 'Inscription réussie. Vérifiez votre e-mail pour activer votre compte.', 'id' => $utilisateur->getId(), 'verification_url' => $verificationUrl],
+            Response::HTTP_CREATED,
+            ['Location' => $location]
+        );
+    }
+
+    #[Route('/validation/{token}', name: 'app_valider_email', methods: ['GET'])]
+    public function validerEmail(
+        string $token,
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool
+    ): JsonResponse {
+        $utilisateur = $utilisateurRepository->findOneByVerificationToken($token);
+        if (!$utilisateur) {
+            return $this->json(['message' => 'Jeton de vérification invalide ou expiré.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $utilisateur->setStatut(StatutEnum::VALIDE);
+        $utilisateur->setVerificationToken(null);
+        $utilisateurRepository->inscription($utilisateur);
+        $cachePool->invalidateTags(['utilisateurCache']);
+
+        return $this->json(['message' => 'E-mail confirmé avec succès. Vous pouvez maintenant vous connecter.'], Response::HTTP_OK);
+    }
+
+    #[Route('/resend-validation', name: 'app_renvoyer_validation', methods: ['POST'])]
+    public function renvoyerEmailValidation(
+        Request $request,
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool,
+        UrlGeneratorInterface $urlGenerator
+    ): JsonResponse {
+        $donnees = json_decode($request->getContent(), true);
+        $email = $donnees['email'] ?? null;
+
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json(['message' => 'Email invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $utilisateur = $utilisateurRepository->findOneByEmail($email);
+        if (!$utilisateur || $utilisateur->getStatut() !== StatutEnum::EN_ATTENTE) {
+            return $this->json(['message' => 'Aucun compte à valider pour cet email.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $utilisateur->setVerificationToken($token);
+        $utilisateurRepository->inscription($utilisateur);
+        $cachePool->invalidateTags(['utilisateurCache']);
+
+        $verificationUrl = $urlGenerator->generate('app_valider_email', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        return $this->json(['message' => 'Email de validation renvoyé.', 'verification_url' => $verificationUrl], Response::HTTP_OK);
+    }
+
+    #[Route('/mot_de_passe/oublie', name: 'app_motdepasse_oublie', methods: ['POST'])]
+    public function motDePasseOublie(
+        Request $request,
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool
+    ): JsonResponse {
+        $donnees = json_decode($request->getContent(), true);
+        $email = $donnees['email'] ?? null;
+
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json(['message' => 'Email invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $utilisateur = $utilisateurRepository->findOneByEmail($email);
+        if (!$utilisateur || $utilisateur->getStatut() !== StatutEnum::VALIDE) {
+            return $this->json(['message' => 'Aucun compte actif trouvé pour cet email.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $resetToken = bin2hex(random_bytes(32));
+        $utilisateur->setResetToken($resetToken);
+        $utilisateurRepository->inscription($utilisateur);
+        $cachePool->invalidateTags(['utilisateurCache']);
+
+        return $this->json(['message' => 'Token de réinitialisation de mot de passe généré.', 'reset_token' => $resetToken], Response::HTTP_OK);
+    }
+
+    #[Route('/mot_de_passe/reinitialisation', name: 'app_motdepasse_reinitialisation', methods: ['POST'])]
+    public function reinitialisationMotDePasse(
+        Request $request,
+        UtilisateurRepository $utilisateurRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        TagAwareCacheInterface $cachePool
+    ): JsonResponse {
+        $donnees = json_decode($request->getContent(), true);
+        $resetToken = $donnees['reset_token'] ?? null;
+        $motDePasse = $donnees['mot_de_passe'] ?? null;
+        $confirmation = $donnees['confirmation_mot_de_passe'] ?? null;
+
+        if (!$resetToken || !$motDePasse || !$confirmation) {
+            return $this->json(['message' => 'Données manquantes.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($motDePasse !== $confirmation) {
+            return $this->json(['message' => 'La confirmation du mot de passe ne correspond pas.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $utilisateur = $utilisateurRepository->findOneByResetToken($resetToken);
+        if (!$utilisateur) {
+            return $this->json(['message' => 'Token de réinitialisation invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $utilisateur->setMotDePasse($passwordHasher->hashPassword($utilisateur, $motDePasse));
+        $utilisateur->setResetToken(null);
+        $utilisateurRepository->inscription($utilisateur);
+        $cachePool->invalidateTags(['utilisateurCache']);
+
+        return $this->json(['message' => 'Mot de passe réinitialisé avec succès.'], Response::HTTP_OK);
     }
 
     /**
@@ -445,14 +571,45 @@ final class UtilisateurController extends AbstractController
 
         $nom = htmlspecialchars($donnees['nom'] ?? $utilisateur->getNom());
         $prenom = htmlspecialchars($donnees['prenom'] ?? $utilisateur->getPrenom());
-        $motDePasse = $donnees['mot_de_passe'];
-        $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'];
+        $motDePasse = $donnees['mot_de_passe'] ?? '';
+        $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'] ?? '';
 
-        if(password_verify($motDePasse, $utilisateur->getMotDePasse()) === true && $nom === $utilisateur->getNom() && $prenom === $utilisateur->getPrenom()) {
+        $changed = false;
+        if ($nom !== $utilisateur->getNom() || $prenom !== $utilisateur->getPrenom()) {
+            $changed = true;
+        }
+
+        if ($motDePasse !== '' || $confirmationMotDePasse !== '') {
+            $changed = true;
+
+            if ($motDePasse !== $confirmationMotDePasse) {
+                $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
+                $isGood = false;
+            }
+
+            if (strlen($motDePasse) < 8) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 8 caractères.";
+                $isGood = false;
+            }
+            if (!preg_match('/[A-Z]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 majuscule.";
+                $isGood = false;
+            }
+            if (!preg_match('/[a-z]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 minuscule.";
+                $isGood = false;
+            }
+            if (!preg_match('/[^a-zA-Z0-9]/', $motDePasse)) {
+                $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
+                $isGood = false;
+            }
+        }
+
+        if (!$changed) {
             return $this->json(['message' => 'Aucune modification détectée'], Response::HTTP_BAD_REQUEST);
         }
 
-        if(!empty($confirmationMotDePasse)) {
+        if (!$isGood) {
             
             if ($motDePasse !== $confirmationMotDePasse) {
                 $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
@@ -492,8 +649,10 @@ final class UtilisateurController extends AbstractController
 
         $utilisateur->setNom($nom);
         $utilisateur->setPrenom($prenom);
-        $utilisateur->setMotDePasse($passwordHasher->hashPassword($utilisateur, $motDePasse));
 
+        if ($motDePasse !== '') {
+            $utilisateur->setMotDePasse($passwordHasher->hashPassword($utilisateur, $motDePasse));
+        }
 
         $utilisateurRepository->modification($utilisateur);
 
