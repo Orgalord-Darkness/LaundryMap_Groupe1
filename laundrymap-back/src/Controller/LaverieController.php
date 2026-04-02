@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use App\Repository\LaverieHistoriqueInteractionRepository;
 
 
 #[Route('/api/v1/laverie')]
@@ -165,13 +166,11 @@ class LaverieController extends AbstractController
             }
         }
 
-        // --- Relation ManyToMany : Méthodes de paiement ---
         if (isset($donnees['methodes_paiement']) && is_array($donnees['methodes_paiement'])) {
-            // On retire toutes les méthodes actuelles
+
             foreach ($laverie->getMethodePaiements() as $methode) {
                 $laverie->removeMethodePaiement($methode);
             }
-            // On ajoute les nouvelles
             foreach ($donnees['methodes_paiement'] as $methodeId) {
                 $methode = $em->getRepository(MethodePaiement::class)->find((int) $methodeId);
                 if (!$methode) {
@@ -208,5 +207,62 @@ class LaverieController extends AbstractController
                 ])->toArray(),
             ]
         ], Response::HTTP_OK);
+    }
+
+
+    #[Route('/historique', name: 'app_historique_laverie', methods: ['GET'])]
+    #[OA\Tag(name: 'Laverie')]
+    #[OA\Security(name: 'Bearer')]
+    #[OA\Parameter(
+        name: 'page',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'integer', example: 1)
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Historique récupéré avec succès',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'data', type: 'array',
+                    items: new OA\Items(type: 'object', properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 12),
+                        new OA\Property(property: 'type_interaction', type: 'string', example: 'connexion'),
+                        new OA\Property(property: 'timestamp', type: 'string', format: 'date-time', example: '2024-03-15T14:23:00Z'),
+                        new OA\Property(property: 'laverie_nom', type: 'string', example: 'Laverie du Centre'),
+                        new OA\Property(property: 'motif_interaction', type: 'string', example: 'Consultation du tableau de bord'),
+                        new OA\Property(property: 'action', type: 'string', example: 'lecture'),
+                        new OA\Property(property: 'administateur_id', type: 'integer', example: 3),
+
+                    ])
+                ),
+                new OA\Property(property: 'page', type: 'integer'),
+                new OA\Property(property: 'limit', type: 'integer'),
+                new OA\Property(property: 'total', type: 'integer'),
+                new OA\Property(property: 'total_pages', type: 'integer'),
+            ]
+        )
+    )]
+    public function historique(
+        Request $request,
+        LaverieHistoriqueInteractionRepository $laverieHistoriqueInteractionRepository,
+        TagAwareCacheInterface $cachePool
+    ) {
+        
+        $page   = max(1, (int) $request->query->get('page', 1));
+        $offset = ($page - 1) * $limit; 
+        $limit = 10;
+        
+        $total = $laverieHistoriqueInteractionRepository->getHistoriqueCount();
+        $enregistrements = $laverieHistoriqueInteractionRepository->getHistorique($offset, $limit);
+
+        return $this->json([
+            'total' => $total, 
+            'offset' => $offset,
+            'limit' => $limit, 
+            'enregistrements' => $enregistrements,
+            'total_pages' => (int) ceil($total / $limit),
+        ], RESPONSE::HTTP_OK); 
     }
 }
