@@ -41,6 +41,25 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
     //        ;
     //    }
 
+    public function laverieValidation(Laverie $laverie, Administrateur $administrateur, StatutEnum $statut, string $action, string $motif): void 
+    {
+        $entityManager = $this->getEntityManager();
+
+        $formatDate = new \DateTime('now');
+
+        $laverieHistoriqueInteraction = new LaverieHistoriqueInteraction();
+        $laverieHistoriqueInteraction->setLaverie($laverie);
+        $laverieHistoriqueInteraction->setAdministrateur($administrateur);
+        $laverieHistoriqueInteraction->setAction($action);
+        $laverieHistoriqueInteraction->setMotifAction($motif);
+        $laverieHistoriqueInteraction->setDate(new \DateTime());
+        $laverieHistoriqueInteraction->setStatut($statut);
+        $laverieHistoriqueInteraction->setDate($formatDate);
+
+        $entityManager->persist($laverieHistoriqueInteraction);
+        $entityManager->flush();
+    }
+
     public function getHistorique($offset = 0, $limit=10): ?array
     {
         $qb = $this->createQueryBuilder('h') //h.laverie est une relation ManyToOne Doctrine ne permet pas h.laverie_id IDENTITY(h.laverie) récupère l’ID de la relation
@@ -74,5 +93,6 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
 
         return (int) $qb->getQuery()->getSingleScalarResult();  
     }
+
 
 }

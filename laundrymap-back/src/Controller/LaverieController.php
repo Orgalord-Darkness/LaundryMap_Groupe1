@@ -6,7 +6,18 @@ namespace App\Controller;
 use App\Entity\Laverie;
 use App\Entity\Service;
 use App\Entity\MethodePaiement;
+use App\Enum\ActionEnum;
+use App\Enum\LaverieStatutEnum;
+use App\Repository\UtilisateurRepository;
+use App\Repository\AdresseRepository;
+use App\Repository\ServiceRepository;
+use App\Repository\MethodePaiementRepository;
+use App\Service\LaverieService;
+use App\Service\AdresseService;
+use App\Service\UtilisateurService;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\LaverieRepository;
+use App\Repository\LaverieHistoriqueInteractionRepository;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,6 +25,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use App\Repository\LaverieHistoriqueInteractionRepository;
 
@@ -21,6 +33,62 @@ use App\Repository\LaverieHistoriqueInteractionRepository;
 #[Route('/api/v1/laverie')]
 class LaverieController extends AbstractController 
 {
+    #[Route('/list', name: 'laverie_list', methods: ['GET'])]
+    #[OA\Tag(name: 'Laverie')]
+    #[OA\Parameter(
+        name: 'page',
+        in: 'query',
+        description: 'Numéro de page pour la pagination (par défaut: 1)',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 1)
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        in: 'query',
+        description: 'Nombre d\'éléments par page pour la pagination (par défaut: 10, max: 100)',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 10)
+    )]
+    #[OA\Parameter(
+        name: 'statut',
+        in: 'query',
+        description: 'Statut des laveries à filtrer',
+        required: false,
+        schema: new OA\Schema(type: LaverieStatutEnum::class, default: LaverieStatutEnum::EN_ATTENTE)
+    )]
+    public function laveries (
+        Request $request,
+        LaverieRepository $laverieRepository,   
+        EntityManagerInterface $em,
+        TagAwareCacheInterface $cachePool,
+    ): JsonResponse 
+    {
+        $donnees = json_decode($request->getContent(), true);
+        $page = max(1, (int) $request->query->get('page', 1));
+        $limit = max(1, min(100, (int) $request->query->get('limit', 10)));
+        $offset = ($page - 1) * $limit;
+        $statut = LaverieStatutEnum::tryFrom($request->query->get('statut')) ?? LaverieStatutEnum::EN_ATTENTE;
+
+        $cacheKey = sprintf(
+            'laveries_page_%d_limit_%d_statut_%s',
+            $page,
+            $limit,
+            $statut->value
+        );
+        $laveries = $cachePool->get($cacheKey, function(ItemInterface $item) use ($laverieRepository, $offset, $limit, $statut) {
+            $item->tag('laverieCache');
+            $item->expiresAfter(300); // 5 min
+            return $laverieRepository->findAllWithDetails($offset, $limit, $statut);
+        });
+
+        return $this->json([
+            'data' => $laveries
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Route de modification d'une laverie. Seul le professionnel propriétaire de la laverie ou un administrateur peut accéder à cette route.
+     */
     #[Route('/edit/{id}', name: 'laverie_edit', methods: ['PUT'])]
     #[OA\Tag(name: 'Laverie')]
     #[OA\Security(name: 'Bearer')]
@@ -209,6 +277,49 @@ class LaverieController extends AbstractController
         ], Response::HTTP_OK);
     }
 
+  #[Route('/admin/valider/{id}', name: 'laverie_valider', methods: ['POST'])]
+    #[OA\Tag(name: 'Laverie')]
+    #[OA\Security(name: 'Bearer')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de la laverie à valider',
+        required: true,
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Laverie validée avec succès',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [
+                
+            ]
+        )
+    )   ]
+    public function valider(
+        LaverieHistoriqueInteractionRepository $laverieHistoriqueInteractionRepository,
+        LaverieRepository $laverieRepository,
+        int $id,
+    ): static 
+    {
+        $laverie = $laverieRepository->find($id);
+
+        if (!$laverie) {
+            return $this->json(['message' => 'Laverie non trouvée.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $donnees = json_decode($request->getContent(), true);   
+        $statut = htmlspecialchars($donnees['action'] ?? ActionEnum::REFUSE->value);
+        $motif = htmlspecialchars($donnees['motif'] ?? 'La laverie a été validée par un administrateur.');
+
+        $laverieHistoriqueInteractionRepository->laverieValidation(
+            $laverie,
+            $this->getUser(),
+            $action, 
+            $motif,
+        );
+
+        return $this->json(['message' => 'Laverie validée avec succès.'], Response::HTTP_OK);
 
     #[Route('/historique', name: 'app_historique_laverie', methods: ['GET'])]
     #[OA\Tag(name: 'Laverie')]
@@ -264,5 +375,6 @@ class LaverieController extends AbstractController
             'enregistrements' => $enregistrements,
             'total_pages' => (int) ceil($total / $limit),
         ], RESPONSE::HTTP_OK); 
+
     }
 }

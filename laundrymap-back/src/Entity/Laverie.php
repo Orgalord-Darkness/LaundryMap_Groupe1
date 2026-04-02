@@ -347,7 +347,4 @@ class Laverie
 
         return $this;
     }
-
-
-
 }

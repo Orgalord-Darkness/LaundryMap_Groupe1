@@ -3,7 +3,7 @@
 namespace App\Enum; 
 
 enum LaverieStatutEnum: string {
-    case EN_ATTENTE = 'en attente'; 
-    case VALIDE = 'validé'; 
-    case REFUSE = 'refusé';
+    case EN_ATTENTE = 'EN_ATTENTE'; 
+    case VALIDE = 'VALIDE'; 
+    case REFUSE = 'REFUSE';
 }
