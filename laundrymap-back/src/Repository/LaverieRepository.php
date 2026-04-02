@@ -42,26 +42,28 @@ class LaverieRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-    public function findAllWithDetails(int $offset = 0, int $limit = 10, LaverieStatutEnum $statut): array
-    {
-        return $this->createQueryBuilder('l')
-            ->leftJoin('l.logo', 'logo')
-            ->leftJoin('l.adresse', 'adresse')
-            ->leftJoin('l.professionnel', 'pro')
-            ->leftJoin('l.services', 'services')
-            ->leftJoin('l.methodePaiements', 'paiements')
-            ->leftJoin('l.favoris', 'favoris')
-            ->leftJoin('l.laverieHistoriqueInteractions', 'interactions')
-            ->addSelect([
-                'logo', 'adresse', 'pro',
-                'services', 'paiements', 'favoris', 'interactions'
-            ])
-            ->where('l.statut = :statut')
-            ->setParameter('statut', $statut)
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getArrayResult();
+    public function findAllWithDetails(int $offset = 0, int $limit = 10, LaverieStatutEnum $statut=LaverieStatutEnum::EN_ATTENTE): array
+    { 
+        $queryBuilder = $this->createQueryBuilder('l')
+        ->leftJoin('l.logo', 'logo')
+        ->leftJoin('l.adresse', 'adresse')
+        ->leftJoin('l.professionnel', 'pro')
+        ->leftJoin('l.services', 'services')
+        ->leftJoin('l.methodePaiements', 'paiements')
+        ->leftJoin('l.favoris', 'favoris')
+        ->leftJoin('l.laverieHistoriqueInteractions', 'interactions')
+        ->addSelect([
+            'logo', 'adresse', 'pro', 'services', 'paiements', 'favoris', 'interactions'
+        ])
+        ->where('TRIM(UPPER(l.statut)) = :statut')
+        ->setParameter('statut',$statut->value)
+        ->setFirstResult($offset)
+        ->setMaxResults($limit);
+
+        $query = $queryBuilder->getQuery();
+        $laveries = $query->getArrayResult();
+        return $laveries;
+
     }
 
 }

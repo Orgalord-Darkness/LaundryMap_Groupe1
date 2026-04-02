@@ -25,6 +25,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 
@@ -50,9 +51,9 @@ class LaverieController extends AbstractController
     #[OA\Parameter(
         name: 'statut',
         in: 'query',
-        description: 'Statut des laveries à filtrer (par défaut: EN_ATTENTE)',
+        description: 'Statut des laveries à filtrer',
         required: false,
-        schema: new OA\Schema(type: LaverieStatutEnum::class,  default: 'EN_ATTENTE')
+        schema: new OA\Schema(type: LaverieStatutEnum::class, default: LaverieStatutEnum::EN_ATTENTE)
     )]
     public function laveries (
         Request $request,
@@ -65,11 +66,17 @@ class LaverieController extends AbstractController
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = max(1, min(100, (int) $request->query->get('limit', 10)));
         $offset = ($page - 1) * $limit;
-        $statut = LaverieStatutEnum::tryFrom(
-            $request->query->get('statut', LaverieStatutEnum::EN_ATTENTE->value)
-        ) ?? LaverieStatutEnum::EN_ATTENTE;
-        $cacheKey = sprintf('laveries_page_%d_limit_%d', $page, $limit);
-        $laveries = $cachePool->get($cacheKey, function() use ($laverieRepository, $offset, $limit, $statut) {
+        $statut = LaverieStatutEnum::tryFrom($request->query->get('statut')) ?? LaverieStatutEnum::EN_ATTENTE;
+
+        $cacheKey = sprintf(
+            'laveries_page_%d_limit_%d_statut_%s',
+            $page,
+            $limit,
+            $statut->value
+        );
+        $laveries = $cachePool->get($cacheKey, function(ItemInterface $item) use ($laverieRepository, $offset, $limit, $statut) {
+            $item->tag('laverieCache');
+            $item->expiresAfter(300); // 5 min
             return $laverieRepository->findAllWithDetails($offset, $limit, $statut);
         });
 
