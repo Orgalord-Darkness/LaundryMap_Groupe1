@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Laverie;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Enum\LaverieStatutEnum;
 
 /**
  * @extends ServiceEntityRepository<Laverie>
@@ -41,15 +42,26 @@ class LaverieRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-    public function findAllWithDetails($offset = 0, $limit = 10, $statut = 'EN_ATTENTE'): array
+    public function findAllWithDetails(int $offset = 0, int $limit = 10, LaverieStatutEnum $statut): array
     {
-        $qb = $this->createQueryBuilder('l')
-            ->select('l', 'p', 'u', 'm')
+        return $this->createQueryBuilder('l')
+            ->leftJoin('l.logo', 'logo')
+            ->leftJoin('l.adresse', 'adresse')
+            ->leftJoin('l.professionnel', 'pro')
+            ->leftJoin('l.services', 'services')
+            ->leftJoin('l.methodePaiements', 'paiements')
+            ->leftJoin('l.favoris', 'favoris')
+            ->leftJoin('l.laverieHistoriqueInteractions', 'interactions')
+            ->addSelect([
+                'logo', 'adresse', 'pro',
+                'services', 'paiements', 'favoris', 'interactions'
+            ])
             ->where('l.statut = :statut')
             ->setParameter('statut', $statut)
             ->setFirstResult($offset)
             ->setMaxResults($limit)
-            ;
-        return $qb->getQuery()->getArrayResult();
+            ->getQuery()
+            ->getArrayResult();
     }
+
 }

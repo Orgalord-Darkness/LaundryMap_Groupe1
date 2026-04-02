@@ -6,7 +6,18 @@ namespace App\Controller;
 use App\Entity\Laverie;
 use App\Entity\Service;
 use App\Entity\MethodePaiement;
+use App\Enum\ActionEnum;
+use App\Enum\LaverieStatutEnum;
+use App\Repository\UtilisateurRepository;
+use App\Repository\AdresseRepository;
+use App\Repository\ServiceRepository;
+use App\Repository\MethodePaiementRepository;
+use App\Service\LaverieService;
+use App\Service\AdresseService;
+use App\Service\UtilisateurService;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\LaverieRepository;
+use App\Repository\LaverieHistoriqueInteractionRepository;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,7 +52,7 @@ class LaverieController extends AbstractController
         in: 'query',
         description: 'Statut des laveries à filtrer (par défaut: EN_ATTENTE)',
         required: false,
-        schema: new OA\Schema(type: ActionEnum::class,  default: 'EN_ATTENTE')
+        schema: new OA\Schema(type: LaverieStatutEnum::class,  default: 'EN_ATTENTE')
     )]
     public function laveries (
         Request $request,
@@ -50,20 +61,19 @@ class LaverieController extends AbstractController
         TagAwareCacheInterface $cachePool,
     ): JsonResponse 
     {
+        $donnees = json_decode($request->getContent(), true);
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = max(1, min(100, (int) $request->query->get('limit', 10)));
         $offset = ($page - 1) * $limit;
-
+        $statut = LaverieStatutEnum::tryFrom(
+            $request->query->get('statut', LaverieStatutEnum::EN_ATTENTE->value)
+        ) ?? LaverieStatutEnum::EN_ATTENTE;
         $cacheKey = sprintf('laveries_page_%d_limit_%d', $page, $limit);
-        $laveries = $cachePool->get($cacheKey, function() use ($laverieRepository, $offset, $limit) {
+        $laveries = $cachePool->get($cacheKey, function() use ($laverieRepository, $offset, $limit, $statut) {
             return $laverieRepository->findAllWithDetails($offset, $limit, $statut);
         });
 
         return $this->json([
-            'page' => $page,
-            'limit' => $limit,
-            'statut' => $statut,
-
             'data' => $laveries
         ], Response::HTTP_OK);
     }
