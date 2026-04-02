@@ -173,9 +173,9 @@ export default function MonProfi() {
                 Confirmation
             </Button>
 
-            <p className="text-center text-sm text-gray-700 underline font-medium mt-2 cursor-pointer">
+            {/* <p className="text-center text-sm text-gray-700 underline font-medium mt-2 cursor-pointer">
                 S'inscrire en tant que professionnel ?
-            </p>
+            </p> */}
         </form>
     )
 }
