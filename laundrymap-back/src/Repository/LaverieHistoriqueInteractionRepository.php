@@ -41,29 +41,6 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public function laverieValidation(Laverie $laverie, Administrateur $administrateur, StatutEnum $statut, string $action, string $motif): void 
     {
         $entityManager = $this->getEntityManager();
@@ -82,4 +59,40 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
         $entityManager->persist($laverieHistoriqueInteraction);
         $entityManager->flush();
     }
+
+    public function getHistorique($offset = 0, $limit=10): ?array
+    {
+        $qb = $this->createQueryBuilder('h') //h.laverie est une relation ManyToOne Doctrine ne permet pas h.laverie_id IDENTITY(h.laverie) récupère l’ID de la relation
+            ->select(
+                'h.id',
+                'h.date',
+                'h.action',
+                'h.motif_action',
+                'IDENTITY(h.laverie) AS laverie_id',
+                'l.nom_etablissement AS laverie_nom',
+                'u.nom AS proprietaire_nom',
+                'u.prenom AS proprietaire_prenom',
+                'm.nom_original AS logo_nom',
+                'IDENTITY(h.administrateur) AS administrateur_id'
+            )
+            ->join('h.laverie', 'l')
+            ->join('l.professionnel', 'p')
+            ->join('p.utilisateur', 'u')
+            ->leftJoin('l.logo', 'm')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->orderBy('h.date', 'DESC');
+
+        return $qb->getQuery()->getArrayResult();
+    }
+
+    public function getHistoriqueCount(): ?int 
+    {
+        $qb = $this->createQueryBuilder('h')
+            ->select('COUNT(h.id)');
+
+        return (int) $qb->getQuery()->getSingleScalarResult();  
+    }
+
+
 }
