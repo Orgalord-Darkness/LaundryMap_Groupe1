@@ -234,30 +234,7 @@ export default function LaveriesValidation() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
-                <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        {/* Logo placeholder */}
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="8" strokeWidth="2" />
-                                <path strokeLinecap="round" strokeWidth="2" d="M8 12a4 4 0 008 0" />
-                            </svg>
-                        </div>
-                        <span className="font-bold text-blue-600 text-lg tracking-tight">laundrymap</span>
-                    </div>
-                    <button
-                        className="w-9 h-9 flex flex-col gap-1.5 items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 transition-colors"
-                        aria-label="Menu"
-                    >
-                        <span className="w-4 h-0.5 bg-white rounded" />
-                        <span className="w-4 h-0.5 bg-white rounded" />
-                        <span className="w-4 h-0.5 bg-white rounded" />
-                    </button>
-                </div>
-            </header>
-
+            
             {/* Contenu */}
             <main className="max-w-2xl mx-auto px-4 py-6">
                 <h1 className="text-2xl font-bold text-gray-900 mb-5">

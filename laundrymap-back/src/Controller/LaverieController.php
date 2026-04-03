@@ -27,7 +27,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use App\Repository\LaverieHistoriqueInteractionRepository;
 
 
 #[Route('/api/v1/laverie')]
@@ -286,6 +285,18 @@ class LaverieController extends AbstractController
         description: 'ID de la laverie à valider',
         required: true,
     )]
+    #[OA\Parameter(
+        name: 'action',
+        in: 'path',
+        description: 'Action à effectuer (valider ou refuser)',
+        required: true,
+    )]
+    #[OA\Parameter(
+        name: 'motif',
+        in: 'path',
+        description: 'Motif de la validation ou du refus',
+        required: true,
+    )]
     #[OA\Response(
         response: 200,
         description: 'Laverie validée avec succès',
@@ -295,7 +306,7 @@ class LaverieController extends AbstractController
                 
             ]
         )
-    )   ]
+    )]
     public function valider(
         LaverieHistoriqueInteractionRepository $laverieHistoriqueInteractionRepository,
         LaverieRepository $laverieRepository,
@@ -309,17 +320,26 @@ class LaverieController extends AbstractController
         }
 
         $donnees = json_decode($request->getContent(), true);   
-        $statut = htmlspecialchars($donnees['action'] ?? ActionEnum::REFUSE->value);
+        $action = htmlspecialchars($donnees['action'] ?? ActionEnum::REFUSE->value);
         $motif = htmlspecialchars($donnees['motif'] ?? 'La laverie a été validée par un administrateur.');
 
-        $laverieHistoriqueInteractionRepository->laverieValidation(
+        $interaction = $laverieHistoriqueInteractionRepository->laverieValidation(
             $laverie,
             $this->getUser(),
             $action, 
             $motif,
         );
 
+        if (!$interaction) {
+            return $this->json(['message' => 'Erreur lors de l\'enregistrement de l\'interaction.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }   
+
+        $laverie->setStatut($action === ActionEnum::VALIDER->value ? LaverieStatutEnum::ACTIF : LaverieStatutEnum::REFUSE);
+        $laverie->setDateModification(new \DateTime());
+        $laverieRepository->save($laverie, true);    
+
         return $this->json(['message' => 'Laverie validée avec succès.'], Response::HTTP_OK);
+    }
 
     #[Route('/historique', name: 'app_historique_laverie', methods: ['GET'])]
     #[OA\Tag(name: 'Laverie')]
