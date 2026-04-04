@@ -5,7 +5,10 @@ namespace App\Repository;
 use App\Entity\LaverieHistoriqueInteraction;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-
+use App\Entity\Laverie;
+use App\Entity\Administrateur;
+use App\Enum\LaverieStatutEnum;
+use App\Enum\ActionEnum;
 /**
  * @extends ServiceEntityRepository<LaverieHistoriqueInteraction>
  */
@@ -41,8 +44,9 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    public function laverieValidation(Laverie $laverie, Administrateur $administrateur, StatutEnum $statut, string $action, string $motif): void 
+    public function laverieValidation(Laverie $laverie, Administrateur $administrateur, ActionEnum $action,  string $motif) 
     {
+
         $entityManager = $this->getEntityManager();
 
         $formatDate = new \DateTime('now');
@@ -52,13 +56,15 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
         $laverieHistoriqueInteraction->setAdministrateur($administrateur);
         $laverieHistoriqueInteraction->setAction($action);
         $laverieHistoriqueInteraction->setMotifAction($motif);
-        $laverieHistoriqueInteraction->setDate(new \DateTime());
-        $laverieHistoriqueInteraction->setStatut($statut);
         $laverieHistoriqueInteraction->setDate($formatDate);
 
         $entityManager->persist($laverieHistoriqueInteraction);
         $entityManager->flush();
+
+        return $laverieHistoriqueInteraction;
     }
+
+
 
     public function getHistorique($offset = 0, $limit=10): ?array
     {

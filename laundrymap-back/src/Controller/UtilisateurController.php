@@ -37,8 +37,8 @@ final class UtilisateurController extends AbstractController
             type: 'object',
             required: ['email', 'mot_de_passe'],
             properties: [
-                new OA\Property(property: 'email', type: 'string', example: 'jean.dupont@email.com'),
-                new OA\Property(property: 'mot_de_passe', type: 'string', example: 'MonMotDePasse123!')
+                new OA\Property(property: 'email', type: 'string', example: 'luce@example.net'),
+                new OA\Property(property: 'mot_de_passe', type: 'string', example: 'Utilisateur1234.')
             ]
         )
     )]

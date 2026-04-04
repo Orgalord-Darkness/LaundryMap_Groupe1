@@ -2,7 +2,8 @@
 
 namespace App\Controller; 
 
-
+use App\Entity\Utilisateur;
+use App\Entity\Administrateur;
 use App\Entity\Laverie;
 use App\Entity\Service;
 use App\Entity\MethodePaiement;
@@ -11,6 +12,7 @@ use App\Enum\LaverieStatutEnum;
 use App\Repository\UtilisateurRepository;
 use App\Repository\AdresseRepository;
 use App\Repository\ServiceRepository;
+use App\Repository\AdministrateurRepository;
 use App\Repository\MethodePaiementRepository;
 use App\Service\LaverieService;
 use App\Service\AdresseService;
@@ -276,7 +278,7 @@ class LaverieController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-  #[Route('/admin/valider/{id}', name: 'laverie_valider', methods: ['POST'])]
+    #[Route('/admin/valider/{id}', name: 'laverie_valider', methods: ['POST'])]
     #[OA\Tag(name: 'Laverie')]
     #[OA\Security(name: 'Bearer')]
     #[OA\Parameter(
@@ -285,58 +287,88 @@ class LaverieController extends AbstractController
         description: 'ID de la laverie à valider',
         required: true,
     )]
-    #[OA\Parameter(
-        name: 'action',
-        in: 'path',
-        description: 'Action à effectuer (valider ou refuser)',
+    #[OA\RequestBody(
         required: true,
-    )]
-    #[OA\Parameter(
-        name: 'motif',
-        in: 'path',
-        description: 'Motif de la validation ou du refus',
-        required: true,
+        content: new OA\JsonContent(
+            type: "object",
+            properties: [
+                new OA\Property(property: "action", type: "string", enum: ["VALIDE", "REFUSE"]),
+                new OA\Property(property: "motif", type: "string")
+            ]
+        )
     )]
     #[OA\Response(
         response: 200,
-        description: 'Laverie validée avec succès',
-        content: new OA\JsonContent(
-            type: 'object',
-            properties: [
-                
-            ]
-        )
+        description: 'Laverie validée avec succès'
     )]
     public function valider(
         LaverieHistoriqueInteractionRepository $laverieHistoriqueInteractionRepository,
         LaverieRepository $laverieRepository,
+        AdministrateurRepository $administrateurRepository,
+        TagAwareCacheInterface $cachePool,
+        Request $request,
         int $id,
-    ): static 
+    ): JsonResponse 
     {
+        $utilisateur = $this->getUser();
+        
+        $administrateur = $administrateurRepository->findOneByEmail($utilisateur->getEmail());
+        if (!$administrateur instanceof Administrateur || $administrateur === null) {
+            return $this->json(['message' => 'Accès refusé. Seuls les administrateurs peuvent valider ou refuser une laverie.'], Response::HTTP_FORBIDDEN);
+        }
+
         $laverie = $laverieRepository->find($id);
 
-        if (!$laverie) {
+        if (!$laverie || !$laverie instanceof Laverie) {
             return $this->json(['message' => 'Laverie non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
-        $donnees = json_decode($request->getContent(), true);   
-        $action = htmlspecialchars($donnees['action'] ?? ActionEnum::REFUSE->value);
+        $donnees = json_decode($request->getContent(), true);
+
+        if (!is_array($donnees)) {
+            return $this->json([
+                'message' => 'Requête invalide : JSON manquant ou incorrect.',
+                'raw' => $request->getContent()
+            ], 400);
+        }
+
+        if (!isset($donnees['action'])) {
+            return $this->json([
+                'message' => 'Le champ "action" est obligatoire.',
+                'donnees' => $donnees
+            ], 400);
+        }
+        $actionEnum = ActionEnum::tryFrom($donnees['action']);
+        if (!$actionEnum) {
+            return $this->json([
+                'message' => 'Valeur d\'action invalide. Les valeurs possibles sont : VALIDE ou REFUSE.',
+                'donnees' => $donnees
+            ], 400);
+        }   
+        $statutEnum = LaverieStatutEnum::EN_ATTENTE;
+
+        switch($actionEnum) {
+            case ActionEnum::VALIDE:
+                $statutEnum = LaverieStatutEnum::VALIDE;
+                break;
+            case ActionEnum::REFUSE:
+                $statutEnum = LaverieStatutEnum::REFUSE;
+                break;
+            case ActionEnum::EN_ATTENTE:        
+                $statutEnum = LaverieStatutEnum::EN_ATTENTE;    
+        }
+
         $motif = htmlspecialchars($donnees['motif'] ?? 'La laverie a été validée par un administrateur.');
 
-        $interaction = $laverieHistoriqueInteractionRepository->laverieValidation(
+        $laverieHistoriqueInteractionRepository->laverieValidation(
             $laverie,
-            $this->getUser(),
-            $action, 
+            $administrateur, 
+            $actionEnum, 
             $motif,
         );
 
-        if (!$interaction) {
-            return $this->json(['message' => 'Erreur lors de l\'enregistrement de l\'interaction.'], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }   
-
-        $laverie->setStatut($action === ActionEnum::VALIDER->value ? LaverieStatutEnum::ACTIF : LaverieStatutEnum::REFUSE);
-        $laverie->setDateModification(new \DateTime());
-        $laverieRepository->save($laverie, true);    
+        $laverieRepository->setStatut($laverie, $statutEnum);
+        $cachePool->invalidateTags(['laverieCache']);
 
         return $this->json(['message' => 'Laverie validée avec succès.'], Response::HTTP_OK);
     }

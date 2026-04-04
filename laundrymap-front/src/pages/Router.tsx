@@ -94,14 +94,20 @@ export default function Router() {
         </ProtectedRoute>
       } />
 
-      <Route
+      <Route path="/admin/laveries/validation" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <AdminValidationLaverie />
+        </ProtectedRoute>
+      } />
+
+      {/* <Route
         path="/admin/professionnalAdministration/professionnalAccountValidationList"
         element={
           <ProtectedRoute allowedRoles={["administrateur"]}>
             <ProfessionnalAccountValidationList />
           </ProtectedRoute>
         }
-      />
+      /> */}
 
       {/* ── Fallback 404 → accueil ── */}
       <Route path="*" element={<Navigate to="/" replace />} />

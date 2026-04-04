@@ -66,4 +66,15 @@ class LaverieRepository extends ServiceEntityRepository
 
     }
 
+    public function setStatut(Laverie $laverie, LaverieStatutEnum $statut): void
+    {
+        $laverie->setStatut($statut);
+        $laverie->setDateModification(new \DateTime());
+
+        $em = $this->getEntityManager();
+        $em->persist($laverie);
+        $em->flush();
+    }
+
+
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
+import axios from "axios";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,14 +44,34 @@ const BADGE_LABELS: Record<StatutOnglet, string> = {
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
+export const api = axios.create({
+    baseURL: `${API_BASE}/api/v1`,
+    withCredentials: true,
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
+
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 // ─── Composant carte ─────────────────────────────────────────────────────────
 
 function LaverieCard({
     laverie,
     onVoir,
+    handleValider, 
+    handleRefuser
 }: {
     laverie: Laverie
     onVoir: (id: number) => void
+    handleValider: (id: number) => void
+    handleRefuser: (id: number) => void
 }) {
     return (
         <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -100,6 +121,25 @@ function LaverieCard({
                     >
                         Voir la demande
                     </Button>
+
+                   <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleValider(laverie.id)}
+                        className="bg-green-600 hover:bg-green-700 text-white text-sm rounded-xl px-4"
+                    >
+                        Valider
+                    </Button>
+
+                    <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleRefuser(laverie.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white text-sm rounded-xl px-4"
+                    >
+                        Refuser
+                    </Button>
+
 
                     {laverie.soumis_il_y_a && (
                         <span className="text-xs text-gray-400">
@@ -185,6 +225,7 @@ function PaginationBar({
     )
 }
 
+
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function LaveriesValidation() {
@@ -216,6 +257,45 @@ export default function LaveriesValidation() {
             setLoading(false)
         }
     }, [])
+
+    const handleValider = async (id: number) => {
+    try {
+        console.log("🚀 VALIDATION ID:", id)
+
+        const res = await api.post(`/laverie/admin/valider/${id}`, {
+        action: "VALIDE",
+        motif: "Validation effectuée"
+        })
+
+        console.log("✅ SUCCESS:", res.data)
+
+        fetchLaveries(onglet, pagination.page)
+
+    } catch (error: any) {
+        console.error("❌ ERREUR:", error)
+
+        if (error.response) {
+        console.log("📦 DATA:", error.response.data)
+        console.log("📊 STATUS:", error.response.status)
+        } else if (error.request) {
+        console.log("🚨 PAS DE RÉPONSE (CORS ?)")
+        }
+    }
+    }
+
+    const handleRefuser = async (id: number) => {
+        try {
+            await api.post(`/laverie/admin/valider/${id}`, {
+                action: "REFUSE",
+                motif: "Refus effectué"
+            });
+
+            fetchLaveries(onglet, pagination.page);
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors du refus");
+        }
+    };
 
     useEffect(() => {
         fetchLaveries(onglet, 1)
@@ -302,7 +382,7 @@ export default function LaveriesValidation() {
                         >
                             {laveries.map(laverie => (
                                 <div key={laverie.id} role="listitem">
-                                    <LaverieCard laverie={laverie} onVoir={handleVoirDemande} />
+                                    <LaverieCard laverie={laverie} onVoir={handleVoirDemande} handleValider={handleValider} handleRefuser={handleRefuser} />
                                 </div>
                             ))}
                         </div>

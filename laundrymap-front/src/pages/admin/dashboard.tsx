@@ -1,61 +1,100 @@
-import { Link } from 'react-router';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Field, FieldLabel } from "@/components/ui/field";
 
-function AdminDashboard() {
-  const stats = {
-    laundries: 72,
-    users: 109,
-    accountsToValidate: 17,
-    pendingLaundries: 4,
-    reportedComments: 23,
+import { useNavigate } from 'react-router';
+import { useAuth } from "@/components/context/AuthContext";
+
+function AdminLogin() {
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/login_check`;
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors]     = useState({ email: "", password: "" });
+
+  // Validation côté client
+  const validateForm = () => {
+    const newErrors = { email: "", password: "" };
+
+    if (!email) {
+      newErrors.email = "L'email est requis";
+    } else if (!email.includes("@") || !email.includes(".")) {
+      newErrors.email = "Email invalide";
+    }
+
+    if (!password) {
+      newErrors.password = "Le mot de passe est requis";
+    } else if (password.length < 8) {
+      newErrors.password = "Le mot de passe doit contenir au moins 8 caractères";
+    }
+
+    setErrors(newErrors);
+    return !newErrors.email && !newErrors.password;
+  };
+
+  // Soumission
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (validateForm()) {
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("Identifiants invalides");
+          return response.json();
+        })
+        .then((data) => {
+          login(data.token); 
+          navigate("/admin/dashboard"); 
+        })
+        .catch(() => {
+          setErrors({ email: "", password: "Email ou mot de passe incorrect" });
+        });
+    }
   };
 
   return (
     <>
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <h1 className="font-bold text-2xl mt-6 text-center">Tableau de bord</h1>
-      <p className="text-gray-500 text-center mt-2"> Bienvenue dans votre espace administratif </p>
 
-      {/* Cards stats */}
-      <div className="grid grid-cols-2 md:grid-cols-2 md:mx-auto md:w-[500px] gap-4 mt-18">
-        <Link to="/laveries" className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:bg-blue-600 transition-colors block" >
-          <p className="text-lg md:text-xl font-semibold">{stats.laundries}</p>
-          <p className="text-sm md:text-lg">Laveries</p>
-        </Link>
-        <Link to="/utilisateurs" className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:bg-blue-600 transition-colors block" >
-          <p className="text-lg md:text-xl font-semibold">{stats.users}</p>
-          <p className="text-sm md:text-lg">Utilisateurs</p>
-        </Link>
-      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col items-center p-4">
 
-      {/* Sections grises */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link to="/admin/professionnalAdministration/professionnalAccountValidationList" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
-          <div>
-            <p className="font-semibold">Comptes à valider</p>
-            <p className="text-sm text-gray-300"> Dernière demande il y a 48 min </p>
-          </div>
-          <p className="text-4xl font-bold">{stats.accountsToValidate}</p>
-        </Link>
+        <h1 className="font-bold text-2xl mt-6">Connexion</h1>
+        <p className="text-gray-500 text-center mt-2"> Se connecter en tant qu'administrateur </p>
 
-        <Link to="/laveries-en-attente" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
-          <div>
-            <p className="font-semibold">Laveries en attentes</p>
-            <p className="text-sm text-gray-300"> Dernière demande il y a 20 min </p>
-          </div>
-          <p className="text-4xl font-bold">{stats.pendingLaundries}</p>
-        </Link>
+        <Field className="w-11/12 max-w-md mt-16">
+          <FieldLabel htmlFor="email">
+            Email <span className="text-orange-600">*</span>
+          </FieldLabel>
+          <Input id="email"  type="email" placeholder="votre@email.com"  value={email} onChange={(event) => setEmail(event.target.value)}  className="h-11" />
+          {errors.email && ( <p className="text-red-500 text-sm mt-1">{errors.email}</p> )}
+        </Field>
 
-        <Link to="/commentaires-signales" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
-          <div>
-            <p className="font-semibold">Commentaires signalés</p>
-            <p className="text-sm text-gray-300"> Dernier signalement il y a 5 min</p>
-          </div>
-          <p className="text-4xl font-bold">{stats.reportedComments}</p>
-        </Link>
-      </div>
-    </div>
-  </>
+        <Field className="w-11/12 max-w-md mt-4">
+          <FieldLabel htmlFor="password">
+            Mot de passe <span className="text-orange-600">*</span>
+          </FieldLabel>
+          <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} className="h-11" />
+          {errors.password && ( <p className="text-red-500 text-sm mt-1">{errors.password}</p> )}
+        </Field>
+
+        <div className="w-11/12 max-w-md mt-8">
+          <Button type="submit" className="w-full">Connexion</Button>
+        </div>
+
+      </form>
+    </>
   );
 }
 
-export default AdminDashboard;
+export default AdminLogin;
