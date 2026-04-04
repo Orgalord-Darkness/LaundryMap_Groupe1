@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router';
-import { Header } from "@/components/layout/Header";
 
 // Composant pour une carte de laverie // Test laveries a revoir !!!!!!!!!!!!!
 function LaundryCard({ name, rating, reviews, imageUrl, status }: {
@@ -74,20 +73,19 @@ function ProDashboard() {
 
   return (
     <>
-    <Header/>
 
     <div className="flex flex-col items-center p-4 min-h-screen">
       <h1 className="font-bold text-2xl mt-6">Tableau de bord</h1>
       <p className="text-gray-500 text-center mt-2"> Aperçu globale de toutes vos laveries </p>
 
       <div className="w-[150px] h-[40px] my-12">
-        <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:bg-blue-600 transition-colors block">
+        <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center block">
           <p className="text-lg font-semibold">{stats.laundries}</p>
           <p className="text-sm">Laveries</p>
         </div>
       </div>
 
-      <Link to="/AddLaundry" className="w-11/12 max-w-md mt-4">
+      <Link to="/addLaundry" className="w-11/12 max-w-md mt-4">
         <Button type="button" className="w-full">
           Ajouter une laverie
         </Button>

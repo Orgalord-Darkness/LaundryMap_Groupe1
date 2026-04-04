@@ -120,7 +120,7 @@ function ProInscription() {
           <FieldLabel htmlFor="input-field-password">Mot de passe<span className='text-orange-600'>*</span></FieldLabel>
           <Input id="input-field-password" type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className='h-11'/>
           <FieldDescription>Longueur minimale : 8 caractères</FieldDescription>
-          <FieldDescription>Utiliser au moins : 1 majuscule, 1 minuscule, 1 caractère spécial</FieldDescription>
+          <FieldDescription>Utiliser au moins : 1 majuscule, 1 chiffre, 1 caractère spécial</FieldDescription>
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </Field>
 
