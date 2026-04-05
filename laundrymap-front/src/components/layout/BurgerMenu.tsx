@@ -18,6 +18,7 @@ function getMenuItems(role: Role): MenuItem[] {
       return [
         { label: "Accueil", href: "/", icon: <Icon.Home /> },
         { label: "Se connecter / S'inscrire", href: "/user/login", icon: <Icon.Login /> },
+        { label: "Se connecter en admin", href: "/admin/login", icon: <Icon.Login /> },
       ];
     case "utilisateur":
       return [
@@ -38,7 +39,7 @@ function getMenuItems(role: Role): MenuItem[] {
     case "administrateur":
       return [
         { label: "Tableau de bord", href: "/admin/dashboard", icon: <Icon.Home /> },
-        { label: "Laveries", href: "/admin/laveries", icon: <Icon.Laundry /> },
+        { label: "Laveries", href: "/admin/laveries/validation", icon: <Icon.Laundry /> },
         { label: "Comptes", href: "/admin/comptes", icon: <Icon.People /> },
         { label: "Messages signalés", href: "/admin/messages", icon: <Icon.Flag /> },
         { label: "Mes informations", href: "/admin/informations", icon: <Icon.Info />, separator: true },

@@ -46,6 +46,8 @@ import ProInscription from "./pro/inscription";
 import ProDashboard from "./pro/dashboard";
 import AdminLogin from "./admin/login";
 import AdminDashboard from "./admin/dashboard";
+
+import AdminValidationLaverie from "./admin/laveries/validation";
 import ProfessionnalAccountValidationList from "./admin/professionalAdministration/professionalAccountValidationList";
 import AddLaundry from "./pro/addLaundry";
 
@@ -101,6 +103,11 @@ export default function Router() {
         </ProtectedRoute>
       } />
 
+      <Route path="/admin/laveries/validation" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <AdminValidationLaverie />
+        </ProtectedRoute>
+      } />
       <Route path="/admin/professionnalAdministration/professionnalAccountValidationList" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <ProfessionnalAccountValidationList />

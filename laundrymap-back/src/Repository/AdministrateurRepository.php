@@ -40,4 +40,14 @@ class AdministrateurRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+       public function findOneByEmail($email): ?Administrateur
+       {
+           return $this->createQueryBuilder('a')
+               ->andWhere('a.email = :val')
+               ->setParameter('val', $email)
+               ->getQuery()
+               ->getOneOrNullResult()
+           ;
+       }
 }
