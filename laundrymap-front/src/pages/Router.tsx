@@ -46,8 +46,10 @@ import ProInscription from "./pro/inscription";
 import ProDashboard from "./pro/dashboard";
 import AdminLogin from "./admin/login";
 import AdminDashboard from "./admin/dashboard";
+
 import AdminValidationLaverie from "./admin/laveries/validation";
-// import ProfessionnalAccountValidationList from "./admin/professionalAdministration/professionalAccountValidationList";
+import ProfessionnalAccountValidationList from "./admin/professionalAdministration/professionalAccountValidationList";
+import AddLaundry from "./pro/addLaundry";
 
 function ProtectedRoute({
   children,
@@ -87,6 +89,13 @@ export default function Router() {
         </ProtectedRoute>
       } />
 
+      <Route path="/addLaundry" element={
+        <ProtectedRoute allowedRoles={["professionnel"]}>
+          <AddLaundry />
+        </ProtectedRoute>
+      } />
+
+
       {/* ── Admin ── */}
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
@@ -99,15 +108,11 @@ export default function Router() {
           <AdminValidationLaverie />
         </ProtectedRoute>
       } />
-
-      {/* <Route
-        path="/admin/professionnalAdministration/professionnalAccountValidationList"
-        element={
-          <ProtectedRoute allowedRoles={["administrateur"]}>
-            <ProfessionnalAccountValidationList />
-          </ProtectedRoute>
-        }
-      /> */}
+      <Route path="/admin/professionnalAdministration/professionnalAccountValidationList" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <ProfessionnalAccountValidationList />
+        </ProtectedRoute>
+      } />
 
       {/* ── Fallback 404 → accueil ── */}
       <Route path="*" element={<Navigate to="/" replace />} />
