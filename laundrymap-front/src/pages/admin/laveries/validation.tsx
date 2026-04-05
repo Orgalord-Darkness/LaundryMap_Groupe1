@@ -1,22 +1,45 @@
 import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import axios from "axios";
+import { Card, CardContent } from "@/components/ui/card"
+import { FilterTabs } from "@/components/layout/Filter"
+import axios from "axios"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type StatutOnglet = "EN_ATTENTE" | "VALIDE" | "REFUSE"
 
+// Correspond exactement à la réponse API
+interface LaverieAPI {
+    id: number
+    nom_etablissement: string
+    statut: StatutOnglet
+    date_ajout: string
+    logo: {
+        id: number
+        emplacement: string
+    } | null
+    professionnel: {
+        id: number
+        utilisateur: {
+            id: number
+            nom: string
+            prenom: string
+        }
+    } | null
+}
+
+// Structure normalisée pour l'affichage
 interface Laverie {
     id: number
     nom_etablissement: string
+    statut: StatutOnglet
+    image_url: string | null
     proprietaire_nom: string
     date_creation: string
-    statut: StatutOnglet
-    image_url?: string
-    soumis_il_y_a?: string
+    soumis_il_y_a: string
 }
 
-interface Pagination {
+interface PaginationState {
     page: number
     total_pages: number
     total: number
@@ -24,10 +47,10 @@ interface Pagination {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const ONGLETS: { label: string; statut: StatutOnglet }[] = [
-    { label: "En attente", statut: "EN_ATTENTE" },
-    { label: "Validés",    statut: "VALIDE"     },
-    { label: "Refusés",    statut: "REFUSE"     },
+const ONGLETS = [
+    { label: "En attente", value: "EN_ATTENTE" as StatutOnglet },
+    { label: "Validés",    value: "VALIDE"     as StatutOnglet },
+    { label: "Refusés",    value: "REFUSE"     as StatutOnglet },
 ]
 
 const BADGE_STYLES: Record<StatutOnglet, string> = {
@@ -47,114 +70,56 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL
 export const api = axios.create({
     baseURL: `${API_BASE}/api/v1`,
     withCredentials: true,
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
+    headers: { "Content-Type": "application/json" },
+})
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token")
     if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`
     }
-    return config;
-});
+    return config
+})
 
-// ─── Composant carte ─────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function LaverieCard({
-    laverie,
-    onVoir,
-    handleValider, 
-    handleRefuser
-}: {
-    laverie: Laverie
-    onVoir: (id: number) => void
-    handleValider: (id: number) => void
-    handleRefuser: (id: number) => void
-}) {
-    return (
-        <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
-            {/* Image */}
-            <div className="relative h-44 bg-gray-200 overflow-hidden">
-                {laverie.image_url ? (
-                    <img
-                        src={laverie.image_url}
-                        alt={`Photo de ${laverie.nom_etablissement}`}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-                        <svg className="w-14 h-14 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                d="M4 4h16v2H4V4zm0 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm4 4v4m4-4v4" />
-                        </svg>
-                    </div>
-                )}
-                {/* Badge statut */}
-                <span className={`absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full ${BADGE_STYLES[laverie.statut]}`}>
-                    {BADGE_LABELS[laverie.statut]}
-                </span>
-            </div>
-
-            {/* Contenu */}
-            <div className="p-4 flex flex-col gap-3">
-                <div>
-                    <h3 className="font-semibold text-gray-900 text-base leading-tight">
-                        {laverie.nom_etablissement}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                        Propriétaire : {laverie.proprietaire_nom}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                        Créé le {laverie.date_creation}
-                    </p>
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => onVoir(laverie.id)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-xl px-4"
-                        aria-label={`Voir la demande de ${laverie.nom_etablissement}`}
-                    >
-                        Voir la demande
-                    </Button>
-
-                   <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleValider(laverie.id)}
-                        className="bg-green-600 hover:bg-green-700 text-white text-sm rounded-xl px-4"
-                    >
-                        Valider
-                    </Button>
-
-                    <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleRefuser(laverie.id)}
-                        className="bg-red-600 hover:bg-red-700 text-white text-sm rounded-xl px-4"
-                    >
-                        Refuser
-                    </Button>
-
-
-                    {laverie.soumis_il_y_a && (
-                        <span className="text-xs text-gray-400">
-                            Soumis il y a {laverie.soumis_il_y_a}
-                        </span>
-                    )}
-                </div>
-            </div>
-        </article>
-    )
+function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString("fr-FR", {
+        day:   "numeric",
+        month: "long",
+        year:  "numeric",
+    })
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+function tempsEcoule(iso: string): string {
+    const diff    = Date.now() - new Date(iso).getTime()
+    const jours   = Math.floor(diff / 86_400_000)
+    const heures  = Math.floor(diff / 3_600_000)
+    const minutes = Math.floor(diff / 60_000)
 
-function PaginationBar({
+    if (jours > 0)   return `${jours} jour${jours > 1 ? "s" : ""}`
+    if (heures > 0)  return `${heures} heure${heures > 1 ? "s" : ""}`
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""}`
+    return "quelques secondes"
+}
+
+function normaliser(raw: LaverieAPI): Laverie {
+    const u = raw.professionnel?.utilisateur
+
+    return {
+        id:                raw.id,
+        nom_etablissement: raw.nom_etablissement,
+        statut:            raw.statut,
+        image_url:         raw.logo ? `${API_BASE}/${raw.logo.emplacement}` : null,
+        proprietaire_nom:  u ? `${u.prenom} ${u.nom}` : "—",
+        date_creation:     formatDate(raw.date_ajout),
+        soumis_il_y_a:     tempsEcoule(raw.date_ajout),
+    }
+}
+
+// ─── PaginationBar ────────────────────────────────────────────────────────────
+
+export function PaginationBar({
     page,
     totalPages,
     onChange,
@@ -178,15 +143,12 @@ function PaginationBar({
     }
 
     return (
-        <nav
-            aria-label="Pagination"
-            className="flex items-center justify-center gap-1 mt-8"
-        >
+        <nav aria-label="Pagination" className="flex items-center justify-center gap-1 mt-8">
             <button
                 onClick={() => onChange(page - 1)}
                 disabled={page === 1}
                 aria-label="Page précédente"
-                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 disabled:opacity-40 hover:bg-gray-50 transition-colors text-base"
             >
                 ‹
             </button>
@@ -217,7 +179,7 @@ function PaginationBar({
                 onClick={() => onChange(page + 1)}
                 disabled={page === totalPages}
                 aria-label="Page suivante"
-                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 disabled:opacity-40 hover:bg-gray-50 transition-colors text-base"
             >
                 ›
             </button>
@@ -225,13 +187,77 @@ function PaginationBar({
     )
 }
 
+// ─── LaverieCard ──────────────────────────────────────────────────────────────
+
+function LaverieCard({
+    laverie,
+    onVoir,
+}: {
+    laverie: Laverie
+    onVoir: (id: number) => void
+}) {
+    return (
+        <Card className="overflow-hidden rounded-2xl p-0 gap-0 shadow-sm hover:shadow-md transition-shadow duration-200">
+            {/* Image */}
+            <div className="relative h-44 bg-gray-100 overflow-hidden">
+                {laverie.image_url ? (
+                    <img
+                        src={laverie.image_url}
+                        alt={`Photo de ${laverie.nom_etablissement}`}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+                        <svg className="w-14 h-14 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                                d="M4 4h16v2H4V4zm0 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm4 4v4m4-4v4" />
+                        </svg>
+                    </div>
+                )}
+                <span className={`absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full ${BADGE_STYLES[laverie.statut]}`}>
+                    {BADGE_LABELS[laverie.statut]}
+                </span>
+            </div>
+
+            {/* Contenu */}
+            <CardContent className="p-4 flex flex-col gap-3">
+                <div className="flex flex-col gap-0.5">
+                    <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                        {laverie.nom_etablissement}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                        Propriétaire : {laverie.proprietaire_nom}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                        Créé le {laverie.date_creation}
+                    </p>
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => onVoir(laverie.id)}
+                        aria-label={`Voir la demande de ${laverie.nom_etablissement}`}
+                    >
+                        Voir la demande
+                    </Button>
+
+                    <span className="text-xs text-gray-400">
+                        Soumis il y a {laverie.soumis_il_y_a}
+                    </span>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
 
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function LaveriesValidation() {
     const [onglet, setOnglet]         = useState<StatutOnglet>("EN_ATTENTE")
     const [laveries, setLaveries]     = useState<Laverie[]>([])
-    const [pagination, setPagination] = useState<Pagination>({ page: 1, total_pages: 1, total: 0 })
+    const [pagination, setPagination] = useState<PaginationState>({ page: 1, total_pages: 1, total: 0 })
     const [loading, setLoading]       = useState(false)
     const [error, setError]           = useState<string | null>(null)
 
@@ -245,57 +271,19 @@ export default function LaveriesValidation() {
             )
             if (!res.ok) throw new Error("Erreur lors du chargement")
             const json = await res.json()
-            setLaveries(json.data ?? [])
+            const data: LaverieAPI[] = json.data ?? []
+            setLaveries(data.map(normaliser))
             setPagination({
                 page:        json.page        ?? page,
                 total_pages: json.total_pages ?? 1,
                 total:       json.total       ?? 0,
             })
-        } catch (e) {
+        } catch {
             setError("Impossible de charger les laveries.")
         } finally {
             setLoading(false)
         }
     }, [])
-
-    const handleValider = async (id: number) => {
-    try {
-        console.log("🚀 VALIDATION ID:", id)
-
-        const res = await api.post(`/laverie/admin/valider/${id}`, {
-        action: "VALIDE",
-        motif: "Validation effectuée"
-        })
-
-        console.log("✅ SUCCESS:", res.data)
-
-        fetchLaveries(onglet, pagination.page)
-
-    } catch (error: any) {
-        console.error("❌ ERREUR:", error)
-
-        if (error.response) {
-        console.log("📦 DATA:", error.response.data)
-        console.log("📊 STATUS:", error.response.status)
-        } else if (error.request) {
-        console.log("🚨 PAS DE RÉPONSE (CORS ?)")
-        }
-    }
-    }
-
-    const handleRefuser = async (id: number) => {
-        try {
-            await api.post(`/laverie/admin/valider/${id}`, {
-                action: "REFUSE",
-                motif: "Refus effectué"
-            });
-
-            fetchLaveries(onglet, pagination.page);
-        } catch (e) {
-            console.error(e);
-            alert("Erreur lors du refus");
-        }
-    };
 
     useEffect(() => {
         fetchLaveries(onglet, 1)
@@ -314,65 +302,42 @@ export default function LaveriesValidation() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            
-            {/* Contenu */}
             <main className="max-w-2xl mx-auto px-4 py-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-5">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-5">
                     Demandes de laveries
                 </h1>
 
-                {/* Onglets */}
-                <div
-                    role="tablist"
-                    aria-label="Filtrer par statut"
-                    className="flex gap-0 border-b border-gray-200 mb-6"
-                >
-                    {ONGLETS.map(({ label, statut }) => (
-                        <button
-                            key={statut}
-                            role="tab"
-                            aria-selected={onglet === statut}
-                            onClick={() => setOnglet(statut)}
-                            className={`px-5 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                                onglet === statut
-                                    ? "border-blue-600 text-blue-600"
-                                    : "border-transparent text-gray-500 hover:text-gray-700"
-                            }`}
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
+                <FilterTabs
+                    tabs={ONGLETS}
+                    active={onglet}
+                    onChange={setOnglet}
+                />
 
-                {/* États */}
+                {/* État chargement */}
                 {loading && (
-                    <div
-                        role="status"
-                        aria-live="polite"
-                        className="flex flex-col gap-4"
-                    >
-                        {[...Array(3)].map((_, i) => (
+                    <div role="status" aria-live="polite" className="flex flex-col gap-4">
+                        {[...Array(4)].map((_, i) => (
                             <div key={i} className="bg-white rounded-2xl h-64 animate-pulse border border-gray-100" />
                         ))}
                         <span className="sr-only">Chargement des laveries…</span>
                     </div>
                 )}
 
+                {/* État erreur */}
                 {!loading && error && (
-                    <div
-                        role="alert"
-                        className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm"
-                    >
+                    <div role="alert" className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">
                         {error}
                     </div>
                 )}
 
+                {/* État vide */}
                 {!loading && !error && laveries.length === 0 && (
                     <p className="text-center text-gray-400 py-12 text-sm">
                         Aucune laverie dans cette catégorie.
                     </p>
                 )}
 
+                {/* Liste */}
                 {!loading && !error && laveries.length > 0 && (
                     <>
                         <div
@@ -382,7 +347,7 @@ export default function LaveriesValidation() {
                         >
                             {laveries.map(laverie => (
                                 <div key={laverie.id} role="listitem">
-                                    <LaverieCard laverie={laverie} onVoir={handleVoirDemande} handleValider={handleValider} handleRefuser={handleRefuser} />
+                                    <LaverieCard laverie={laverie} onVoir={handleVoirDemande} />
                                 </div>
                             ))}
                         </div>

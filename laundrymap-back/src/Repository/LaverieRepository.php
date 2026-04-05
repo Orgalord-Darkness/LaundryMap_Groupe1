@@ -66,6 +66,27 @@ class LaverieRepository extends ServiceEntityRepository
 
     }
 
+    public function findAsk(
+        int $offset = 0,
+        int $limit = 10,
+        LaverieStatutEnum $statut = LaverieStatutEnum::EN_ATTENTE
+    ): array {
+        return $this->createQueryBuilder('l')
+            ->select('l')
+            ->addSelect('PARTIAL logo.{id, emplacement}')
+            ->addSelect('PARTIAL pro.{id}')
+            ->addSelect('PARTIAL utilisateur.{id, prenom, nom}')
+            ->leftJoin('l.logo', 'logo')
+            ->leftJoin('l.professionnel', 'pro')
+            ->leftJoin('pro.utilisateur', 'utilisateur')
+            ->where('TRIM(UPPER(l.statut)) = :statut')
+            ->setParameter('statut', $statut->value)
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     public function setStatut(Laverie $laverie, LaverieStatutEnum $statut): void
     {
         $laverie->setStatut($statut);

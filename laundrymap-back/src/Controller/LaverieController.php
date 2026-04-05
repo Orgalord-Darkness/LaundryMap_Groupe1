@@ -79,7 +79,7 @@ class LaverieController extends AbstractController
         $laveries = $cachePool->get($cacheKey, function(ItemInterface $item) use ($laverieRepository, $offset, $limit, $statut) {
             $item->tag('laverieCache');
             $item->expiresAfter(300); // 5 min
-            return $laverieRepository->findAllWithDetails($offset, $limit, $statut);
+            return $laverieRepository->findAsk($offset, $limit, $statut);
         });
 
         return $this->json([
