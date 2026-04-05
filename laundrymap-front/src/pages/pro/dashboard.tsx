@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from 'react-router';
 
 // Composant pour une carte de laverie // Test laveries a revoir !!!!!!!!!!!!!
-function LaundryCard({ name, rating, reviews, imageUrl, status }: {
+function LaundryCard({ id, name, rating, reviews, imageUrl, status }: {
+  id: number;
   name: string;
   rating: number;
   reviews: number;
@@ -37,6 +38,12 @@ function LaundryCard({ name, rating, reviews, imageUrl, status }: {
           </div>
         </div>
       </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <Button asChild variant="outline" size="sm" className="w-full">
+          <Link to={`/pro/laverie/17`}>Modifier</Link>
+        </Button>
+      </div>
     </div>
   );
 }
@@ -44,6 +51,7 @@ function LaundryCard({ name, rating, reviews, imageUrl, status }: {
 function ProDashboard() {
   // Données simulées pour les laveries // Test laveries a revoir !!!!!!!!!!!!!
   const [laundries] = useState<Array<{
+    id: number;
     name: string;
     rating: number;
     reviews: number;
@@ -51,6 +59,7 @@ function ProDashboard() {
     status: 'validée' | 'refusée';
   }>>([
     {
+      id: 1,
       name: "Le Petit Guide",
       rating: 4.5,
       reviews: 12,
@@ -58,6 +67,7 @@ function ProDashboard() {
       status: 'validée',
     },
     {
+      id: 2,
       name: "Laverie Express",
       rating: 3.8,
       reviews: 8,
@@ -93,9 +103,10 @@ function ProDashboard() {
 
       {/* Liste défilante des laveries // Test laveries a revoir !!!!!!!!!!!!! */}
       <div className="w-full max-w-md mt-6 overflow-y-auto max-h-[500px]">
-        {laundries.map((laundry, index) => (
+        {laundries.map((laundry) => (
           <LaundryCard
-            key={index}
+            key={laundry.id}
+            id={laundry.id}
             name={laundry.name}
             rating={laundry.rating}
             reviews={laundry.reviews}

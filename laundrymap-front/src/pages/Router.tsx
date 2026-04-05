@@ -46,8 +46,10 @@ import ProInscription from "./pro/inscription";
 import ProDashboard from "./pro/dashboard";
 import AdminLogin from "./admin/login";
 import AdminDashboard from "./admin/dashboard";
+import AdminValidationLaverieForm from "./admin/laveries/formLaverieValidation.tsx";
+import EditionLaverie from "./pro/editLaundry.tsx"; 
 
-import AdminValidationLaverie from "./admin/laveries/validation";
+import AdminValidationLaverie from "./admin/laveries/list.tsx";
 import ProfessionnalAccountValidationList from "./admin/professionalAdministration/professionalAccountValidationList.tsx";
 import AddLaundry from "./pro/addLaundry";
 
@@ -81,6 +83,17 @@ export default function Router() {
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/laverie/:id" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <AdminValidationLaverieForm />
+        </ProtectedRoute>
+      } />
+      <Route path="/pro/laverie/:id" element={
+        <ProtectedRoute allowedRoles={["professionnel"]}>
+          <EditionLaverie />
+        </ProtectedRoute>
+      } />
+
       
       {/* ── Professionnel ── */}
       <Route path="/pro/dashboard" element={
@@ -103,9 +116,14 @@ export default function Router() {
         </ProtectedRoute>
       } />
 
-      <Route path="/admin/laveries/validation" element={
+      <Route path="/admin/laveries/list" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <AdminValidationLaverie />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/laveries/formLaverieValidation" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <AdminValidationLaverieForm />
         </ProtectedRoute>
       } />
       <Route path="/admin/professionnalAdministration/professionnalAccountValidationList" element={

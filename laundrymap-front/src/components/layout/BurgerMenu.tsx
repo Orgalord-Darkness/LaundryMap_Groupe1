@@ -39,7 +39,7 @@ function getMenuItems(role: Role): MenuItem[] {
     case "administrateur":
       return [
         { label: "Tableau de bord", href: "/admin/dashboard", icon: <Icon.Home /> },
-        { label: "Laveries", href: "/admin/laveries/validation", icon: <Icon.Laundry /> },
+        { label: "Laveries", href: "/admin/laveries/list", icon: <Icon.Laundry /> },
         { label: "Comptes", href: "/admin/comptes", icon: <Icon.People /> },
         { label: "Messages signalés", href: "/admin/messages", icon: <Icon.Flag /> },
         { label: "Mes informations", href: "/admin/informations", icon: <Icon.Info />, separator: true },
