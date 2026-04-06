@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { Button } from "@/components/ui/button"
 import { Textarea } from '@/components/ui/textarea'
+import { FieldLabel } from "@/components/ui/field"
+import { Field} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { CheckboxGroup } from '@/components/ui/checkboxGroup'
 import axios from 'axios'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
-// Instance Axios configurée une fois pour toute
 export const api = axios.create({
     baseURL: `${API_BASE}/api/v1`,
     withCredentials: true,
@@ -21,83 +24,18 @@ api.interceptors.request.use((config) => {
     return config
 })
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface LaverieDetail {
-    id: number
-    nom_etablissement: string
-    statut: string
-    description: string | null
-    contact_email: string | null
-    date_ajout: string
-    date_modification: string
-    wi_line_reference: number | null
-    logo: { id: number; emplacement: string } | null
-    adresse: {
-        adresse: string; rue: string; code_postal: number; ville: string; pays: string;
-        latitude: number | null; longitude: number | null;
-    } | null
-    professionnel: {
-        id: number; siren: number; statut: string;
-        utilisateur: { id: number; prenom: string; nom: string; email: string }
-    } | null
-    services: { id: number; nom: string }[]
-    methodePaiements: { id: number; nom: string }[]
-    laverieHistoriqueInteractions: {
-        id: number; action: string; motif_action: string | null; date: string
-    }[]
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function formatDateTime(iso: string): string {
-    return new Date(iso).toLocaleDateString("fr-FR", {
-        day: "numeric", month: "long", year: "numeric",
-        hour: "2-digit", minute: "2-digit",
-    })
-}
-
-const STATUT_STYLES: Record<string, string> = {
-    EN_ATTENTE: "bg-amber-100 text-amber-700 border border-amber-200",
-    VALIDE:     "bg-emerald-100 text-emerald-700 border border-emerald-200",
-    REFUSE:     "bg-red-100 text-red-600 border border-red-200",
-}
-
-const STATUT_LABELS: Record<string, string> = {
-    EN_ATTENTE: "En attente",
-    VALIDE:     "Validé",
-    REFUSE:     "Refusé",
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-    return (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-2">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{title}</h2>
-            {children}
-        </div>
-    )
-}
-
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-    return (
-        <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-gray-400">{label}</span>
-            <span className="text-sm text-gray-800">{value ?? "—"}</span>
-        </div>
-    )
-}
-
 export default function LaverieValidation() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
 
-    const [laverie, setLaverie]   = useState<LaverieDetail | null>(null)
-    const [loading, setLoading]   = useState(true)
-    const [error, setError]       = useState<string | null>(null)
-    const [motif, setMotif]       = useState("")
+    const [laverie, setLaverie] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const [motif, setMotif] = useState("")
     const [motifError, setMotifError] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
-    // ─── Chargement ───────────────────────────────────────────────────────────
     const fetchLaverieData = async () => {
         try {
             const res = await api.get(`/laverie/${id}`)
@@ -105,7 +43,6 @@ export default function LaverieValidation() {
             if (!data) throw new Error("Laverie introuvable.")
             setLaverie(data)
         } catch (err) {
-            console.error("Erreur chargement:", err)
             setError("Impossible de charger les données.")
         } finally {
             setLoading(false)
@@ -116,13 +53,12 @@ export default function LaverieValidation() {
         if (id) fetchLaverieData()
     }, [id])
 
-    // ─── Action valider / refuser ─────────────────────────────────────────────
     const handleAction = async (action: "VALIDE" | "REFUSE") => {
         if (action === "REFUSE" && !motif.trim()) {
             setMotifError("Le motif est obligatoire pour un refus.")
             return
         }
-        
+
         setSubmitting(true)
         setFeedback(null)
 
@@ -137,12 +73,12 @@ export default function LaverieValidation() {
                 message: action === "VALIDE" ? "Laverie validée." : "Laverie refusée.",
             })
 
-            // On rafraîchit les données après l'action
             await fetchLaverieData()
         } catch (err) {
             setFeedback({ type: "error", message: "Une erreur est survenue lors de l'action." })
         } finally {
             setSubmitting(false)
+            navigate('/admin/laveries/list')
         }
     }
 
@@ -150,74 +86,151 @@ export default function LaverieValidation() {
     if (error || !laverie) return <div className="p-10 text-red-500">{error}</div>
 
     const imageUrl = laverie.logo ? `${API_BASE}/${laverie.logo.emplacement.replace(/^\//, '')}` : null
-    const statutActuel = laverie.statut as keyof typeof STATUT_STYLES
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
-            <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-5">
-                {/* Header */}
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" onClick={() => navigate(-1)}>‹ Retour</Button>
-                    <h1 className="text-xl font-bold flex-1">{laverie.nom_etablissement}</h1>
-                    <span className={`text-xs px-2.5 py-1 rounded-full ${STATUT_STYLES[statutActuel]}`}>
-                        {STATUT_LABELS[statutActuel] || statutActuel}
-                    </span>
-                </div>
+        <form className="flex flex-col items-center p-4 max-w-md mx-auto">
 
-                {feedback && (
-                    <div className={`p-4 rounded-xl border ${feedback.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                        {feedback.message}
-                    </div>
-                )}
+        {/* Titre */}
+        <h1 className="font-semibold mt-10 text-2xl text-gray-900 text-center">
+            Demande de laverie
+        </h1>
+        <p className="text-gray-500 text-center mb-6">
+            Consultez les informations avant de prendre une décision
+        </p>
 
-                {imageUrl && (
-                    <div className="h-52 rounded-2xl overflow-hidden shadow-md">
-                        <img src={imageUrl} alt="Logo" className="w-full h-full object-cover" />
-                    </div>
-                )}
+        {/* Feedback */}
+        {feedback && (
+            <div
+                className={`w-full p-4 rounded-xl text-sm mb-4 border ${
+                    feedback.type === "success"
+                        ? "bg-green-100 border-green-400 text-green-700"
+                        : "bg-red-50 border-red-200 text-red-600"
+                }`}
+            >
+                {feedback.message}
+            </div>
+        )}
 
-                <Section title="Informations générales">
-                    <InfoRow label="Nom" value={laverie.nom_etablissement} />
-                    <InfoRow label="Email" value={laverie.contact_email} />
-                    <InfoRow label="Description" value={laverie.description} />
-                </Section>
+        {/* IMAGE */}
+        {imageUrl && (
+            <div className="w-full h-40 rounded-xl overflow-hidden shadow mb-4">
+                <img src={imageUrl} className="w-full h-full object-cover" />
+            </div>
+        )}
 
-                {laverie.adresse && (
-                    <Section title="Adresse">
-                        <InfoRow label="Ville" value={`${laverie.adresse.code_postal} ${laverie.adresse.ville}`} />
-                        <InfoRow label="Rue" value={`${laverie.adresse.adresse} ${laverie.adresse.rue}`} />
-                    </Section>
-                )}
+        {/* Nom */}
+        <Field className="w-full mt-4">
+            <FieldLabel>Nom de la laverie</FieldLabel>
+            <Input value={laverie.nom_etablissement} disabled className="h-11 bg-gray-100" />
+        </Field>
 
-                {/* Zone de décision */}
-                <div className="bg-white rounded-2xl border p-4 shadow-lg flex flex-col gap-4 mt-4">
-                    <h2 className="font-bold text-gray-700">Prendre une décision</h2>
-                    <Textarea 
-                        placeholder="Motif de la décision..." 
-                        value={motif} 
-                        onChange={(e) => setMotif(e.target.value)}
-                        className={motifError ? "border-red-500" : ""}
-                    />
-                    {motifError && <span className="text-red-500 text-xs">{motifError}</span>}
-                    
-                    <div className="flex gap-4">
-                        <Button 
-                            className="flex-1 bg-red-500 hover:bg-red-600" 
-                            disabled={submitting} 
-                            onClick={() => handleAction("REFUSE")}
-                        >
-                            Refuser
-                        </Button>
-                        <Button 
-                            className="flex-1 bg-green-600 hover:bg-green-700" 
-                            disabled={submitting} 
-                            onClick={() => handleAction("VALIDE")}
-                        >
-                            Valider la laverie
-                        </Button>
-                    </div>
-                </div>
-            </main>
+        {/* Email */}
+        <Field className="w-full mt-4">
+            <FieldLabel>Email de contact</FieldLabel>
+            <Input value={laverie.contact_email ?? ""} disabled className="h-11 bg-gray-100" />
+        </Field>
+
+        {/* Adresse */}
+        <Field className="w-full mt-4">
+            <FieldLabel>Numéro</FieldLabel>
+            <Input value={laverie.adresse?.adresse ?? ""} disabled className="h-11 bg-gray-100" />
+        </Field>
+
+        <Field className="w-full mt-4">
+            <FieldLabel>Adresse</FieldLabel>
+            <Input value={laverie.adresse?.rue ?? ""} disabled className="h-11 bg-gray-100" />
+        </Field>
+
+        <Field className="w-full mt-4">
+            <FieldLabel>Code postal</FieldLabel>
+            <Input value={laverie.adresse?.code_postal ?? ""} disabled className="h-11 bg-gray-100" />
+        </Field>
+
+        <Field className="w-full mt-4">
+            <FieldLabel>Ville</FieldLabel>
+            <Input value={laverie.adresse?.ville ?? ""} disabled className="h-11 bg-gray-100" />
+        </Field>
+
+        <Field className="w-full mt-4">
+            <FieldLabel>Pays</FieldLabel>
+            <Input value={laverie.adresse?.pays ?? ""} disabled className="h-11 bg-gray-100" />
+        </Field>
+
+        {/* Coordonnées */}
+        <div className="w-full grid grid-cols-2 gap-3 mt-4">
+            <Field>
+                <FieldLabel>Latitude</FieldLabel>
+                <Input value={laverie.adresse?.latitude ?? ""} disabled className="h-11 bg-gray-100" />
+            </Field>
+            <Field>
+                <FieldLabel>Longitude</FieldLabel>
+                <Input value={laverie.adresse?.longitude ?? ""} disabled className="h-11 bg-gray-100" />
+            </Field>
         </div>
+
+        {/* Description */}
+        <Field className="w-full mt-4">
+            <FieldLabel>Description</FieldLabel>
+            <Textarea
+                value={laverie.description ?? ""}
+                disabled
+                className="h-32 bg-gray-100"
+            />
+        </Field>
+
+        {/* Services */}
+        <div className="w-full mt-4">
+            <CheckboxGroup
+                title="Équipements disponibles"
+                options={laverie.services.map((s: { id: any; nom: any }) => ({ value: s.id, label: s.nom }))}
+                // selected={laverie.services.map(s => String(s.id))}
+                // disabled
+            />
+        </div>
+
+        {/* Paiements */}
+        <div className="w-full mt-4">
+            <CheckboxGroup
+                title="Moyens de paiement acceptés"
+                options={laverie.methodePaiements.map((p: { id: any; nom: any }) => ({ value: p.id, label: p.nom }))}
+                // selected={laverie.methodePaiements.map(p => String(p.id))}
+                // disabled
+            />
+        </div>
+
+        {/* Champ motif */}
+        <Field className="w-full mt-8">
+            <FieldLabel>Motif de la décision</FieldLabel>
+            <Textarea
+                value={motif}
+                onChange={(e) => setMotif(e.target.value)}
+                placeholder="Expliquez votre décision…"
+                className={`h-28 ${motifError ? "border-red-500" : ""}`}
+            />
+            {motifError && <p className="text-red-500 text-xs mt-1">{motifError}</p>}
+        </Field>
+
+        {/* Boutons */}
+        <div className="flex gap-3 mt-8 mb-12">
+            <Button
+                type="button"
+                className="h-10 px-6 bg-red-500 hover:bg-red-600 text-sm"
+                onClick={() => handleAction("REFUSE")}
+                disabled={submitting}
+            >
+                Refuser
+            </Button>
+
+            <Button
+                type="button"
+                className="h-10 px-6 bg-green-600 hover:bg-green-700 text-sm"
+                onClick={() => handleAction("VALIDE")}
+                disabled={submitting}
+            >
+                Valider
+            </Button>
+        </div>
+    </form>
+
     )
 }
