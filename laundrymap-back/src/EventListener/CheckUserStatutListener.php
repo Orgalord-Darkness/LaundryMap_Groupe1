@@ -6,7 +6,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
-class CheckUserStatusListener
+class CheckUserStatutListener
 {
     public function onAuthenticationSuccess(AuthenticationSuccessEvent $event)
     {

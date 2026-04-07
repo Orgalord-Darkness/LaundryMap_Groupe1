@@ -7,15 +7,16 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use App\Entity\Utilisateur;
+use Twig\Environment;
 
 class EmailVerificationService
 {
     public function __construct(
         private MailerInterface $mailer,
         private UrlGeneratorInterface $urlGenerator,
-        private JWTTokenManagerInterface $jwtManager
+        private JWTTokenManagerInterface $jwtManager,
+        private Environment $twig
     ) {}
-
 
     private function generateVerificationToken(Utilisateur $user): string
     {
@@ -30,27 +31,24 @@ class EmailVerificationService
 
     public function sendVerificationEmail(Utilisateur $user): void
     {
-        // Génération du token JWT
         $token = $this->generateVerificationToken($user);
 
-        // Construction de l'URL de validation
         $url = $this->urlGenerator->generate(
             'app_valider_email',
             ['token' => $token],
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
-        // Email
+        $html = $this->twig->render('emails/validationEmail.html.twig', [
+            'prenom' => $user->getPrenom(),
+            'url_validation' => $url
+        ]);
+
         $email = (new Email())
             ->from('no-reply@laundrymap.com')
             ->to($user->getEmail())
             ->subject('Vérifiez votre adresse email')
-            ->html("
-                <p>Bonjour {$user->getPrenom()},</p>
-                <p>Merci pour votre inscription. Cliquez sur le lien ci-dessous pour valider votre compte :</p>
-                <p><a href='$url'>Valider mon compte</a></p>
-                <p>Ce lien expire dans 15 minutes.</p>
-            ");
+            ->html($html);
 
         $this->mailer->send($email);
     }

@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTDecoderInterface;
 use App\Enum\StatutEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
@@ -21,6 +20,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use App\Service\EmailVerificationService;
 
 #[Route('/api/v1/utilisateur')]
 final class UtilisateurController extends AbstractController
@@ -111,6 +111,14 @@ final class UtilisateurController extends AbstractController
             );
         }
 
+        if($utilisateur->getRole() === 'en attente') {
+            $message['email'] = "Identifiants invalides."; 
+            return $this->json(
+                $messages,
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
         $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
 
         try {
@@ -167,6 +175,7 @@ final class UtilisateurController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         UtilisateurRepository $utilisateurRepository,
         TagAwareCacheInterface $cachePool,
+        EmailVerificationService $emailVerificationService
     ): JsonResponse {
         
         $donnees = json_decode($request->getContent(), true);
@@ -245,52 +254,75 @@ final class UtilisateurController extends AbstractController
         $utilisateur->setPrenom($prenom);
 
         $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $donnees['mot_de_passe']);
-        $utilisateur->setMotdePasse($motDePasseHashe);
+        $utilisateur->setMotDePasse($motDePasseHashe);
 
-        $utilisateur->setStatut(StatutEnum::VALIDE);
+
+        $utilisateur->setStatut(StatutEnum::EN_ATTENTE);
+
         $utilisateur->setDateCreation(new \DateTime());
         $utilisateur->setDateModification(new \DateTime());
-        
 
         if (!$isGood) {
-            return $this->json(
-                $messages,
-                Response::HTTP_BAD_REQUEST
-            );
+            return $this->json($messages, Response::HTTP_BAD_REQUEST);
         }
 
         $utilisateurRepository->inscription($utilisateur);
 
-        $cachePool->invalidateTags(['utilisateurCache']);
-        $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
-
-        // TODO: envoyer un email avec le lien de validation
-        $verificationUrl = $urlGenerator->generate('app_valider_email', ['token' => $verificationToken], UrlGeneratorInterface::ABSOLUTE_URL);
+        $emailVerificationService->sendVerificationEmail($utilisateur);
 
         return $this->json(
-            ['message' => 'Inscription réussie. Vérifiez votre e-mail pour activer votre compte.', 'id' => $utilisateur->getId(), 'verification_url' => $verificationUrl],
-            Response::HTTP_CREATED,
-            ['Location' => $location]
+            [
+                'message' => 'Inscription réussie. Vérifiez votre e-mail pour activer votre compte.',
+                'id' => $utilisateur->getId()
+            ],
+            Response::HTTP_CREATED
         );
+
     }
 
     #[Route('/validation/{token}', name: 'app_valider_email', methods: ['GET'])]
     public function validerEmail(
         string $token,
+        JWTTokenManagerInterface $jwtManager,
         UtilisateurRepository $utilisateurRepository,
         TagAwareCacheInterface $cachePool
-    ): JsonResponse {
-        $utilisateur = $utilisateurRepository->findOneByVerificationToken($token);
-        if (!$utilisateur) {
-            return $this->json(['message' => 'Jeton de vérification invalide ou expiré.'], Response::HTTP_BAD_REQUEST);
+    ): Response
+
+    {
+       try {
+            $payload = $jwtManager->parse($token);
+        } catch (\Exception $e) {
+            return $this->json(['message' => 'Token invalide.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $utilisateur->setStatut(StatutEnum::VALIDE);
-        $utilisateur->setVerificationToken(null);
+        if (($payload['purpose'] ?? null) !== 'email_validation') {
+            return $this->json(['message' => 'Token non valide pour la validation email.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (($payload['exp'] ?? 0) < time()) {
+            return $this->json(['message' => 'Token expiré.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $utilisateur = $utilisateurRepository->find($payload['user_id'] ?? 0);
+
+        if (!$utilisateur) {
+            return $this->json(['message' => 'Utilisateur introuvable.'], Response::HTTP_BAD_REQUEST);
+        }
+
+       $utilisateur->setStatut(StatutEnum::VALIDE);
         $utilisateurRepository->inscription($utilisateur);
         $cachePool->invalidateTags(['utilisateurCache']);
 
+        return $this->render('emails/confirmationAccountEmail.html.twig', [
+            'frontend_login_url' => env(CORS_ALLOW_ORIGIN).'/user/login'
+        ]);
+
+
+        $cachePool->invalidateTags(['utilisateurCache']);
+
         return $this->json(['message' => 'E-mail confirmé avec succès. Vous pouvez maintenant vous connecter.'], Response::HTTP_OK);
+
+
     }
 
     #[Route('/resend-validation', name: 'app_renvoyer_validation', methods: ['POST'])]
@@ -406,6 +438,7 @@ final class UtilisateurController extends AbstractController
                 new OA\Property(property: 'email', type: 'string'),
                 new OA\Property(property: 'nom', type: 'string'),
                 new OA\Property(property: 'prenom', type: 'string'),
+                new OA\Property(property: 'password', type: 'string'),
             ]
         )
     )]
@@ -442,6 +475,7 @@ final class UtilisateurController extends AbstractController
         $googleId = $payload['sub'];
         $nom = $payload['family_name']; 
         $prenom = $payload['given_name'];
+        $motDePasse = $code['password']; 
 
         $utilisateur = $utilisateurRepository->findOneByEmail($email);
         if (!$utilisateur) {
@@ -449,8 +483,7 @@ final class UtilisateurController extends AbstractController
             $utilisateur->setEmail($email);
             $utilisateur->setNom($nom);
             $utilisateur->setPrenom($prenom);
-            $motDePasseAleatoire = bin2hex(random_bytes(32)); // On génère un mot de passe aléatoire pour les utilisateurs Google SSO et pour la sécurité
-            $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $motDePasseAleatoire);
+            $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $motDePasse);
             $utilisateur->setMotDePasse($motDePasseHashe);
             $utilisateur->setOauthId($googleId);
             $utilisateur->setStatut(StatutEnum::VALIDE);    

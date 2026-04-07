@@ -36,39 +36,34 @@ export default function Inscription() {
     
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
-            const reponse = await axios.post(
-                url, {
-                    email: donnees.email,   
-                    mot_de_passe: donnees.mot_de_passe,
-                    prenom: donnees.prenom,
-                    nom: donnees.nom,
-                    confirmation_mot_de_passe: donnees.confirmation_mot_de_passe
-                }, 
-                {
-                    headers: { "Content-Type": "application/json" }
-                }
-            )
+            const reponse = await axios.post(url, {
+                email: donnees.email,
+                mot_de_passe: donnees.mot_de_passe,
+                prenom: donnees.prenom,
+                nom: donnees.nom,
+                confirmation_mot_de_passe: donnees.confirmation_mot_de_passe
+            });
 
-            const data = await reponse.data
-
-            if(data.errors) {
-                Object.keys(data.errors).forEach((champ) => {
-                    setError(champ as keyof Inputs, {
-                    type: "server",
-                    message: data.errors[champ],
-                    })
-                })
-                return
-            }
-            setSuccessMessage("Inscription réussie ! Vous pouvez maintenant vous connecter.")
-            setTimeout(() => {
-                window.location.href = '/user/login'
-            }, 5000)
-
+            setSuccessMessage("Inscription réussie ! Vérifiez votre email.");
+            
         } catch (erreur) {
-            console.error("Erreur lors de l'inscription :", erreur)
+            if (axios.isAxiosError(erreur) && erreur.response) {
+                const erreursServeur = erreur.response.data;
+
+                Object.keys(erreursServeur).forEach((champ) => {
+                    setError(champ as keyof Inputs, {
+                        type: "server",
+                        message: erreursServeur[champ],
+                    });
+                });
+
+                return;
+            }
+
+            console.error("Erreur inconnue :", erreur);
         }
-    }
+    };
+
 
     return (
         <div className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-white rounded-2xl shadow-lg">
