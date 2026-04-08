@@ -1,6 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router';
+import { useNavigate, Link } from 'react-router';
+import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardAction,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 // Composant pour une carte de laverie // Test laveries a revoir !!!!!!!!!!!!!
 function LaundryCard({ id, name, rating, reviews, imageUrl, status }: {
@@ -81,16 +91,64 @@ function ProDashboard() {
     laundries: 72,
   };
 
+
+
+// Interface alignée sur ce que l'API Symfony retournera
+interface Laundry {
+  id: number;
+  nom: string;
+  statut: 'validée' | 'refusée' | 'en_attente';
+  logoUrl: string | null;
+  rating: number | null;   // null si pas encore implémenté
+  avis: number;            // nombre d'avis
+}
+
+function ProDashboard() {
+
+  const [laundries, setLaundries] = useState<Laundry[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+
+  // fetch dans useEffect
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/dashboard`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error('Erreur serveur');
+        return response.json();
+      })
+      .then((data) => {
+        setLaundries(data.laveries);
+        setTotal(data.total);
+      })
+      .catch(() => setError('Impossible de charger vos laveries.'))
+      .finally(() => setLoading(false));
+  }, []); // ← tableau vide = exécuté une seule fois au montage
+
+
+  // guards avant le return principal
+  if (loading) return <p className="text-center mt-10 text-gray-500">Chargement...</p>;
+  if (error)   return <p className="text-center mt-10 text-red-500">{error}</p>;
+
+
   return (
     <>
 
     <div className="flex flex-col items-center p-4 min-h-screen">
       <h1 className="font-bold text-2xl mt-6">Tableau de bord</h1>
-      <p className="text-gray-500 text-center mt-2"> Aperçu globale de toutes vos laveries </p>
+      <p className="text-gray-500 text-center mt-2"> Bienvenue dans votre espace professionnel </p>
 
       <div className="w-[150px] h-[40px] my-12">
         <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center block">
-          <p className="text-lg font-semibold">{stats.laundries}</p>
+          <p className="text-lg font-semibold">{total}</p>
           <p className="text-sm">Laveries</p>
         </div>
       </div>
@@ -115,56 +173,13 @@ function ProDashboard() {
           />
         ))}
       </div>
+
+
     </div>
+    
 
   </>
   );
 }
 
 export default ProDashboard;
-
-
-
-// JE sais commentaire a retirer
-
-
-// import { useState } from 'react';
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-// import { Link } from 'react-router';
-
-
-// function ProDashboard() {
-
-//   const stats = {
-//     laundries: 72,
-//   };
-
-
-//   return (
-//     <>
-
-//     <div className="flex flex-col items-center justify-content p-4">
-
-//         <h1 className="font-bold text-2xl mt-6">Tableau de bord</h1>
-//         <p className="text-gray-500 text-center mt-2">Bienvenue dans votre espace professionnel</p>
-
-//         <div className="w-[150px] h-[40px] my-8">
-//             <div  className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:bg-blue-600 transition-colors block">
-//                 <p className="text-lg font-semibold">{stats.laundries}</p>
-//                 <p className="text-sm">Laveries</p>
-//             </div>
-//         </div>
-
-//         <Link to="/AddLaundry" className="w-11/12 max-w-md mt-8">
-//             <Button type="button" className="w-full">Ajouter une laverie</Button>
-//         </Link>
-
-//     </div>
-
-//     </>
-//   )
-// }
-
-// export default ProDashboard;
