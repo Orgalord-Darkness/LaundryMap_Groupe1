@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/card"
 
 // Composant pour une carte de laverie // Test laveries a revoir !!!!!!!!!!!!!
-function LaundryCard({ name, rating, reviews, imageUrl, status }: {
+function LaundryCard({ id, name, rating, reviews, imageUrl, status }: {
+  id: number;
   name: string;
   rating: number;
   reviews: number;
@@ -48,9 +49,48 @@ function LaundryCard({ name, rating, reviews, imageUrl, status }: {
           </div>
         </div>
       </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <Button asChild variant="outline" size="sm" className="w-full">
+          <Link to={`/pro/laverie/17`}>Modifier</Link>
+        </Button>
+      </div>
     </div>
   );
+}
 
+function ProDashboard() {
+  // Données simulées pour les laveries // Test laveries a revoir !!!!!!!!!!!!!
+  const [laundries] = useState<Array<{
+    id: number;
+    name: string;
+    rating: number;
+    reviews: number;
+    imageUrl: string;
+    status: 'validée' | 'refusée';
+  }>>([
+    {
+      id: 1,
+      name: "Le Petit Guide",
+      rating: 4.5,
+      reviews: 12,
+      imageUrl: "https://laverie.mobi/public_medias/image_file/file/0193500f-d148-7b3f-a980-1df9ebf0f33d/large_400f90fa.jpeg",
+      status: 'validée',
+    },
+    {
+      id: 2,
+      name: "Laverie Express",
+      rating: 3.8,
+      reviews: 8,
+      imageUrl: "https://laverie.mobi/public_medias/image_file/file/0193500f-d148-7b3f-a980-1df9ebf0f33d/large_400f90fa.jpeg",
+      status: 'refusée',
+    },
+    // Test laveries a revoir !!!!!!!!!!!!!
+  ]);
+
+  const stats = {
+    laundries: 72,
+  };
 
 
 
@@ -100,7 +140,6 @@ function ProDashboard() {
   if (error)   return <p className="text-center mt-10 text-red-500">{error}</p>;
 
 
-
   return (
     <>
 
@@ -121,53 +160,19 @@ function ProDashboard() {
         </Button>
       </Link>
 
-  
-      <div className="p-4 my-5">
-        <div className="max-w-6xl max-lg:max-w-3xl max-sm:max-w-sm mx-auto">
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-
-            {laundries.map((laundry) => (
-
-              <Card className="relative mx-auto w-full max-w-sm pt-0" key={laundry.id}>
-
-                <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
-                {/* <img src={laundry.imageUrl} alt={laundry.name} className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40" /> */}
-                <img src={laundry.logoUrl ?? '/placeholder.png'} alt={laundry.nom} className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40" />
-
-                <CardHeader>
-                  <CardAction>
-                    <Badge variant='ghost' className="mt-2">
-                      {laundry.statut === 'validée' ? (
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                          Validée
-                        </span>
-                      ) : (
-                        <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">
-                          Refusée
-                        </span>
-                      )}
-                    </Badge>
-                  </CardAction>
-                  <CardTitle>{laundry.nom}</CardTitle>
-                  <CardDescription> 
-                    <span className="text-yellow-500">★ {laundry.rating}</span>
-                    <span className="text-gray-500 ml-2">{laundry.avis} avis</span>
-                  </CardDescription>
-                </CardHeader>
-
-                <CardFooter>
-                  <Button className="w-full" onClick={() => navigate(`/pro/laverie/${laundry.id}`)}>
-                    Voir la laverie
-                  </Button>
-                </CardFooter>
-              </Card>
-
-            ))}
-
-
-          </div>
-        </div>
+      {/* Liste défilante des laveries // Test laveries a revoir !!!!!!!!!!!!! */}
+      <div className="w-full max-w-md mt-6 overflow-y-auto max-h-[500px]">
+        {laundries.map((laundry) => (
+          <LaundryCard
+            key={laundry.id}
+            id={laundry.id}
+            name={laundry.name}
+            rating={laundry.rating}
+            reviews={laundry.reviews}
+            imageUrl={laundry.imageUrl}
+            status={laundry.status}
+          />
+        ))}
       </div>
 
 
