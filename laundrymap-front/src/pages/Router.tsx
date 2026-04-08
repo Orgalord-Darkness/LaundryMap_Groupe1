@@ -51,6 +51,7 @@ import ProDashboard from "./pro/dashboard";
 import AdminLogin from "./admin/login";
 import AdminDashboard from "./admin/dashboard";
 import ProfessionnalAccountValidationList from "./admin/professional/validation";
+import NewPassword from '@/components/layout/NewPassword'; 
 
 function ProtectedRoute({
   children,
@@ -83,6 +84,7 @@ export default function Router() {
       <Route path="/user/resend-verification" element={<ResendVerification />} />
       <Route path="/user/mot-de-passe-oublie" element={<ForgotPassword />} />
       <Route path="/user/mot-de-passe/reinitialisation/:token" element={<ResetPassword />} />
+      <Route path="/user/new-password" element={<NewPassword/>} />
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />

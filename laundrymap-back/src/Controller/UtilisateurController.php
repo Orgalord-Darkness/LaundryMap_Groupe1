@@ -166,7 +166,7 @@ final class UtilisateurController extends AbstractController
         )
     )]
     #[OA\Response(response: 400, description: 'Données invalides')]
-    #[OA\Response(response: 409, description: 'Email déjà utilisé')]
+    #[OA\Response(response: 409, description: 'Identifiants invalides')]
     public function inscription(
         Request $request,
         EntityManagerInterface $em,
@@ -201,7 +201,7 @@ final class UtilisateurController extends AbstractController
             $isGood = false;
         }
         if ($utilisateurRepository->emailExiste($donnees['email'])) {
-            $messages['email'] = ($messages['email'] ?? '') . "L'email est déjà utilisé.";
+            $messages['email'] = ($messages['email'] ?? '') . "email invalide";
             $isGood = false;
         }
 
@@ -314,7 +314,7 @@ final class UtilisateurController extends AbstractController
         $cachePool->invalidateTags(['utilisateurCache']);
 
         return $this->render('emails/confirmationAccountEmail.html.twig', [
-            'frontend_login_url' => env(CORS_ALLOW_ORIGIN).'/user/login'
+            'frontend_login_url' => $_ENV['CORS_ALLOW_ORIGIN'].'/user/login'
         ]);
 
 
@@ -453,14 +453,18 @@ final class UtilisateurController extends AbstractController
         TagAwareCacheInterface $cachePool,
         JWTTokenManagerInterface $jwtManager, 
     ): JsonResponse {
-        $code = json_decode($request->getContent(), true)['token'];
+        $code = json_decode($request->getContent(), true)['token'] ?? null;
+
+        if (!$code) {
+            return $this->json(['message' => 'Token manquant'], Response::HTTP_BAD_REQUEST);
+        }
 
         $client = new GoogleClient(['client_id' => $_ENV['GOOGLE_CLIENT_ID']]);
         $client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
         $client->setRedirectUri('postmessage');
-        
+
         $tokenData = $client->fetchAccessTokenWithAuthCode($code);
-        
+
         if (isset($tokenData['error'])) {
             return $this->json(['message' => 'Code Google invalide'], Response::HTTP_BAD_REQUEST);
         }
@@ -471,44 +475,55 @@ final class UtilisateurController extends AbstractController
             return $this->json(['message' => 'Token Google invalide'], Response::HTTP_BAD_REQUEST);
         }
 
-        $email = $payload['email']; 
+        $email    = $payload['email'];
         $googleId = $payload['sub'];
-        $nom = $payload['family_name']; 
-        $prenom = $payload['given_name'];
-        $motDePasse = $code['password']; 
+        $nom      = $payload['family_name'] ?? '';
+        $prenom   = $payload['given_name']  ?? '';
 
         $utilisateur = $utilisateurRepository->findOneByEmail($email);
+        $isNewUser   = false;
+        $resetToken  = null;
+
         if (!$utilisateur) {
+            $isNewUser   = true;
             $utilisateur = new Utilisateur();
             $utilisateur->setEmail($email);
             $utilisateur->setNom($nom);
             $utilisateur->setPrenom($prenom);
-            $motDePasseHashe = $passwordHasher->hashPassword($utilisateur, $motDePasse);
-            $utilisateur->setMotDePasse($motDePasseHashe);
             $utilisateur->setOauthId($googleId);
-            $utilisateur->setStatut(StatutEnum::VALIDE);    
+            $utilisateur->setStatut(StatutEnum::VALIDE);
             $utilisateur->setDateCreation(new \DateTime());
             $utilisateur->setDateModification(new \DateTime());
-            $utilisateurRepository->inscription($utilisateur); 
-        }
 
-        $tokenData = $client->fetchAccessTokenWithAuthCode($code);
+            $motDePasseAleatoire = bin2hex(random_bytes(32));
+            $utilisateur->setMotDePasse(
+                $passwordHasher->hashPassword($utilisateur, $motDePasseAleatoire)
+            );
+
+            // JWT signé comme reset_token — zéro modif BDD
+            $resetToken = $jwtManager->create($utilisateur, [
+                'purpose' => 'reset_password',
+                'exp'     => time() + 3600,
+            ]);
+
+            $utilisateurRepository->inscription($utilisateur);
+            $cachePool->invalidateTags(['utilisateurCache']);
+        }
 
         $utilisateurRepository->updateDateDerniereConnexion($utilisateur);
 
         try {
-            $cachePool->invalidateTags(['utilisateurCache']);
-            $location = $urlGenerator->generate('app_inscription', [], UrlGeneratorInterface::ABSOLUTE_URL);
             $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRole()[0]]);
+
             return $this->json([
-                'message' => 'Connexion réussie',
+                'message'    => $isNewUser ? 'Compte créé avec succès' : 'Connexion réussie',
                 'token_data' => $token,
             ], Response::HTTP_OK);
+
         } catch (\Throwable $e) {
-            return new JsonResponse(['message' => $e->getMessage()], 401);
+            return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
         }
     }
-
     /**
     * Route mes informations 
     */
