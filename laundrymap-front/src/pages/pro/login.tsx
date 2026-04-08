@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/context/AuthContext"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import axios from "axios"
+// import { useNavigate } from "react-router-dom"
 
 type Inputs = {
     email: string
@@ -15,6 +17,7 @@ const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/login_che
 function ProLogin() {
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
+    // const navigate = useNavigate()
 
     useEffect(() => {
         if (successMessage) {
@@ -34,37 +37,31 @@ function ProLogin() {
 
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
-            const reponse = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(donnees),
+            const reponse = await axios.post(
+                url, {
+                    email: donnees.email,
+                    mot_de_passe: donnees.mot_de_passe
+                },
+                {
+                    headers: { "Content-Type": "application/json" } 
             })
 
-            const text = await reponse.text()
-            let data
-            try {
-                data = JSON.parse(text)
-            } catch (e) {
-                console.error("Réponse non-JSON:", text)
-                throw new Error("Réponse invalide du serveur")
-            }
+            const data = reponse.data
 
-            if (!reponse.ok) {
-                if (data && typeof data === "object") {
-                    Object.keys(data).forEach((champ) => {
-                        setError(champ as keyof Inputs, {
-                            type: "server",
-                            message: data[champ],
-                        })
+            if (data.errors) {
+                Object.keys(data.errors).forEach((champ) => {
+                    setError(champ as keyof Inputs, {
+                    type: "server",
+                    message: data.errors[champ],
                     })
-                }
+                })
                 return
-            }
+             }
 
             localStorage.setItem("token", data.token_data)
             login(data.token_data)
             setSuccessMessage("Connexion réussie !")
-            // window.location.href = "/pro/dashboard"
+            // navigate("/pro/dashboard"); 
 
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)

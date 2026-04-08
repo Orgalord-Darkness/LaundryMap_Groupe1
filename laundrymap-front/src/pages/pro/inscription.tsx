@@ -1,11 +1,15 @@
 import { useState } from 'react'
+import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'; 
 
 function ProInscription() {
 
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/pro/inscription`
+  const [googlePrefilled, setGooglePrefilled] = useState(false)
+  
   // Infos Pro
   const [lastname, setLastname] = useState("");
   const [firstname, setFirstname] = useState("");
@@ -19,6 +23,23 @@ function ProInscription() {
   const [codePostal, setCodePostal] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+
+  const handleGoogleSuccess = (credentialResponse: any) => {
+    try {
+        const base64Url = credentialResponse.credential.split('.')[1]
+        const base64    = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+        const payload   = JSON.parse(window.atob(base64))
+
+        setFirstname(payload.given_name  ?? '')
+        setLastname(payload.family_name  ?? '')
+        setEmail(payload.email           ?? '')
+        setGooglePrefilled(true)
+
+    } catch (e) {
+        console.error('Erreur décodage token Google', e)
+    }
+  }
+
 
   const [errors, setErrors] = useState({
     lastname: "",
@@ -54,39 +75,37 @@ function ProInscription() {
     return Object.values(newErrors).every((e) => e === "");
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setApiError("");
     setSuccess("");
 
     if (!validateForm()) return;
 
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lastname,
-        firstname,
-        email,
-        password,
-        siren,
-        adress,
-        rue,        
-        codePostal,
-        city,
-        country,
-      }),
+    const response = await axios.post(url, {
+      lastname,
+      firstname,
+      email,
+      password,
+      siren,
+      adress,
+      rue,        
+      codePostal,
+      city,
+      country,
     })
-      .then(async (response) => {
-        const data = await response.json();
-        if (response.ok) {
-          setSuccess(data.message);
-        } else {
-          setApiError(data.message || "Une erreur est survenue.");
-        }
-      })
-      .catch(() => setApiError("Impossible de contacter le serveur."));
-  };
+    const data = response.data
+
+    if(data.errors) { 
+      setApiError("Une erreur est survenue lors de l'inscription. Veuillez vérifier les informations saisies.")
+      return
+    }
+
+    setSuccess("Inscription réussie ! Vous pouvez maintenant vous connecter.")
+    setTimeout(() => {
+      window.location.href = '/pro/dashboard'
+    }, 5000)
+  }
 
   return (
     <>
@@ -99,8 +118,14 @@ function ProInscription() {
         {success  && <p className="text-green-600 text-sm mt-4 font-semibold">{success}</p>}
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
+          <FieldLabel htmlFor="input-field-lastname">Nom<span className='text-orange-600'>*</span></FieldLabel>
+          <Input id="input-field-lastname" type="text" placeholder="Nom" value={lastname} className={`h-11 ${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`} onChange={(e) => setLastname(e.target.value)} />
+          {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>}
+        </Field>
+
+        <Field className='w-85 m-auto items-center justify-center mt-5'>
           <FieldLabel htmlFor="input-field-firstname">Prénom<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-firstname" type="text" placeholder="Prénom" value={firstname} onChange={(e) => setFirstname(e.target.value)} className='h-11'/>
+          <Input id="input-field-firstname" type="text" placeholder="Prénom" className={`h-11 ${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`}  value={firstname} onChange={(e) => setFirstname(e.target.value)} />
           {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname}</p>}
         </Field>
 
@@ -112,7 +137,7 @@ function ProInscription() {
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
           <FieldLabel htmlFor="input-field-email">Email<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className='h-11'/>
+          <Input id="input-field-email" type="email" placeholder="Email" className={`h-11 ${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`}  value={email} onChange={(e) => setEmail(e.target.value)}/>
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </Field>
 
@@ -166,6 +191,22 @@ function ProInscription() {
         <div className='flex flex-col items-center justify-center my-12'>
           <Button type="submit">Inscription</Button>
         </div>
+        <div className="flex flex-col items-center gap-2 mt-4 mb-2">
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+              <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => console.error('Erreur Google')}
+                  text="continue_with"
+                  useOneTap={false}
+              />
+          </GoogleOAuthProvider>
+          {googlePrefilled && (
+              <p className="text-green-600 text-sm">
+                  ✓ Nom, prénom et email importés depuis Google — complétez les champs restants.
+              </p>
+          )}
+      </div>
+
 
       </form>
     </>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import { Header } from "@/components/layout/Header";
 import { useNavigate, Link } from 'react-router';
 import { Badge } from "@/components/ui/badge"
 import {
@@ -10,6 +12,45 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+
+// Composant pour une carte de laverie // Test laveries a revoir !!!!!!!!!!!!!
+function LaundryCard({ name, rating, reviews, imageUrl, status }: {
+  name: string;
+  rating: number;
+  reviews: number;
+  imageUrl: string;
+  status: 'validée' | 'refusée';
+}) {
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+      <div className="flex items-center">
+        <img
+          src={imageUrl}
+          alt={name}
+          className="w-16 h-16 object-cover rounded mr-4"
+        />
+        <div className="flex-1">
+          <h3 className="font-semibold text-lg">{name}</h3>
+          <div className="flex items-center mt-1">
+            <span className="text-yellow-500">★ {rating}</span>
+            <span className="text-gray-500 ml-2">({reviews} avis)</span>
+          </div>
+          <div className="mt-2">
+            {status === 'validée' ? (
+              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                Validée
+              </span>
+            ) : (
+              <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">
+                Refusée
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
 
 
 
