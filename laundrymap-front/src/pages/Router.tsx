@@ -52,6 +52,8 @@ import AdminLogin from "./admin/login";
 import AdminDashboard from "./admin/dashboard";
 import ProfessionnalAccountValidationList from "./admin/professional/validation";
 import NewPassword from '@/components/layout/NewPassword'; 
+import AdminValidationLaverie from "./admin/laveries/validation";
+import AddLaundry from "./pro/addLaundry";
 
 function ProtectedRoute({
   children,
@@ -101,6 +103,13 @@ export default function Router() {
         </ProtectedRoute>
       } />
 
+      <Route path="/addLaundry" element={
+        <ProtectedRoute allowedRoles={["professionnel"]}>
+          <AddLaundry />
+        </ProtectedRoute>
+      } />
+
+
       {/* ── Admin ── */}
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
@@ -116,6 +125,11 @@ export default function Router() {
           </ProtectedRoute>
         }
       />
+      <Route path="/admin/laveries/validation" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <AdminValidationLaverie />
+        </ProtectedRoute>
+      } />
 
       {/* ── Fallback 404 → accueil ── */}
       <Route path="*" element={<Navigate to="/" replace />} />

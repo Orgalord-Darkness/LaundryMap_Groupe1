@@ -5,7 +5,10 @@ namespace App\Repository;
 use App\Entity\LaverieHistoriqueInteraction;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-
+use App\Entity\Laverie;
+use App\Entity\Administrateur;
+use App\Enum\LaverieStatutEnum;
+use App\Enum\ActionEnum;
 /**
  * @extends ServiceEntityRepository<LaverieHistoriqueInteraction>
  */
@@ -40,4 +43,62 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function laverieValidation(Laverie $laverie, Administrateur $administrateur, ActionEnum $action,  string $motif) 
+    {
+
+        $entityManager = $this->getEntityManager();
+
+        $formatDate = new \DateTime('now');
+
+        $laverieHistoriqueInteraction = new LaverieHistoriqueInteraction();
+        $laverieHistoriqueInteraction->setLaverie($laverie);
+        $laverieHistoriqueInteraction->setAdministrateur($administrateur);
+        $laverieHistoriqueInteraction->setAction($action);
+        $laverieHistoriqueInteraction->setMotifAction($motif);
+        $laverieHistoriqueInteraction->setDate($formatDate);
+
+        $entityManager->persist($laverieHistoriqueInteraction);
+        $entityManager->flush();
+
+        return $laverieHistoriqueInteraction;
+    }
+
+
+
+    public function getHistorique($offset = 0, $limit=10): ?array
+    {
+        $qb = $this->createQueryBuilder('h') //h.laverie est une relation ManyToOne Doctrine ne permet pas h.laverie_id IDENTITY(h.laverie) récupère l’ID de la relation
+            ->select(
+                'h.id',
+                'h.date',
+                'h.action',
+                'h.motif_action',
+                'IDENTITY(h.laverie) AS laverie_id',
+                'l.nom_etablissement AS laverie_nom',
+                'u.nom AS proprietaire_nom',
+                'u.prenom AS proprietaire_prenom',
+                'm.nom_original AS logo_nom',
+                'IDENTITY(h.administrateur) AS administrateur_id'
+            )
+            ->join('h.laverie', 'l')
+            ->join('l.professionnel', 'p')
+            ->join('p.utilisateur', 'u')
+            ->leftJoin('l.logo', 'm')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->orderBy('h.date', 'DESC');
+
+        return $qb->getQuery()->getArrayResult();
+    }
+
+    public function getHistoriqueCount(): ?int 
+    {
+        $qb = $this->createQueryBuilder('h')
+            ->select('COUNT(h.id)');
+
+        return (int) $qb->getQuery()->getSingleScalarResult();  
+    }
+
+
 }

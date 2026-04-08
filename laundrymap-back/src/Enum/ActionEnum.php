@@ -4,8 +4,10 @@ namespace App\Enum;
 
 enum ActionEnum: string {
 
-    case VALIDE = 'validé'; 
+    case VALIDE = 'VALIDE'; 
 
-    case REFUSE = 'refusé'; 
+    case REFUSE = 'REFUSE'; 
+
+    case EN_ATTENTE = 'EN_ATTENTE';
 
 }

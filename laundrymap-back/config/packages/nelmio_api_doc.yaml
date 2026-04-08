@@ -54,10 +54,10 @@ nelmio_api_doc:
                                     properties:
                                         email:
                                             type: string
-                                            example: admin@test.fr
+                                            example: admin@example.com
                                         password:
                                             type: string
-                                            example: MotDePasse123
+                                            example: Admin1234.
                     responses:
                         '200':
                             description: Token JWT retourné

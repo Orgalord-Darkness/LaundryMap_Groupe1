@@ -130,6 +130,12 @@ function ProInscription() {
         </Field>
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
+          <FieldLabel htmlFor="input-field-lastname">Nom<span className='text-orange-600'>*</span></FieldLabel>
+          <Input id="input-field-lastname" type="text" placeholder="Nom" value={lastname} onChange={(e) => setLastname(e.target.value)} className='h-11'/>
+          {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>}
+        </Field>
+
+        <Field className='w-85 m-auto items-center justify-center mt-5'>
           <FieldLabel htmlFor="input-field-email">Email<span className='text-orange-600'>*</span></FieldLabel>
           <Input id="input-field-email" type="email" placeholder="Email" className={`h-11 ${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`}  value={email} onChange={(e) => setEmail(e.target.value)}/>
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -139,7 +145,7 @@ function ProInscription() {
           <FieldLabel htmlFor="input-field-password">Mot de passe<span className='text-orange-600'>*</span></FieldLabel>
           <Input id="input-field-password" type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className='h-11'/>
           <FieldDescription>Longueur minimale : 8 caractères</FieldDescription>
-          <FieldDescription>Utiliser au moins : 1 majuscule, 1 minuscule, 1 caractère spécial</FieldDescription>
+          <FieldDescription>Utiliser au moins : 1 majuscule, 1 chiffre, 1 caractère spécial</FieldDescription>
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </Field>
 
@@ -153,15 +159,15 @@ function ProInscription() {
         </Field>
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-adress">Adresse<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-adress" type="text" placeholder="Ex : Bâtiment A, Résidence des Fleurs" value={adress} onChange={(e) => setAdress(e.target.value)} className='h-11'/>
-          {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
+          <FieldLabel htmlFor="input-field-rue">Numéro de rue<span className='text-orange-600'>*</span></FieldLabel>
+          <Input id="input-field-rue" type="text" placeholder="Ex : 12" value={rue} onChange={(e) => setRue(e.target.value)} className='h-11'/>
+          {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
         </Field>
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-rue">Rue<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-rue" type="text" placeholder="Ex : 12 rue de la Paix" value={rue} onChange={(e) => setRue(e.target.value)} className='h-11'/>
-          {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
+          <FieldLabel htmlFor="input-field-adress">Adresse<span className='text-orange-600'>*</span></FieldLabel>
+          <Input id="input-field-adress" type="text" placeholder="Ex : Rue de la place" value={adress} onChange={(e) => setAdress(e.target.value)} className='h-11'/>
+          {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
         </Field>
 
         <Field className='w-85 m-auto items-center justify-center mt-5'>
