@@ -55,7 +55,6 @@ import EditionLaverie from "./pro/editLaundry.tsx";
 import AdminValidationLaverie from "./admin/laveries/list.tsx";
 import ProfessionnalAccountValidationList from "./admin/professional/validation";
 import NewPassword from '@/components/layout/NewPassword'; 
-import AdminValidationLaverie from "./admin/laveries/validation";
 import AddLaundry from "./pro/addLaundry";
 
 function ProtectedRoute({
@@ -130,8 +129,6 @@ export default function Router() {
           <AdminDashboard />
         </ProtectedRoute>
       } />
-
-      <Route path="/admin/laveries/list" element={
       <Route
         path="/admin/professionnal/validation"
         element={
@@ -140,7 +137,7 @@ export default function Router() {
           </ProtectedRoute>
         }
       />
-      <Route path="/admin/laveries/validation" element={
+      <Route path="/admin/laveries/list" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <AdminValidationLaverie />
         </ProtectedRoute>
