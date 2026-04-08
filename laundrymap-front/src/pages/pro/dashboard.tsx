@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
+import { Header } from "@/components/layout/Header";
 import { useNavigate, Link } from 'react-router';
 import { Badge } from "@/components/ui/badge"
 import {
