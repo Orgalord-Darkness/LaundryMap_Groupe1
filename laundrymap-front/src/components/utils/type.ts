@@ -53,3 +53,13 @@ export interface LaverieAPI {
         }
     } | null
 }
+
+export interface Service {
+  id: number | string;
+  nom: string;
+}
+
+export interface Paiement {
+  id: number | string;
+  nom: string;
+}

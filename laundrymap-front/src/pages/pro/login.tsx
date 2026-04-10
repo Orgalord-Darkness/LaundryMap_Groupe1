@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/context/AuthContext"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import axios from "axios"
-// import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 type Inputs = {
     email: string
@@ -17,7 +17,7 @@ const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/login_che
 function ProLogin() {
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
-    // const navigate = useNavigate()
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (successMessage) {
@@ -61,7 +61,7 @@ function ProLogin() {
             localStorage.setItem("token", data.token_data)
             login(data.token_data)
             setSuccessMessage("Connexion réussie !")
-            // navigate("/pro/dashboard"); 
+            navigate("/pro/dashboard"); 
 
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)

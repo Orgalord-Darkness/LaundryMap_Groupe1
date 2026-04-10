@@ -7,25 +7,21 @@ import { Field} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { CheckboxGroup } from '@/components/ui/checkboxGroup'
 import axios from 'axios'
-
-interface Service {
-  id: number | string;
-  nom: string;
-}
-
-interface Paiement {
-  id: number | string;
-  nom: string;
-}
+import type {Service} from '@/components/utils/type.ts'
+import type {Paiement} from '@/components/utils/type.ts'
 
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
+
 
 export const api = axios.create({
     baseURL: `${API_BASE}/api/v1`,
     withCredentials: true,
     headers: { "Content-Type": "application/json" },
 })
+
+    console.log("API_BASE =", API_BASE)
+    console.log("api =", api)
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token")
@@ -63,6 +59,13 @@ export default function LaverieValidation() {
     useEffect(() => {
         if (id) fetchLaverieData()
     }, [id])
+
+    useEffect(() => {
+        console.log("ID =", id)
+        console.log("API_BASE =", API_BASE)
+console.log("api =", api)
+
+    }, [])
 
     const handleAction = async (action: "VALIDE" | "REFUSE") => {
         if (action === "REFUSE" && !motif.trim()) {

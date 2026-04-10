@@ -1,15 +1,32 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router'
+import { useParams } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Textarea } from '@/components/ui/textarea'
 import { CheckboxGroup } from '@/components/ui/checkboxGroup'
 import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE } from '@/components/ui/timePicker'
-import { api } from '../admin/laveries/list'
+import axios from 'axios'
+import type {Service} from '@/components/utils/type.ts'
+import type {Paiement} from '@/components/utils/type.ts'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
+const api = axios.create({
+    baseURL: `${API_BASE}/api/v1`,
+    withCredentials: true,
+    headers: { "Content-Type": "application/json" },
+})
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+console.log("API =", api)
+//console.log("FORM EDIT LAVERIE CHARGÉ")
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LaverieDetail {
@@ -42,6 +59,7 @@ export default function FormEditLaverie() {
     const [successMessage, setSuccessMessage] = useState("")
 
     // Champs du formulaire
+    const [laverie, setLaverie] = useState<LaverieDetail | null>(null)
     const [name, setName]             = useState("")
     const [contactEmail, setContactEmail] = useState("")
     const [description, setDescription] = useState("")
@@ -73,6 +91,7 @@ export default function FormEditLaverie() {
                 const data = res.data.laverie ?? res.data;
 
                 if (data) {
+                    setLaverie(data)
                     setName(data.nom_etablissement ?? "");
                     setContactEmail(data.contact_email ?? "");
                     setDescription(data.description ?? "");
@@ -301,30 +320,28 @@ export default function FormEditLaverie() {
             <div className="w-full mt-4">
                 <CheckboxGroup
                     title="Équipements disponibles"
-                    options={[
-                        { value: '1', label: 'Wi-Fi' },
-                        { value: '2', label: 'Tables & chaises' },
-                        { value: '3', label: 'Distributeur de savon' },
-                        { value: '4', label: 'Fer à repasser' },
-                    ]}
-                    // selected={selectedServices}
-                    // onChange={setSelectedServices}
+                    options={laverie?.services.map((s) => ({
+                        value: String(s.id),
+                        label: s.nom
+                    })) ?? []}
+                    value={selectedServices}
+                    onChange={setSelectedServices}
                 />
+
             </div>
 
             {/* Paiements */}
             <div className="w-full mt-4">
-                <CheckboxGroup
+               <CheckboxGroup
                     title="Moyens de paiement acceptés"
-                    options={[
-                        { value: '1', label: 'Carte Bleu' },
-                        { value: '2', label: 'Carte Fidélité' },
-                        { value: '3', label: 'Pièces' },
-                        { value: '4', label: 'Billets' },
-                    ]}
-                    // selected={selectedPayments}
-                    // onChange={setSelectedPayments}
+                    options={laverie?.methodePaiements.map((p) => ({
+                        value: String(p.id),
+                        label: p.nom
+                    })) ?? []}
+                    value={selectedPayments}
+                    onChange={setSelectedPayments}
                 />
+
             </div>
 
             <div className="w-full mt-10 mb-12">
