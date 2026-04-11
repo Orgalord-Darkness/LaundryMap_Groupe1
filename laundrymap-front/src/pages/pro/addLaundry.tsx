@@ -61,6 +61,7 @@ function AddLaundry() {
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    console.log(logo, images); 
     event.preventDefault();
    
     if (!validateForm()) {
@@ -97,6 +98,8 @@ function AddLaundry() {
       })
       .catch((error) => {
         console.error("Erreur réseau :", error);
+        setSelectedEquipments(selectedEquipments); 
+        setSelectedPayments(selectedPayments); 
       });
   };
 
