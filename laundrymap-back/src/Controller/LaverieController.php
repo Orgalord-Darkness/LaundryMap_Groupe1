@@ -7,8 +7,14 @@ use App\Entity\Administrateur;
 use App\Entity\Laverie;
 use App\Entity\Service;
 use App\Entity\MethodePaiement;
+use App\Entity\Media; 
+use App\Entity\LaverieMedia;
+use App\Entity\LaverieEquipement;  
+use App\Entity\LaverieFermeture; 
+use App\Enum\EquipementEnum; 
 use App\Enum\ActionEnum;
 use App\Enum\LaverieStatutEnum;
+use App\Enum\JourEnum; 
 use App\Repository\UtilisateurRepository;
 use App\Repository\AdresseRepository;
 use App\Repository\ServiceRepository;
@@ -105,35 +111,79 @@ class LaverieController extends AbstractController
         content: new OA\JsonContent(
             type: 'object',
             properties: [
+
                 new OA\Property(property: 'nom_etablissement', type: 'string', example: 'Ma Laverie'),
                 new OA\Property(property: 'description', type: 'string', example: 'Une laverie moderne et bien équipée'),
                 new OA\Property(property: 'contact_email', type: 'string', example: 'contact@malaverie.fr'),
-                // Champs adresse
+
+                // Adresse
                 new OA\Property(property: 'adresse', type: 'string', example: '12 rue de la Paix'),
-                new OA\Property(property: 'rue', type: 'string', example: 'rue de la Paix'),
+                new OA\Property(property: 'rue', type: 'string', example: 'Rue de la Paix'),
                 new OA\Property(property: 'code_postal', type: 'integer', example: 75001),
                 new OA\Property(property: 'ville', type: 'string', example: 'Paris'),
                 new OA\Property(property: 'pays', type: 'string', example: 'France'),
                 new OA\Property(property: 'latitude', type: 'number', format: 'float', example: 48.8566),
                 new OA\Property(property: 'longitude', type: 'number', format: 'float', example: 2.3522),
-                // Relations ManyToMany
+
+                // Services
                 new OA\Property(
                     property: 'services',
                     type: 'array',
                     items: new OA\Items(type: 'integer'),
-                    description: 'Liste des IDs de services',
                     example: [1, 2, 3]
                 ),
+
+                // Méthodes de paiement
                 new OA\Property(
                     property: 'methodes_paiement',
                     type: 'array',
                     items: new OA\Items(type: 'integer'),
-                    description: 'Liste des IDs de méthodes de paiement',
                     example: [1, 2]
                 ),
+
+                // Logo base64
+                new OA\Property(
+                    property: 'logo',
+                    type: 'string',
+                    nullable: true,
+                    example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...'
+                ),
+
+                // Images multiples
+                new OA\Property(
+                    property: 'images',
+                    type: 'array',
+                    items: new OA\Items(type: 'string'),
+                    example: [
+                        'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...',
+                        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...'
+                    ]
+                ),
+
+                // Équipements
+                new OA\Property(
+                    property: 'equipements',
+                    type: 'array',
+                    items: new OA\Items(type: 'integer'),
+                    example: [4, 7, 9]
+                ),
+
+                // Week schedule (objet complexe)
+                new OA\Property(
+                    property: 'weekSchedule',
+                    type: 'object',
+                    example: '{
+                        "monday": {
+                            "morning": { "start": "08:00", "end": "12:00" },
+                            "afternoon": { "start": "14:00", "end": "18:00" }
+                        }
+                    }'
+                ),
+
             ]
         )
     )]
+
     #[OA\Response(
         response: 200,
         description: 'Laverie mise à jour avec succès',
@@ -183,7 +233,9 @@ class LaverieController extends AbstractController
             return $this->json(['message' => 'Corps de la requête invalide ou vide'], Response::HTTP_BAD_REQUEST);
         }
 
-        // --- Champs directs de la laverie ---
+        // ─────────────────────────────────────────────
+        // 1. Champs simples
+        // ─────────────────────────────────────────────
         if (isset($donnees['nom_etablissement'])) {
             $laverie->setNomEtablissement(htmlspecialchars($donnees['nom_etablissement']));
         }
@@ -197,7 +249,9 @@ class LaverieController extends AbstractController
             $laverie->setContactEmail($donnees['contact_email']);
         }
 
-        // --- Champs de l'entité Adresse liée ---
+        // ─────────────────────────────────────────────
+        // 2. Adresse
+        // ─────────────────────────────────────────────
         $adresse = $laverie->getAdresse();
 
         foreach (['adresse', 'rue', 'ville', 'pays'] as $champ) {
@@ -206,54 +260,153 @@ class LaverieController extends AbstractController
                 $adresse->$setter(htmlspecialchars($donnees[$champ]));
             }
         }
+
         if (isset($donnees['code_postal'])) {
-            $adresse->setCodePostal((int) $donnees['code_postal']);
+            $adresse->setCodePostal((int)$donnees['code_postal']);
         }
         if (isset($donnees['latitude'])) {
-            $adresse->setLatitude((float) $donnees['latitude']);
+            $adresse->setLatitude((float)$donnees['latitude']);
         }
         if (isset($donnees['longitude'])) {
-            $adresse->setLongitude((float) $donnees['longitude']);
+            $adresse->setLongitude((float)$donnees['longitude']);
         }
 
-        // --- Relation ManyToMany : Services ---
+        // ─────────────────────────────────────────────
+        // 3. Services (ManyToMany)
+        // ─────────────────────────────────────────────
         if (isset($donnees['services']) && is_array($donnees['services'])) {
-            // On retire tous les services actuels
             foreach ($laverie->getServices() as $service) {
                 $laverie->removeService($service);
             }
-            // On ajoute les nouveaux
+
             foreach ($donnees['services'] as $serviceId) {
-                $service = $em->getRepository(Service::class)->find((int) $serviceId);
+                $service = $em->getRepository(Service::class)->find((int)$serviceId);
                 if (!$service) {
-                    return $this->json(
-                        ['message' => sprintf('Service avec l\'ID %d non trouvé.', $serviceId)],
-                        Response::HTTP_BAD_REQUEST
-                    );
+                    return $this->json(['message' => "Service ID $serviceId introuvable"], Response::HTTP_BAD_REQUEST);
                 }
                 $laverie->addService($service);
             }
         }
 
+        // ─────────────────────────────────────────────
+        // 4. Méthodes de paiement (ManyToMany)
+        // ─────────────────────────────────────────────
         if (isset($donnees['methodes_paiement']) && is_array($donnees['methodes_paiement'])) {
-
-            foreach ($laverie->getMethodePaiements() as $methode) {
-                $laverie->removeMethodePaiement($methode);
+            foreach ($laverie->getMethodePaiements() as $m) {
+                $laverie->removeMethodePaiement($m);
             }
+
             foreach ($donnees['methodes_paiement'] as $methodeId) {
-                $methode = $em->getRepository(MethodePaiement::class)->find((int) $methodeId);
+                $methode = $em->getRepository(MethodePaiement::class)->find((int)$methodeId);
                 if (!$methode) {
-                    return $this->json(
-                        ['message' => sprintf('Méthode de paiement avec l\'ID %d non trouvée.', $methodeId)],
-                        Response::HTTP_BAD_REQUEST
-                    );
+                    return $this->json(['message' => "Méthode ID $methodeId introuvable"], Response::HTTP_BAD_REQUEST);
                 }
                 $laverie->addMethodePaiement($methode);
             }
         }
 
-        $laverie->setDateModification(new \DateTime());
+        // ─────────────────────────────────────────────
+        // 5. Gestion du LOGO (Unique)
+        // ─────────────────────────────────────────────
+        if (isset($donnees['logo']) && str_starts_with($donnees['logo'], 'data:image')) {
+            $oldLogo = $laverie->getLogo();
+            if ($oldLogo) {
+                $laverie->setLogo(null);
+                $em->remove($oldLogo);
+            }
+            $mediaLogo = $this->saveBase64Image($donnees['logo'], 'logo_', $em);
+            $em->persist($mediaLogo);
+            $laverie->setLogo($mediaLogo);
+        }
 
+        // ─────────────────────────────────────────────
+        // 6. Gestion des IMAGES MULTIPLES (Galerie)
+        // ─────────────────────────────────────────────
+        if (isset($donnees['images']) && is_array($donnees['images'])) {
+            // ✅ CORRECTION : On récupère via le repository car la relation inverse n'est pas dans Laverie.php
+            $laverieMediaRepo = $em->getRepository(LaverieMedia::class);
+            $oldRelations = $laverieMediaRepo->findBy(['laverie' => $laverie]);
+
+            foreach ($oldRelations as $relation) {
+                $media = $relation->getMedia();
+                $em->remove($relation);
+                if ($media) $em->remove($media);
+            }
+            $em->flush(); 
+
+            foreach ($donnees['images'] as $imgBase64) {
+                if (str_contains($imgBase64, 'data:image')) {
+                    $media = $this->saveBase64Image($imgBase64, 'galerie_', $em);
+                    $em->persist($media);
+                    
+                    $laverieMedia = new LaverieMedia();
+                    $laverieMedia->setLaverie($laverie);
+                    $laverieMedia->setMedia($media);
+                    $em->persist($laverieMedia);
+                }
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // 7. Gestion des MACHINES (LaverieEquipement)
+        // ─────────────────────────────────────────────
+        if (isset($donnees['equipements']) && is_array($donnees['equipements'])) {
+            // ✅ CORRECTION : Utilisation du repository pour nettoyer
+            $eqRepo = $em->getRepository(LaverieEquipement::class);
+            $oldEqs = $eqRepo->findBy(['laverie' => $laverie]);
+            foreach ($oldEqs as $eq) {
+                $em->remove($eq);
+            }
+
+            foreach ($donnees['equipements'] as $eqData) {
+                $equipement = new LaverieEquipement();
+                $equipement->setLaverie($laverie);
+                $equipement->setNom($eqData['nom']);
+                $equipement->setCapacite((int)($eqData['capacite'] ?? 0));
+                $equipement->setTarif((float)($eqData['tarif'] ?? 0));
+                
+                $typeStr = strtoupper($eqData['type'] ?? 'MACHINE_A_LAVER');
+                $typeEnum = EquipementEnum::tryFrom($typeStr) ?? EquipementEnum::MACHINE_A_LAVER;
+                $equipement->setType($typeEnum);
+                
+                $em->persist($equipement);
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // 8. Gestion des HORAIRES (LaverieFermeture)
+        // ─────────────────────────────────────────────
+        if (isset($donnees['weekSchedule']) && is_array($donnees['weekSchedule'])) {
+            // ✅ CORRECTION : Utilisation du repository pour nettoyer
+            $fermetureRepo = $em->getRepository(LaverieFermeture::class);
+            $oldFermetures = $fermetureRepo->findBy(['laverie' => $laverie]);
+            foreach ($oldFermetures as $f) {
+                $em->remove($f);
+            }
+            
+            foreach ($donnees['weekSchedule'] as $dayEn => $slots) {
+                $dayFr = $this->mapDayEnToFr($dayEn);
+                $jourEnum = JourEnum::tryFrom($dayFr);
+                if (!$jourEnum) continue;
+
+                foreach (['morning', 'afternoon'] as $period) {
+                    if (!empty($slots[$period]['start']) && !empty($slots[$period]['end'])) {
+                        $fermeture = new LaverieFermeture();
+                        $fermeture->setLaverie($laverie);
+                        $fermeture->setJour($jourEnum);
+                        $fermeture->setHeureDebut(new \DateTime($slots[$period]['start']));
+                        $fermeture->setHeureFin(new \DateTime($slots[$period]['end']));
+                        $fermeture->setDateAjout(new \DateTime()); // Requis par ton entité
+                        $fermeture->setDateModification(new \DateTime());
+                        $em->persist($fermeture);
+                    }
+                }
+            }
+        }
+        // ─────────────────────────────────────────────
+        // 9. Sauvegarde
+        // ─────────────────────────────────────────────
+        $laverie->setDateModification(new \DateTime());
         $em->flush();
 
         $cachePool->invalidateTags(['laverieCache']);
@@ -266,16 +419,44 @@ class LaverieController extends AbstractController
                 'description' => $laverie->getDescription(),
                 'contact_email' => $laverie->getContactEmail(),
                 'statut' => $laverie->getStatut(),
-                'services' => $laverie->getServices()->map(fn(Service $s) => [
-                    'id' => $s->getId(),
-                    'nom' => $s->getNom(),
-                ])->toArray(),
-                'methodes_paiement' => $laverie->getMethodePaiements()->map(fn(MethodePaiement $m) => [
-                    'id' => $m->getId(),
-                    'nom' => $m->getNom(),
-                ])->toArray(),
             ]
         ], Response::HTTP_OK);
+    }
+
+    // --- MÉTHODES UTILITAIRES À METTRE À LA FIN DE LA CLASSE ---
+
+    private function saveBase64Image(string $base64, string $prefix, EntityManagerInterface $em): Media
+    {
+        if (preg_match('/^data:(.*?);base64,(.*)$/', $base64, $matches)) {
+            $mimeType = $matches[1];
+            $base64Data = $matches[2];
+            $binaryData = base64_decode($base64Data);
+            $extension = explode('/', $mimeType)[1] ?? 'png';
+            $filename = uniqid($prefix) . '.' . $extension;
+
+            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/laveries/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+            file_put_contents($uploadDir . $filename, $binaryData);
+
+            $media = new Media();
+            $media->setEmplacement('/uploads/laveries/' . $filename);
+            $media->setNomOriginal($filename);
+            $media->setMimeType($mimeType);
+            $media->setPoids(strlen($binaryData));
+            
+            return $media;
+        }
+        throw new \Exception("Format d'image invalide");
+    }
+
+    private function mapDayEnToFr(string $dayEn): string
+    {
+        $map = [
+            'monday' => 'lundi', 'tuesday' => 'mardi', 'wednesday' => 'mercredi',
+            'thursday' => 'jeudi', 'friday' => 'vendredi', 'saturday' => 'samedi', 'sunday' => 'dimanche'
+        ];
+        return $map[strtolower($dayEn)] ?? $dayEn;
     }
 
     #[Route('/admin/valider/{id}', name: 'laverie_valider', methods: ['POST'])]
@@ -465,4 +646,24 @@ class LaverieController extends AbstractController
 
         return $this->json($laverie, Response::HTTP_OK);
     }
+
+    #[Route('/services', name: 'services_list', methods: ['GET'])]
+    public function listServices(ServiceRepository $serviceRepository): JsonResponse
+    {
+        return $this->json(
+            $serviceRepository->findAll(),
+            Response::HTTP_OK
+        );
+    }
+
+    #[Route('/paiements', name: 'paiements_list', methods: ['GET'])]
+    public function listPaiements(MethodePaiementRepository $paiementRepository): JsonResponse
+    {
+        return $this->json(
+            $paiementRepository->findAll(),
+            Response::HTTP_OK
+        );
+    }
+
+
 }

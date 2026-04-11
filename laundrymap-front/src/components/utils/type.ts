@@ -63,3 +63,21 @@ export interface Paiement {
   id: number | string;
   nom: string;
 }
+
+export type JourSemaine =
+  | "lundi"
+  | "mardi"
+  | "mercredi"
+  | "jeudi"
+  | "vendredi"
+  | "samedi"
+  | "dimanche"
+
+export interface DaySchedule {
+  open: boolean
+  start: string | null
+  end: string | null
+}
+
+export type WeekSchedule = Record<JourSemaine, DaySchedule>
+
