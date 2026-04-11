@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
-
-// import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/components/context/AuthContext";
 import axios from 'axios';
 function AdminLogin() {
@@ -36,7 +35,7 @@ function AdminLogin() {
     return !newErrors.email && !newErrors.password;
   };
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,7 +63,7 @@ function AdminLogin() {
       }
 
       login(data.token);
-      // navigate("/admin/dashboard", { state: { popup: { title: "Bienvenue", content: "Connexion réussie", variant: "success" } } });
+      navigate("/admin/dashboard", { state: { popup: { title: "Bienvenue", content: "Connexion réussie", variant: "success" } } });
     }
   };
 

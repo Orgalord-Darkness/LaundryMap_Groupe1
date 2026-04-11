@@ -51,7 +51,7 @@ import ProDashboard from "./pro/dashboard";
 import AdminLogin from "./admin/login";
 import AdminDashboard from "./admin/dashboard";
 import AdminValidationLaverieForm from "./admin/laveries/formLaverieValidation.tsx";
-import EditionLaverie from "./pro/editLaundry.tsx"; 
+import FormEditLaverie from "./pro/editLaundry"; 
 import AdminValidationLaverie from "./admin/laveries/list.tsx";
 import ProfessionnalAccountValidationList from "./admin/professional/validation";
 import NewPassword from '@/components/layout/NewPassword'; 
@@ -76,6 +76,20 @@ function ProtectedRoute({
   return <>{children}</>;
 }
 
+// function ProtectedRoute({ children, allowedRoles }) {
+//   const { role } = useAuth();
+
+//   if (!allowedRoles.includes(role)) {
+//     if (role === "guest")          return <Navigate to="/" replace />;
+//     if (role === "utilisateur")    return <Navigate to="/" replace />;
+//     if (role === "professionnel")  return <Navigate to="/pro/dashboard" replace />;
+//     if (role === "administrateur") return <Navigate to="/admin/dashboard" replace />;
+//   }
+
+//   return <>{children}</>;
+// }
+
+
 export default function Router() {
   return (
     <Routes>
@@ -92,14 +106,16 @@ export default function Router() {
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
+
       <Route path="/admin/laverie/:id" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <AdminValidationLaverieForm />
         </ProtectedRoute>
       } />
+      
       <Route path="/pro/laverie/:id" element={
         <ProtectedRoute allowedRoles={["professionnel"]}>
-          <EditionLaverie />
+          <FormEditLaverie />
         </ProtectedRoute>
       } />
 
@@ -142,11 +158,11 @@ export default function Router() {
           <AdminValidationLaverie />
         </ProtectedRoute>
       } />
-      <Route path="/admin/laveries/formLaverieValidation" element={
+      {/* <Route path="/admin/laveries/formLaverieValidation" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <AdminValidationLaverieForm />
         </ProtectedRoute>
-      } />
+      } /> */}
       <Route path="/admin/professionnalAdministration/professionnalAccountValidationList" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <ProfessionnalAccountValidationList />

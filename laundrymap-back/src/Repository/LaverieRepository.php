@@ -97,35 +97,62 @@ class LaverieRepository extends ServiceEntityRepository
         $em->flush();
     }
 
-    /**
-     * Récupère une laverie avec toutes ses relations utiles pour l'édition et la validation.
-     * Retourne null si non trouvée.
-     */
     public function findOneWithDetails(int $id): ?array
     {
+        // ── Partie DQL : relations déclarées dans l'entité ────────────────────────
         $result = $this->createQueryBuilder('l')
             ->select('l')
-            ->addSelect('PARTIAL logo.{id, emplacement}')
+            ->addSelect('PARTIAL logo.{id, emplacement, nom_original}')
             ->addSelect('PARTIAL adresse.{id, adresse, rue, code_postal, ville, pays, latitude, longitude}')
             ->addSelect('PARTIAL pro.{id, siren, statut}')
             ->addSelect('PARTIAL utilisateur.{id, prenom, nom, email}')
             ->addSelect('PARTIAL services.{id, nom}')
             ->addSelect('PARTIAL paiements.{id, nom}')
             ->addSelect('PARTIAL interactions.{id, action, motif_action, date}')
-            ->leftJoin('l.logo', 'logo')
-            ->leftJoin('l.adresse', 'adresse')
-            ->leftJoin('l.professionnel', 'pro')
-            ->leftJoin('pro.utilisateur', 'utilisateur')
-            ->leftJoin('l.services', 'services')
-            ->leftJoin('l.methodePaiements', 'paiements')
+            ->leftJoin('l.logo',                          'logo')
+            ->leftJoin('l.adresse',                       'adresse')
+            ->leftJoin('l.professionnel',                 'pro')
+            ->leftJoin('pro.utilisateur',                 'utilisateur')
+            ->leftJoin('l.services',                      'services')
+            ->leftJoin('l.methodePaiements',              'paiements')
             ->leftJoin('l.laverieHistoriqueInteractions', 'interactions')
             ->where('l.id = :id')
             ->setParameter('id', $id)
             ->getQuery()
             ->getArrayResult();
 
-        return $result[0] ?? null;
-    }
+        if (empty($result)) {
+            return null;
+        }
 
+        $laverie = $result[0];
+
+        // ── Horaires : SQL natif car OneToMany non déclaré dans Laverie.php ───────
+        $conn = $this->getEntityManager()->getConnection();
+
+        $fermetures = $conn->fetchAllAssociative(
+            'SELECT id, jour, heure_debut, heure_fin
+            FROM laverie_fermeture
+            WHERE laverie_id = :id
+            ORDER BY FIELD(jour, "lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche")',
+            ['id' => $id]
+        );
+
+        $laverie['laverieFermetures'] = $fermetures;
+
+        // ── Galerie d'images : SQL natif car OneToMany non déclaré ───────────────
+        $medias = $conn->fetchAllAssociative(
+            'SELECT lm.id, lm.description, m.emplacement, m.nom_original
+            FROM laverie_media lm
+            INNER JOIN media m ON m.id = lm.media_id
+            WHERE lm.laverie_id = :id',
+            ['id' => $id]
+        );
+
+        $laverie['laverieMedias'] = $medias;
+
+        return $laverie;
+    }
+    
 
 }
