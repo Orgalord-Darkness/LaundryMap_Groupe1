@@ -43,28 +43,28 @@ const DAY_EN_TO_FR: Record<string, string> = {
  
 // ─── Types ────────────────────────────────────────────────────────────────────
  
-interface LaverieDetail {
-    id: number
-    nom_etablissement: string
-    description: string | null
-    contact_email: string | null
-    wi_line_reference: number | null
-    adresse: {
-        adresse: string
-        rue: string
-        code_postal: number
-        ville: string
-        pays: string
-        latitude: number | null
-        longitude: number | null
-    } | null
-    services: { id: number; nom: string }[]
-    methodePaiements: { id: number; nom: string }[]
-    equipements?: any[]
-    laverieFermetures?: any[]
-    logo?: string | null
-    images?: string[]
-}
+// interface LaverieDetail {
+//     id: number
+//     nom_etablissement: string
+//     description: string | null
+//     contact_email: string | null
+//     wi_line_reference: number | null
+//     adresse: {
+//         adresse: string
+//         rue: string
+//         code_postal: number
+//         ville: string
+//         pays: string
+//         latitude: number | null
+//         longitude: number | null
+//     } | null
+//     services: { id: number; nom: string }[]
+//     methodePaiements: { id: number; nom: string }[]
+//     equipements?: any[]
+//     laverieFermetures?: any[]
+//     logo?: string | null
+//     images?: string[]
+// }
  
 // ─── Composant ────────────────────────────────────────────────────────────────
  
@@ -96,7 +96,7 @@ export default function FormEditLaverie() {
     // ✅ selectedMachines = équipements (machines + sèche-linge)
     const [selectedMachines, setSelectedMachines]           = useState<EquipementFormData[]>([])
     // ✅ selectedComfortEquipments = équipements de confort (wifi, chaises…)
-    const [selectedComfortEquipments, setSelectedComfortEquipments] = useState<string[]>([])
+    // const [selectedComfortEquipments, setSelectedComfortEquipments] = useState<string[]>([])
  
     const [allServices, setAllServices]   = useState<{ id: number; nom: string }[]>([])
     const [allPaiements, setAllPaiements] = useState<{ id: number; nom: string }[]>([])

@@ -33,8 +33,6 @@ function getMenuItems(role: Role): MenuItem[] {
       return [
         { label: "Tableau de bord", href: "/pro/dashboard", icon: <Icon.Home /> },
         { label: "Mes informations", href: "/pro/informations", icon: <Icon.Info /> },
-        { label: "Laverie Edition", href: "/pro/laverie/21", icon: <Icon.Info /> },
-        { label: "Ajout laverie", href: "/addLaundry", icon: <Icon.Info /> },
         { label: "Mes préférences", href: "/pro/preferences", icon: <Icon.Sliders /> },
         { label: "Déconnexion", href: "/", icon: <Icon.Logout />, separator: true },
       ];
