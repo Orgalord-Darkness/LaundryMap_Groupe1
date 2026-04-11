@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 function AdminDashboard() {
   const stats = {
@@ -17,7 +17,7 @@ function AdminDashboard() {
 
       {/* Cards stats */}
       <div className="grid grid-cols-2 md:grid-cols-2 md:mx-auto md:w-[500px] gap-4 mt-18">
-        <Link to="/laveries" className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:bg-blue-600 transition-colors block" >
+        <Link to="/admin/laveries/list" className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:bg-blue-600 transition-colors block" >
           <p className="text-lg md:text-xl font-semibold">{stats.laundries}</p>
           <p className="text-sm md:text-lg">Laveries</p>
         </Link>

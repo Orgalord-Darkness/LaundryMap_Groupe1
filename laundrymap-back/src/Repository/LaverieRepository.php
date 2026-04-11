@@ -98,6 +98,36 @@ class LaverieRepository extends ServiceEntityRepository
         $em->flush();
     }
 
+    /**
+     * Récupère une laverie avec toutes ses relations utiles pour l'édition et la validation.
+     * Retourne null si non trouvée.
+     */
+    public function findOneWithDetails(int $id): ?array
+    {
+        $result = $this->createQueryBuilder('l')
+            ->select('l')
+            ->addSelect('PARTIAL logo.{id, emplacement}')
+            ->addSelect('PARTIAL adresse.{id, adresse, rue, code_postal, ville, pays, latitude, longitude}')
+            ->addSelect('PARTIAL pro.{id, siren, statut}')
+            ->addSelect('PARTIAL utilisateur.{id, prenom, nom, email}')
+            ->addSelect('PARTIAL services.{id, nom}')
+            ->addSelect('PARTIAL paiements.{id, nom}')
+            ->addSelect('PARTIAL interactions.{id, action, motif_action, date}')
+            ->leftJoin('l.logo', 'logo')
+            ->leftJoin('l.adresse', 'adresse')
+            ->leftJoin('l.professionnel', 'pro')
+            ->leftJoin('pro.utilisateur', 'utilisateur')
+            ->leftJoin('l.services', 'services')
+            ->leftJoin('l.methodePaiements', 'paiements')
+            ->leftJoin('l.laverieHistoriqueInteractions', 'interactions')
+            ->where('l.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getArrayResult();
+
+        return $result[0] ?? null;
+    }
+
 
 
 

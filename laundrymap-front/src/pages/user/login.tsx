@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/context/AuthContext"
 import GoogleLoginButton from "@/components/utils/google"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
 
 type Inputs = {
     email: string
@@ -13,6 +16,7 @@ type Inputs = {
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/login_check`
 
 export default function Connexion() {
+    const { t } = useTranslation()
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
     
@@ -31,25 +35,47 @@ export default function Connexion() {
         formState: { errors },
         setError,
     } = useForm<Inputs>()
-
+    
+    const navigate = useNavigate()
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
-            const reponse = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(donnees),
-            })
+            const reponse = await axios.post(
+                url,{
+                    email: donnees.email,
+                    mot_de_passe: donnees.mot_de_passe
+                },
+                {
+                    headers: { "Content-Type": "application/json" }
+                }
+            )
 
-            const text = await reponse.text()
-            let data
-            try {
-                data = JSON.parse(text)
-            } catch (e) {
-                console.error("Réponse non-JSON:", text)
-                throw new Error("Réponse invalide du serveur")
+            const data = reponse.data
+
+            if (data.errors) {
+                Object.keys(data.errors).forEach((champ) => {
+                    setError(champ as keyof Inputs, {
+                    type: "server",
+                    message: data.errors[champ],
+                    })
+                })
+                return
             }
 
-            if (!reponse.ok) {
+            localStorage.setItem("token", data.token_data)
+            login(data.token_data)
+
+            setSuccessMessage("Connexion réussie !")
+
+            setTimeout(() => {
+            navigate("/")
+            }, 2000)
+
+        } catch (erreur) {
+            console.error("Erreur lors de la connexion :", erreur)
+
+            if (axios.isAxiosError(erreur) && erreur.response) {
+                const data = erreur.response.data
+
                 if (data && typeof data === "object") {
                     Object.keys(data).forEach((champ) => {
                         setError(champ as keyof Inputs, {
@@ -57,14 +83,14 @@ export default function Connexion() {
                             message: data[champ],
                         })
                     })
+                    return
                 }
-                return
             }
-            localStorage.setItem("token", data.token_data)
-            login(data.token_data)
-            setSuccessMessage("Connexion réussie !")
-        } catch (erreur) {
-            console.error("Erreur lors de la connexion :", erreur)
+
+            setError("email", {
+                type: "server",
+                message: "Erreur lors de la connexion. Veuillez vérifier vos identifiants.",
+            })
         }
 
     }
@@ -76,10 +102,10 @@ export default function Connexion() {
             className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-white rounded-2xl shadow-lg"
         >
             <h2 className="text-2xl font-semibold text-gray-900 text-center mb-2">
-                Connexion
+                {t('connexion')}
             </h2>
             <p className="text-gray-600 text-center">
-                Se connecter en tant qu'utilisateur
+                {t('connexion')} {t('en_tant_que_utilisateur')}
             </p>
 
             <a href="/pro/login" className="text-center text-sm text-gray-700 underline font-medium cursor-pointer" aria-label="Se connecter en tant que professionnel">
@@ -125,7 +151,7 @@ export default function Connexion() {
             </div>
 
             <div className="flex justify-end">
-                <a href="#" className="text-sm text-gray-700 underline underline-offset-2 hover:text-[#1e90d6] transition-colors" aria-label="Mot de passe oublié">
+                <a href="/user/mot-de-passe-oublie" className="text-sm text-gray-700 underline underline-offset-2 hover:text-[#1e90d6] transition-colors" aria-label="Mot de passe oublié">
                     Mot de passe oublié ?
                 </a>
             </div>

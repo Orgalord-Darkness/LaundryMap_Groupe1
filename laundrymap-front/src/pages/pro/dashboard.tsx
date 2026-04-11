@@ -145,4 +145,4 @@ function ProDashboard() {
   );
 }
 
-export default ProDashboard;
+export default ProDashboard
