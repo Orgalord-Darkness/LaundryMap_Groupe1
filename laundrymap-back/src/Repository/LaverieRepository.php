@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Laverie;
+use App\Entity\Professionnel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Enum\LaverieStatutEnum;
@@ -154,5 +155,24 @@ class LaverieRepository extends ServiceEntityRepository
         return $laverie;
     }
     
+
+
+
+
+    // Pour le dashboard professionnel : Récupérer les laveries actives (validées ou en attente) d'un professionnel
+    public function findActivesByProfessionnel(Professionnel $professionnel): array
+    {
+        return $this->createQueryBuilder('l')
+            ->where('l.professionnel = :pro')
+            ->andWhere('l.supprime_le IS NULL')   // exclure les laveries supprimées
+            ->setParameter('pro', $professionnel)
+            ->orderBy('l.date_ajout', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+
+
+
 
 }

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Laverie;
 use App\Entity\LaverieNote;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -40,4 +41,34 @@ class LaverieNoteRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+
+
+    // Pour le dashboard professionnel : moyenne des notes + nombre d'avis (notes avec commentaire)
+    public function findAverageRatingByLaverie(Laverie $laverie): ?float
+    {
+        $result = $this->createQueryBuilder('ln')
+            ->select('AVG(ln.note) as moyenne')
+            ->where('ln.laverie = :laverie')
+            ->setParameter('laverie', $laverie)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $result ? round((float) $result, 1) : null;
+    }
+
+    public function countAvisByLaverie(Laverie $laverie): int
+    {
+        return (int) $this->createQueryBuilder('ln')
+            ->select('COUNT(ln.id)')
+            ->where('ln.laverie = :laverie')
+            // uniquement les notes avec commentaire = un "avis"
+            ->andWhere('ln.commentaire IS NOT NULL')
+            ->setParameter('laverie', $laverie)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+
+
 }
