@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { FieldLabel } from "@/components/ui/field"
 import { Field} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { CheckboxGroup } from '@/components/ui/checkboxGroup'
+import { CheckboxGroup } from '@/components/ui/checkboxGroupEdit'
 import axios from 'axios'
 import type {Service} from '@/components/utils/type.ts'
 import type {Paiement} from '@/components/utils/type.ts'

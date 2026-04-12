@@ -5,13 +5,16 @@ namespace App\Controller;
 use App\Entity\Adresse;
 use App\Entity\Professionnel;
 use App\Entity\Utilisateur;
+use App\Enum\ActionEnum;
 use App\Enum\RoleEnum;
 use App\Enum\StatutEnum;
-use App\Repository\ProfessionnelRepository;      // ← manquait
-use App\Repository\UtilisateurRepository;        // ← manquait
+use App\Repository\AdministrateurRepository;
+use App\Repository\ProfessionnelRepository;
+use App\Repository\ProfessionnelHistoriqueInteractionRepository;
+use App\Repository\UtilisateurRepository;
 use App\Service\SireneService;
 use Doctrine\ORM\EntityManagerInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;  // ← manquait
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -276,5 +279,124 @@ class ProfessionnelController extends AbstractController
             ['message' => 'Inscription réussie. Votre compte est en attente de validation par un administrateur.'],
             Response::HTTP_CREATED
         );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Routes d'administration des comptes professionnels
+    // ─────────────────────────────────────────────────────────────────────────
+
+    #[Route('/admin/list', name: 'professionnel_admin_list', methods: ['GET'])]
+    #[OA\Tag(name: 'Professionnel')]
+    #[OA\Security(name: 'Bearer')]
+    #[OA\Response(response: 200, description: 'Liste des professionnels')]
+    public function adminList(
+        Request $request,
+        ProfessionnelRepository $professionnelRepository,
+        AdministrateurRepository $administrateurRepository,
+    ): JsonResponse {
+        $utilisateur = $this->getUser();
+
+        $administrateur = $administrateurRepository->findOneByEmail($utilisateur->getEmail());
+        if (!$administrateur) {
+            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $page   = max(1, (int) $request->query->get('page', 1));
+        $limit  = max(1, min(100, (int) $request->query->get('limit', 10)));
+        $offset = ($page - 1) * $limit;
+        $statut = StatutEnum::tryFrom($request->query->get('statut', StatutEnum::EN_ATTENTE->value))
+            ?? StatutEnum::EN_ATTENTE;
+
+        $data = $professionnelRepository->findAllForAdmin($offset, $limit, $statut);
+
+        return $this->json(['data' => $data], Response::HTTP_OK);
+    }
+
+    #[Route('/admin/{id}', name: 'professionnel_admin_show', methods: ['GET'])]
+    #[OA\Tag(name: 'Professionnel')]
+    #[OA\Security(name: 'Bearer')]
+    #[OA\Response(response: 200, description: 'Détails d\'un professionnel')]
+    public function adminShow(
+        int $id,
+        ProfessionnelRepository $professionnelRepository,
+        AdministrateurRepository $administrateurRepository,
+    ): JsonResponse {
+        $utilisateur = $this->getUser();
+
+        $administrateur = $administrateurRepository->findOneByEmail($utilisateur->getEmail());
+        if (!$administrateur) {
+            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $pro = $professionnelRepository->findOneWithDetails($id);
+        if (!$pro) {
+            return $this->json(['message' => 'Professionnel introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($pro, Response::HTTP_OK);
+    }
+
+    #[Route('/admin/valider/{id}', name: 'professionnel_admin_valider', methods: ['POST'])]
+    #[OA\Tag(name: 'Professionnel')]
+    #[OA\Security(name: 'Bearer')]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'action', type: 'string', enum: ['VALIDE', 'REFUSE']),
+                new OA\Property(property: 'motif',  type: 'string'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Compte professionnel mis à jour')]
+    public function adminValider(
+        int $id,
+        Request $request,
+        ProfessionnelRepository $professionnelRepository,
+        ProfessionnelHistoriqueInteractionRepository $historiqueRepo,
+        AdministrateurRepository $administrateurRepository,
+    ): JsonResponse {
+        $utilisateur = $this->getUser();
+
+        $administrateur = $administrateurRepository->findOneByEmail($utilisateur->getEmail());
+        if (!$administrateur) {
+            return $this->json(['message' => 'Accès refusé. Seuls les administrateurs peuvent valider un compte.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $professionnel = $professionnelRepository->find($id);
+        if (!$professionnel) {
+            return $this->json(['message' => 'Professionnel introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $donnees = json_decode($request->getContent(), true);
+        if (!is_array($donnees)) {
+            return $this->json(['message' => 'Corps de la requête invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!isset($donnees['action'])) {
+            return $this->json(['message' => 'Le champ "action" est obligatoire.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $actionEnum = ActionEnum::tryFrom($donnees['action']);
+        if (!$actionEnum) {
+            return $this->json(['message' => 'Action invalide. Valeurs possibles : VALIDE ou REFUSE.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Convertit ActionEnum → StatutEnum (les valeurs sont différentes)
+        $statutEnum = match ($actionEnum) {
+            ActionEnum::VALIDE     => StatutEnum::VALIDE,
+            ActionEnum::REFUSE     => StatutEnum::REFUSE,
+            ActionEnum::EN_ATTENTE => StatutEnum::EN_ATTENTE,
+        };
+
+        $motif = htmlspecialchars(
+            $donnees['motif'] ?? 'Décision prise par un administrateur.'
+        );
+
+        $historiqueRepo->professionnelValidation($professionnel, $administrateur, $statutEnum, $motif);
+        $professionnelRepository->setStatut($professionnel, $statutEnum);
+
+        return $this->json(['message' => 'Statut du compte professionnel mis à jour.'], Response::HTTP_OK);
     }
 }

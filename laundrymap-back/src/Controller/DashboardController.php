@@ -29,7 +29,7 @@ class DashboardController extends AbstractController
 
     #[Route('/dashboard', name: 'dashboard', methods: ['GET'])]
     #[OA\Tag(name: 'Professionnel')]
-    #[OA\SecurityScheme(name: 'bearer', type: 'http', scheme: 'bearer')]
+    #[OA\Security(name: 'bearer')]
     public function dashboard(Request $request): JsonResponse
     {
         

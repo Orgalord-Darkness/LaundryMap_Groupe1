@@ -31,3 +31,8 @@ services:
         tags:
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
 
+    App\Service\WiLineService:
+        arguments:
+            $username: '%env(WILINE_USERNAME)%'
+            $apiKey: '%env(WILINE_API_KEY)%'
+

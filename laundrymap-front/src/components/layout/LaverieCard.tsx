@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { BADGE_LABELS, BADGE_STYLES } from "../utils/config"
 import type { Laverie } from "../utils/type"
+import { LaverieActions } from "@/components/ui/optionsButton"
+
 // ─── LaverieCard — composant de carte pour afficher une laverie dans la liste de validation ────────────────────────
 // Usage :
 //   <LaverieCard laverie={laverie} onVoir={(id) => navigate(`/admin/laveries/${id}`)} />
@@ -34,6 +36,22 @@ export function LaverieCard({
                 <span className={`absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full ${BADGE_STYLES[laverie.statut]}`}>
                     {BADGE_LABELS[laverie.statut]}
                 </span>
+            </div>
+            {/* 🔵 Bouton 3 points */}
+            <div className="absolute top-2 right-2">
+                <div className="bg-white/90 backdrop-blur rounded-lg shadow-sm">
+                    <LaverieActions
+                        id={laverie.id}
+                        onDeleted={() => {
+                            // refresh liste ou refetch
+                            console.log("supprimé");
+                        }}
+                        onEdit={() => {
+                            console.log("edit");
+                        }}
+                        name={laverie.nom_etablissement}
+                    />
+                </div>
             </div>
 
             {/* Contenu */}

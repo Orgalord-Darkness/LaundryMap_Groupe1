@@ -5,7 +5,7 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Textarea } from '@/components/ui/textarea'
 import CardMachine from '@/components/ui/cardMachine'
 import  EquipementFormData from '@/components/ui/addMachineModal'
-import { CheckboxGroup } from '@/components/ui/checkboxGroup'
+import { CheckboxGroup } from '@/components/ui/checkboxGroupEdit'
 import CarouselWithThumbs from '@/components/ui/carouselImage'
 import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE } from '@/components/ui/timePicker'
 

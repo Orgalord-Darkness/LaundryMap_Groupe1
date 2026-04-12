@@ -20,8 +20,8 @@ class Laverie
     #[ORM\Column(enumType: LaverieStatutEnum::class)]
     private ?LaverieStatutEnum $statut = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $wi_line_reference = null;
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $wi_line_reference = null;
 
     #[ORM\Column(length: 255)]
     private ?string $nom_etablissement = null;
@@ -45,7 +45,7 @@ class Laverie
     private Collection $laverieHistoriqueInteractions;
 
     #[ORM\ManyToOne(targetEntity: Media::class)]
-    #[ORM\JoinColumn(name: 'logo_id', referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(name: 'logo_id', referencedColumnName: 'id', nullable: true, onDelete:'CASCADE')]
     private ?Media $logo = null;
 
     #[ORM\ManyToOne(targetEntity: Adresse::class)]
@@ -110,12 +110,12 @@ class Laverie
         return $this;
     }
 
-    public function getWiLineReference(): ?int
+    public function getWiLineReference(): ?string
     {
         return $this->wi_line_reference;
     }
 
-    public function setWiLineReference(?int $wi_line_reference): static
+    public function setWiLineReference(?string $wi_line_reference): static
     {
         $this->wi_line_reference = $wi_line_reference;
 

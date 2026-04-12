@@ -152,6 +152,16 @@ class LaverieRepository extends ServiceEntityRepository
 
         $laverie['laverieMedias'] = $medias;
 
+        // ── Équipements : SQL natif car OneToMany non déclaré ────────────────────
+        $equipements = $conn->fetchAllAssociative(
+            'SELECT id, nom, type, capacite, tarif, duree
+            FROM laverie_equipement
+            WHERE laverie_id = :id',
+            ['id' => $id]
+        );
+
+        $laverie['equipements'] = $equipements;
+
         return $laverie;
     }
     
@@ -169,6 +179,17 @@ class LaverieRepository extends ServiceEntityRepository
             ->orderBy('l.date_ajout', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function deleteLaundry(Laverie $laverie) 
+    {
+        $laverie->setStatut(LaverieStatutEnum::SUPPRIME); 
+        $laverie->setSupprimeLe(new \DateTime()); 
+        $laverie->setDateModification(new \DateTime()); 
+
+        $em = $this->getEntityManager(); 
+        $em->persist($laverie); 
+        $em->flush(); 
     }
 
 

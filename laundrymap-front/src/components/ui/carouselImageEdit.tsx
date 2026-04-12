@@ -12,18 +12,18 @@ import {
 } from "@/components/ui/carousel";
 
 
-// Images de test, à remplacer par les images uploadées par le pro lors de l'ajout de la laverie
-const images = [
+const FALLBACK_IMAGES = [
   "https://www.fffuel.co/images/dddepth-preview/dddepth-248.jpg",
   "https://www.fffuel.co/images/dddepth-preview/dddepth-051.jpg",
   "https://www.fffuel.co/images/dddepth-preview/dddepth-029.jpg",
-  "https://www.fffuel.co/images/dddepth-preview/dddepth-038.jpg",
-  "https://www.fffuel.co/images/dddepth-preview/dddepth-012.jpg",
 ];
 
+interface CarouselWithThumbsProps {
+  images?: string[];
+}
 
-
-export default function CarouselWithThumbs() {
+export default function CarouselWithThumbs({ images: propImages }: CarouselWithThumbsProps = {}) {
+  const images = propImages && propImages.length > 0 ? propImages : FALLBACK_IMAGES;
   const [api, setApi] = React.useState<CarouselApi>();
   const [current, setCurrent] = React.useState(0);
 

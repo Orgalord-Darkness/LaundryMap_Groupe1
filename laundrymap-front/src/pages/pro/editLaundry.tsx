@@ -5,21 +5,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Textarea } from '@/components/ui/textarea'
-import { CheckboxGroup } from '@/components/ui/checkboxGroup'
+import { CheckboxGroup } from '@/components/ui/checkboxGroupEdit'
 import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE, type DayKey } from '@/components/ui/timePicker'
 import axios from 'axios'
-import CarouselWithThumbs from '@/components/ui/carouselImage'
+import CarouselWithThumbs from '@/components/ui/carouselImageEdit'
 import CardMachine from '@/components/ui/cardMachine'
 import MachineModal, { type EquipementFormData } from '@/components/ui/MachineModal'
- 
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL
- 
+
 const api = axios.create({
     baseURL: `${API_BASE}/api/v1/laverie`,
     withCredentials: true,
     headers: { "Content-Type": "application/json" },
 })
- 
+
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token")
     if (token) {
@@ -27,55 +27,22 @@ api.interceptors.request.use((config) => {
     }
     return config
 })
- 
-// ─── Mapping anglais → français pour les jours ───────────────────────────────
-// WeekSchedulePicker utilise les clés anglaises (monday, tuesday…)
-// mais JourEnum Symfony attend le français (lundi, mardi…)
-const DAY_EN_TO_FR: Record<string, string> = {
-    monday:    'lundi',
-    tuesday:   'mardi',
-    wednesday: 'mercredi',
-    thursday:  'jeudi',
-    friday:    'vendredi',
-    saturday:  'samedi',
-    sunday:    'dimanche',
-}
- 
-// ─── Types ────────────────────────────────────────────────────────────────────
- 
-// interface LaverieDetail {
-//     id: number
-//     nom_etablissement: string
-//     description: string | null
-//     contact_email: string | null
-//     wi_line_reference: number | null
-//     adresse: {
-//         adresse: string
-//         rue: string
-//         code_postal: number
-//         ville: string
-//         pays: string
-//         latitude: number | null
-//         longitude: number | null
-//     } | null
-//     services: { id: number; nom: string }[]
-//     methodePaiements: { id: number; nom: string }[]
-//     equipements?: any[]
-//     laverieFermetures?: any[]
-//     logo?: string | null
-//     images?: string[]
-// }
- 
+
+// WeekSchedulePicker et JourEnum Symfony utilisent tous les deux les clés françaises
+// (lundi, mardi…) — aucun mapping de jours nécessaire
+
 // ─── Composant ────────────────────────────────────────────────────────────────
- 
+
 export default function FormEditLaverie() {
     const { id } = useParams<{ id: string }>()
- 
+
     const [loading, setLoading]               = useState(true)
     const [saving, setSaving]                 = useState(false)
     const [error, setError]                   = useState<string | null>(null)
     const [successMessage, setSuccessMessage] = useState("")
- 
+    const [wilineLoading, setWilineLoading]   = useState(false)
+    const [wilineError, setWilineError]       = useState<string | null>(null)
+
     const [name, setName]                     = useState("")
     const [contactEmail, setContactEmail]     = useState("")
     const [description, setDescription]       = useState("")
@@ -92,18 +59,27 @@ export default function FormEditLaverie() {
     const [week, setWeek]                     = useState<WeekSchedule>(DEFAULT_WEEK_SCHEDULE)
     const [logo, setLogo]                     = useState<File | null>(null)
     const [images, setImages]                 = useState<FileList | null>(null)
- 
-    // ✅ selectedMachines = équipements (machines + sèche-linge)
-    const [selectedMachines, setSelectedMachines]           = useState<EquipementFormData[]>([])
-    // ✅ selectedComfortEquipments = équipements de confort (wifi, chaises…)
-    // const [selectedComfortEquipments, setSelectedComfortEquipments] = useState<string[]>([])
- 
+    const [existingImages, setExistingImages] = useState<string[]>([])
+    const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null)
+
+    const [selectedMachines, setSelectedMachines] = useState<EquipementFormData[]>([])
+
     const [allServices, setAllServices]   = useState<{ id: number; nom: string }[]>([])
     const [allPaiements, setAllPaiements] = useState<{ id: number; nom: string }[]>([])
     const [errors, setErrors]             = useState<Record<string, string>>({})
- 
+
     // ─── Utilitaires ─────────────────────────────────────────────────────────
- 
+
+    const emptyDay = () => ({
+        morning:   { start: "", end: "" },
+        afternoon: { start: "", end: "" },
+    })
+
+    function parseCapacite(typeName: string): number | null {
+        const match = typeName?.match(/(\d+)\s*kg/i)
+        return match ? parseInt(match[1]) : null
+    }
+
     function fileToBase64(file: File): Promise<string> {
         return new Promise((resolve, reject) => {
             const reader = new FileReader()
@@ -112,19 +88,90 @@ export default function FormEditLaverie() {
             reader.readAsDataURL(file)
         })
     }
- 
-    // ─── Handler ajout machine depuis MachineModal ────────────────────────────
-    // ✅ FIX : MachineModal appelle onAdd(data) → on l'ajoute à selectedMachines
+
+    // ─── Handlers machines ────────────────────────────────────────────────────
+
     const handleAddMachine = (data: EquipementFormData) => {
         setSelectedMachines(prev => [...prev, data])
     }
- 
+
     const handleRemoveMachine = (index: number) => {
         setSelectedMachines(prev => prev.filter((_, i) => i !== index))
     }
- 
+
+    // ─── Import Wi-Line ───────────────────────────────────────────────────────
+
+    const handleWilineImport = async () => {
+        if (!wilineCode.trim()) return
+        setWilineLoading(true)
+        setWilineError(null)
+        try {
+            const res = await api.get(`/wiline-data?serial=${encodeURIComponent(wilineCode.trim())}`)
+            const d = res.data
+
+            // Adresse : "4 Boulevard Napoléon Premier" → adresse="4", rue="Boulevard Napoléon Premier"
+            if (d.address) {
+                const parts = d.address.split(' ')
+                setAdresse(parts[0] ?? '')
+                setRue(parts.slice(1).join(' '))
+            }
+            if (d.postal_code) setCodePostal(String(d.postal_code))
+            if (d.city)        setCity(d.city)
+            if (d.country)     setCountry(d.country)
+
+            // Machines (WASH → machine_a_laver, DRY → seche_linge, PRODUCTS → distributeur_de_lessive)
+            const categoryMap: Record<string, EquipementFormData["type"]> = {
+                WASH:     'machine_a_laver',
+                DRY:      'seche_linge',
+                PRODUCTS: 'distributeur_de_lessive',
+            }
+            if (Array.isArray(d.machines)) {
+                const imported: EquipementFormData[] = d.machines
+                    .filter((m: any) => categoryMap[m.category_text])
+                    .map((m: any) => ({
+                        nom:      m.type_name || 'Équipement',
+                        type:     categoryMap[m.category_text],
+                        capacite: parseCapacite(m.type_name),
+                        tarif:    m.price    > 0 ? m.price / 100                : null,
+                        duree:    m.duration > 0 ? Math.round(m.duration / 60)  : null,
+                    }))
+                setSelectedMachines(imported)
+            }
+
+            // Horaires (Wi-Line utilise des clés anglaises, dont "thuesday" avec une faute de frappe)
+            const dayMap: Record<string, DayKey> = {
+                monday:    'lundi',
+                thuesday:  'mardi',
+                wednesday: 'mercredi',
+                thursday:  'jeudi',
+                friday:    'vendredi',
+                saturday:  'samedi',
+                sunday:    'dimanche',
+            }
+            if (d.opening_hours) {
+                const newWeek: WeekSchedule = {
+                    lundi:    emptyDay(), mardi:    emptyDay(), mercredi: emptyDay(),
+                    jeudi:    emptyDay(), vendredi: emptyDay(), samedi:   emptyDay(), dimanche: emptyDay(),
+                }
+                for (const [engDay, slots] of Object.entries(d.opening_hours)) {
+                    const frDay = dayMap[engDay]
+                    if (!frDay || !Array.isArray(slots) || slots.length === 0) continue
+                    newWeek[frDay].morning = { start: (slots as any[])[0]?.open ?? '', end: (slots as any[])[0]?.close ?? '' }
+                    if ((slots as any[]).length > 1) {
+                        newWeek[frDay].afternoon = { start: (slots as any[])[1].open, end: (slots as any[])[1].close }
+                    }
+                }
+                setWeek(newWeek)
+            }
+        } catch (err: any) {
+            setWilineError(err?.response?.data?.message || 'Erreur lors de la récupération des données Wi-Line.')
+        } finally {
+            setWilineLoading(false)
+        }
+    }
+
     // ─── Chargement options (services / paiements) ────────────────────────────
- 
+
     useEffect(() => {
         async function fetchOptions() {
             const [servicesRes, paiementsRes] = await Promise.all([
@@ -136,20 +183,20 @@ export default function FormEditLaverie() {
         }
         fetchOptions()
     }, [])
- 
+
     // ─── Chargement laverie ───────────────────────────────────────────────────
- 
+
     useEffect(() => {
         const fetchLaverie = async () => {
             try {
-                const response = await api.get(`/${id}`);
-                const data = response.data;
- 
+                const response = await api.get(`/${id}`)
+                const data = response.data
+
                 setName(data.nom_etablissement ?? "")
                 setContactEmail(data.contact_email ?? "")
                 setDescription(data.description ?? "")
                 setWilineCode(String(data.wi_line_reference ?? ""))
- 
+
                 if (data.adresse) {
                     setAdresse(data.adresse.adresse ?? "")
                     setRue(data.adresse.rue ?? "")
@@ -159,81 +206,78 @@ export default function FormEditLaverie() {
                     setLatitude(String(data.adresse.latitude ?? ""))
                     setLongitude(String(data.adresse.longitude ?? ""))
                 }
- 
-                setSelectedServices(
-                    data.services?.map((s: {id: number, value: string}) => String(s.id)) ?? []
-                )
-                setSelectedPayments(
-                    data.methodePaiements?.map((p: {id: number, value: string}) => String(p.id)) ?? []
-                )
- 
-                // ✅ FIX : on remplit selectedMachines (plus selectedEquipments)
-                // ✅ Dans le useEffect de chargement de la laverie :
-                // ✅ Dans useEffect / fetchLaverie
-               // ✅ FIX : Conversion explicite en Number pour satisfaire TypeScript et EquipementFormData
-                if (data.equipements) {
-                    const normalized: EquipementFormData[] = data.equipements.map((eq: any) => {
-                        let type = "autre"
-                        if (typeof eq.type === "string") {
-                            type = eq.type.toLowerCase()
-                        } else if (eq.type && typeof eq.type === "object" && eq.type.value) {
-                            type = eq.type.value.toLowerCase()
-                        }
-                        
-                        const allowed = ["machine_a_laver", "seche_linge", "autre"]
-                        if (!allowed.includes(type)) type = "autre"
 
-                        return {
-                            nom:      eq.nom ?? "Équipement",
-                            type:     type as EquipementFormData["type"],
-                            // On force la conversion en nombre car l'API renvoie souvent des strings pour le JSON
-                            capacite: eq.capacite ? Number(eq.capacite) : 0,
-                            tarif:    eq.tarif    ? Number(eq.tarif)    : 0,
-                            duree:    eq.duree    ? Number(eq.duree)    : 0,
-                        }
-                    })
-                    setSelectedMachines(normalized)
+                setSelectedServices(data.services?.map((s: any) => String(s.id)) ?? [])
+                setSelectedPayments(data.methodePaiements?.map((p: any) => String(p.id)) ?? [])
+
+                // Logo actuel
+                if (data.logo?.emplacement) {
+                    setExistingLogoUrl(`${API_BASE}${data.logo.emplacement}`)
                 }
- 
-                // ─── Horaires ─────────────────────────────────────────────
-                if (data.laverieFermetures) {
-                    const newWeek = { ...DEFAULT_WEEK_SCHEDULE }
- 
-                    data.laverieFermetures.forEach((f: any) => {
-                        // Le backend renvoie le jour en français (lundi…)
-                        // On cherche la clé anglaise correspondante pour WeekSchedulePicker
-                        const jourFr = f.jour.toLowerCase()
-                        const dayEn = Object.entries(DAY_EN_TO_FR).find(
-                            ([, fr]) => fr === jourFr
-                        )?.[0] as DayKey | undefined
- 
-                        if (!dayEn || !newWeek[dayEn]) return
- 
-                        const start = f.heure_debut.slice(0, 5)
-                        const end   = f.heure_fin.slice(0, 5)
- 
-                        if (!newWeek[dayEn].morning.start) {
-                            newWeek[dayEn].morning = { start, end }
-                        } else {
-                            newWeek[dayEn].afternoon = { start, end }
-                        }
-                    })
- 
-                    setWeek(newWeek)
+
+                // Images existantes depuis laverieMedias
+                if (data.laverieMedias?.length) {
+                    setExistingImages(
+                        data.laverieMedias.map((m: any) => `${API_BASE}${m.emplacement}`)
+                    )
                 }
- 
+
+                // Machines : le backend renvoie la clé "equipements"
+                const rawEq: any[] = data.equipements || []
+                const normalizedEq: EquipementFormData[] = rawEq.map((eq: any) => {
+                    const typeBrut = typeof eq.type === "object" ? eq.type.value : eq.type
+                    return {
+                        nom:      eq.nom ?? "Équipement",
+                        type:     (typeBrut?.toLowerCase() || "machine_a_laver") as EquipementFormData["type"],
+                        capacite: eq.capacite != null ? Number(eq.capacite) : null,
+                        tarif:    eq.tarif    != null ? Number(eq.tarif)    : null,
+                        duree:    eq.duree    != null ? Number(eq.duree)    : null,
+                    }
+                })
+                setSelectedMachines(normalizedEq)
+
+                // Horaires : backend et WeekSchedulePicker utilisent tous les deux les clés françaises
+                // On initialise newWeek avec des valeurs vides pour écraser le DEFAULT_WEEK_SCHEDULE
+                const newWeek: WeekSchedule = {
+                    lundi:    emptyDay(),
+                    mardi:    emptyDay(),
+                    mercredi: emptyDay(),
+                    jeudi:    emptyDay(),
+                    vendredi: emptyDay(),
+                    samedi:   emptyDay(),
+                    dimanche: emptyDay(),
+                }
+
+                const rawHours: any[] = data.laverieFermetures || []
+                rawHours.forEach((f: any) => {
+                    const jourFr = f.jour?.toLowerCase() as DayKey
+                    if (!jourFr || !newWeek[jourFr]) return
+
+                    const start = f.heure_debut?.slice(0, 5)
+                    const end   = f.heure_fin?.slice(0, 5)
+
+                    // Premier créneau du jour → matin, second → après-midi
+                    if (!newWeek[jourFr].morning.start) {
+                        newWeek[jourFr].morning = { start, end }
+                    } else {
+                        newWeek[jourFr].afternoon = { start, end }
+                    }
+                })
+                setWeek(newWeek)
+
             } catch (err) {
+                console.error("Erreur fetch:", err)
                 setError("Impossible de charger la laverie.")
             } finally {
                 setLoading(false)
             }
         }
- 
+
         if (id) fetchLaverie()
     }, [id])
- 
+
     // ─── Validation ───────────────────────────────────────────────────────────
- 
+
     const validate = (): boolean => {
         const e: Record<string, string> = {}
         if (!name)       e.name       = "Le nom est requis"
@@ -246,142 +290,57 @@ export default function FormEditLaverie() {
         return Object.keys(e).length === 0
     }
 
-    // ─── Soumission ───────────────────────────────────────────────────────────
- 
-    // ─── Chargement des données ───────────────────────────────────────────────
-    useEffect(() => {
-        const fetchLaverie = async () => {
-            try {
-                const response = await api.get(`/${id}`);
-                const data = response.data;
-
-                // Informations de base
-                setName(data.nom_etablissement ?? "");
-                setContactEmail(data.contact_email ?? "");
-                setDescription(data.description ?? "");
-                setWilineCode(String(data.wi_line_reference ?? ""));
-
-                if (data.adresse) {
-                    setAdresse(data.adresse.adresse ?? "");
-                    setRue(data.adresse.rue ?? "");
-                    setCodePostal(String(data.adresse.code_postal ?? ""));
-                    setCity(data.adresse.ville ?? "");
-                    setCountry(data.adresse.pays ?? "");
-                    setLatitude(String(data.adresse.latitude ?? ""));
-                    setLongitude(String(data.adresse.longitude ?? ""));
-                }
-
-                setSelectedServices(data.services?.map((s: any) => String(s.id)) ?? []);
-                setSelectedPayments(data.methodePaiements?.map((p: any) => String(p.id)) ?? []);
-
-                // ✅ FIX : Mapping des équipements (Machines)
-                // On vérifie les deux noms de clés possibles (laverieEquipements ou equipements)
-                const rawEq = data.laverieEquipements || data.equipements || [];
-                const normalizedEq: EquipementFormData[] = rawEq.map((eq: any) => {
-                    // Extraction de la valeur de l'Enum (si objet ou string)
-                    const typeBrut = typeof eq.type === "object" ? eq.type.value : eq.type;
-                    return {
-                        nom: eq.nom ?? "Équipement",
-                        type: (typeBrut?.toLowerCase() || "machine_a_laver") as any,
-                        capacite: eq.capacite ? Number(eq.capacite) : null,
-                        tarif: eq.tarif ? Number(eq.tarif) : null,
-                        duree: eq.duree ? Number(eq.duree) : null,
-                    };
-                });
-                setSelectedMachines(normalizedEq);
-
-                // ✅ FIX : Mapping des horaires
-                const rawHours = data.laverieFermetures || data.fermetures || [];
-                const newWeek = JSON.parse(JSON.stringify(DEFAULT_WEEK_SCHEDULE));
-
-                rawHours.forEach((f: any) => {
-                    const jourFr = f.jour?.toLowerCase();
-                    const dayEn = Object.entries(DAY_EN_TO_FR).find(
-                        ([, fr]) => fr === jourFr
-                    )?.[0] as DayKey | undefined;
-
-                    if (dayEn && newWeek[dayEn]) {
-                        // On récupère HH:mm
-                        const start = f.heure_debut?.slice(0, 5);
-                        const end = f.heure_fin?.slice(0, 5);
-
-                        // On remplit le matin en priorité, puis l'après-midi
-                        if (!newWeek[dayEn].morning.start) {
-                            newWeek[dayEn].morning = { start, end };
-                        } else {
-                            newWeek[dayEn].afternoon = { start, end };
-                        }
-                    }
-                });
-                setWeek(newWeek);
-
-            } catch (err) {
-                console.error("Erreur fetch:", err);
-                setError("Impossible de charger la laverie.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (id) fetchLaverie();
-    }, [id]);
-
     // ─── Soumission du formulaire ─────────────────────────────────────────────
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!validate()) return;
 
-        setSaving(true);
-        setError('');
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!validate()) return
+
+        setSaving(true)
+        setError(null)
 
         try {
-            // Conversion des fichiers en Base64
-            let logoBase64 = logo instanceof File ? await fileToBase64(logo) : null;
-            let imagesBase64 = images ? await Promise.all(Array.from(images).map(fileToBase64)) : [];
+            const logoBase64    = logo   instanceof File ? await fileToBase64(logo)                          : undefined
+            const imagesBase64  = images                 ? await Promise.all(Array.from(images).map(fileToBase64)) : undefined
 
-            // ✅ FIX horaires : On envoie les jours en français pour correspondre au JourEnum PHP
-            const weekScheduleFr: Record<string, any> = {};
-            for (const [dayEn, schedule] of Object.entries(week)) {
-                const dayFr = DAY_EN_TO_FR[dayEn];
-                if (dayFr) weekScheduleFr[dayFr] = schedule;
-            }
-
-            const payload = {
+            const payload: Record<string, any> = {
                 nom_etablissement: name,
                 description,
-                contact_email: contactEmail,
+                contact_email:     contactEmail,
+                wi_line_reference: wilineCode.trim() || null,
                 adresse,
                 rue,
-                code_postal: codePostal,
-                ville: city,
-                pays: country,
-                latitude: latitude ? parseFloat(latitude) : undefined,
-                longitude: longitude ? parseFloat(longitude) : undefined,
-                services: selectedServices.map(Number),
+                code_postal:       codePostal,
+                ville:             city,
+                pays:              country,
+                latitude:          latitude  ? parseFloat(latitude)  : undefined,
+                longitude:         longitude ? parseFloat(longitude) : undefined,
+                services:          selectedServices.map(Number),
                 methodes_paiement: selectedPayments.map(Number),
-                // On envoie le tableau d'objets tel quel, le contrôleur s'occupe du reste
-                equipements: selectedMachines,
-                weekSchedule: weekScheduleFr,
-                logo: logoBase64,
-                images: imagesBase64,
-            };
+                equipements:       selectedMachines,
+                // WeekSchedule utilise directement les clés françaises (lundi…) compatibles avec JourEnum
+                weekSchedule:      week,
+            }
 
-            await api.put(`/edit/${id}`, payload);
+            // N'envoyer logo/images que si de nouveaux fichiers ont été sélectionnés
+            // (évite d'écraser les données existantes à chaque sauvegarde)
+            if (logoBase64)   payload.logo   = logoBase64
+            if (imagesBase64) payload.images = imagesBase64
 
-            setSuccessMessage('Laverie mise à jour avec succès !');
-            setTimeout(() => setSuccessMessage(''), 5000);
+            await api.put(`/edit/${id}`, payload)
+
+            setSuccessMessage('Laverie mise à jour avec succès !')
+            setTimeout(() => setSuccessMessage(''), 5000)
         } catch (err: any) {
-            console.error('Erreur submit:', err);
-            const msg = err?.response?.data?.message || 'Une erreur est survenue lors de la mise à jour.';
-            setError(msg);
+            console.error('Erreur submit:', err)
+            setError(err?.response?.data?.message || 'Une erreur est survenue lors de la mise à jour.')
         } finally {
-            setSaving(false);
+            setSaving(false)
         }
-    };
- 
+    }
 
-        // ─── Rendu ────────────────────────────────────────────────────────────────
- 
+    // ─── Rendu ────────────────────────────────────────────────────────────────
+
     if (loading) {
         return (
             <div className="flex flex-col gap-4 p-4 max-w-md mx-auto mt-10">
@@ -391,7 +350,7 @@ export default function FormEditLaverie() {
             </div>
         )
     }
- 
+
     return (
         <form onSubmit={handleSubmit} className="flex flex-col items-center p-4 max-w-md mx-auto">
             <h1 className="font-semibold mt-10 text-2xl text-gray-900 text-center">
@@ -400,44 +359,49 @@ export default function FormEditLaverie() {
             <p className="text-gray-500 text-center mb-6">
                 Mettez à jour les informations de votre établissement
             </p>
- 
+
             {/* Logo */}
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="logo">
                     Logo <span className="text-orange-500">*</span>
                 </FieldLabel>
-                <Input id="logo" type="file" onChange={e => setLogo(e.target.files?.[0] ?? null)} />
-                <FieldDescription>Sélectionnez un logo.</FieldDescription>
+                {existingLogoUrl && !logo && (
+                    <img src={existingLogoUrl} alt="Logo actuel" className="h-16 w-16 object-contain rounded-lg border mb-2" />
+                )}
+                <Input id="logo" type="file" accept="image/*" onChange={e => setLogo(e.target.files?.[0] ?? null)} />
+                <FieldDescription>
+                    {existingLogoUrl ? "Sélectionnez un nouveau logo pour remplacer l'actuel." : "Sélectionnez un logo."}
+                </FieldDescription>
             </Field>
- 
+
             {/* Galerie d'images */}
             <div className="my-5 w-full">
                 <h2 className="font-semibold text-lg text-center">Galerie d'images</h2>
                 <p className="text-gray-500 text-center mb-3">
                     Vous pouvez ajouter plusieurs images de votre laverie
                 </p>
-                <CarouselWithThumbs />
+                <CarouselWithThumbs images={existingImages} />
             </div>
- 
+
             {/* Upload images */}
             <Field className="w-full">
                 <FieldLabel htmlFor="imagesLaundry">Images de la laverie</FieldLabel>
-                <Input id="imagesLaundry" type="file" multiple onChange={e => setImages(e.target.files)} />
-                <FieldDescription>Sélectionnez des images pour votre laverie.</FieldDescription>
+                <Input id="imagesLaundry" type="file" accept="image/*" multiple onChange={e => setImages(e.target.files)} />
+                <FieldDescription>Sélectionnez de nouvelles images pour remplacer la galerie actuelle.</FieldDescription>
             </Field>
- 
+
             {successMessage && (
                 <div role="status" aria-live="polite" className="w-full p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl text-sm mb-4">
                     {successMessage}
                 </div>
             )}
- 
+
             {error && (
                 <div role="alert" className="w-full p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm mb-4">
                     {error}
                 </div>
             )}
- 
+
             {/* Nom */}
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="name">
@@ -446,13 +410,13 @@ export default function FormEditLaverie() {
                 <Input id="name" type="text" value={name} onChange={e => setName(e.target.value)} className="h-11" />
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </Field>
- 
+
             {/* Email de contact */}
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="contactEmail">Email de contact</FieldLabel>
                 <Input id="contactEmail" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="h-11" />
             </Field>
- 
+
             {/* Adresse */}
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="adresse">
@@ -461,7 +425,7 @@ export default function FormEditLaverie() {
                 <Input id="adresse" type="text" value={adresse} onChange={e => setAdresse(e.target.value)} className="h-11" />
                 {errors.adresse && <p className="text-red-500 text-xs mt-1">{errors.adresse}</p>}
             </Field>
- 
+
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="rue">
                     Rue <span className="text-orange-500">*</span>
@@ -469,7 +433,7 @@ export default function FormEditLaverie() {
                 <Input id="rue" type="text" value={rue} onChange={e => setRue(e.target.value)} className="h-11" />
                 {errors.rue && <p className="text-red-500 text-xs mt-1">{errors.rue}</p>}
             </Field>
- 
+
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="codePostal">
                     Code postal <span className="text-orange-500">*</span>
@@ -477,7 +441,7 @@ export default function FormEditLaverie() {
                 <Input id="codePostal" type="text" value={codePostal} onChange={e => setCodePostal(e.target.value)} className="h-11" />
                 {errors.codePostal && <p className="text-red-500 text-xs mt-1">{errors.codePostal}</p>}
             </Field>
- 
+
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="city">
                     Ville <span className="text-orange-500">*</span>
@@ -485,7 +449,7 @@ export default function FormEditLaverie() {
                 <Input id="city" type="text" value={city} onChange={e => setCity(e.target.value)} className="h-11" />
                 {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
             </Field>
- 
+
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="country">
                     Pays <span className="text-orange-500">*</span>
@@ -493,7 +457,7 @@ export default function FormEditLaverie() {
                 <Input id="country" type="text" value={country} onChange={e => setCountry(e.target.value)} className="h-11" />
                 {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
             </Field>
- 
+
             <div className="w-full grid grid-cols-2 gap-3 mt-4">
                 <Field>
                     <FieldLabel htmlFor="latitude">Latitude</FieldLabel>
@@ -504,7 +468,7 @@ export default function FormEditLaverie() {
                     <Input id="longitude" type="number" value={longitude} onChange={e => setLongitude(e.target.value)} className="h-11" />
                 </Field>
             </div>
- 
+
             {/* Description */}
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="description">Description</FieldLabel>
@@ -517,23 +481,44 @@ export default function FormEditLaverie() {
                     placeholder="Écrivez une description pour votre laverie."
                 />
             </Field>
- 
+
             {/* Wi-Line */}
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="wilineCode">Code Wi-Line</FieldLabel>
-                <FieldDescription>Fourni si votre laverie dispose d'une centrale de paiement Wi-Line.</FieldDescription>
-                <Input id="wilineCode" type="text" value={wilineCode} onChange={e => setWilineCode(e.target.value)} className="h-11" />
+                <FieldDescription>
+                    Numéro de série de votre centrale Wi-Line. Cliquez sur "Importer" pour pré-remplir automatiquement l'adresse, les machines et les horaires.
+                </FieldDescription>
+                <div className="flex gap-2">
+                    <Input
+                        id="wilineCode"
+                        type="text"
+                        value={wilineCode}
+                        onChange={e => setWilineCode(e.target.value)}
+                        className="h-11 flex-1"
+                        placeholder="ex : 23128C02604C1521"
+                    />
+                    <Button
+                        type="button"
+                        onClick={handleWilineImport}
+                        disabled={!wilineCode.trim() || wilineLoading}
+                        className="h-11 whitespace-nowrap"
+                    >
+                        {wilineLoading ? 'Chargement…' : 'Importer'}
+                    </Button>
+                </div>
+                {wilineError && (
+                    <p className="text-red-500 text-xs mt-1">{wilineError}</p>
+                )}
             </Field>
- 
-            {/* ✅ Machines : affichage depuis selectedMachines (BDD) + ajout via modal */}
+
+            {/* Machines */}
             <div className="my-5 w-full">
                 <h2 className="font-semibold text-lg text-center mb-2">Machines & équipements</h2>
- 
+
                 {selectedMachines.length === 0 && (
                     <p className="text-gray-400 text-sm text-center mb-3">Aucun équipement ajouté.</p>
                 )}
- 
-                {/* ✅ Cards depuis selectedMachines (données réelles) */}
+
                 {selectedMachines.map((machine, index) => (
                     <div key={index} className="relative">
                         <CardMachine
@@ -543,7 +528,6 @@ export default function FormEditLaverie() {
                             price={machine.tarif ?? 0}
                             available={true}
                         />
-                        {/* Bouton suppression */}
                         <button
                             type="button"
                             onClick={() => handleRemoveMachine(index)}
@@ -554,26 +538,25 @@ export default function FormEditLaverie() {
                         </button>
                     </div>
                 ))}
- 
-                {/* ✅ FIX : onAdd={handleAddMachine} pour brancher la modal */}
+
                 <MachineModal onAdd={handleAddMachine} />
+            </div>
+
+            {/* Services */}
+            <div className="w-full mt-4">
+                <CheckboxGroup
+                    title="Équipements"
+                    options={allServices.map(s => ({ value: String(s.id), label: s.nom }))}
+                    value={selectedServices}
+                    onChange={setSelectedServices}
+                />
             </div>
 
             {/* Horaires */}
             <div className="w-full mt-6">
                 <WeekSchedulePicker value={week} onChange={setWeek} />
             </div>
- 
-            {/* Services */}
-            <div className="w-full mt-4">
-                <CheckboxGroup
-                    title="Services disponibles"
-                    options={allServices.map(s => ({ value: String(s.id), label: s.nom }))}
-                    value={selectedServices}
-                    onChange={setSelectedServices}
-                />
-            </div>
- 
+
             {/* Paiements */}
             <div className="w-full mt-4">
                 <CheckboxGroup
@@ -583,7 +566,7 @@ export default function FormEditLaverie() {
                     onChange={setSelectedPayments}
                 />
             </div>
- 
+
             <div className="w-full mt-10 mb-12">
                 <Button type="submit" className="w-full h-12" disabled={saving}>
                     {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
@@ -592,4 +575,3 @@ export default function FormEditLaverie() {
         </form>
     )
 }
- 

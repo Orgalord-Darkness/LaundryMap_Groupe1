@@ -18,7 +18,7 @@ class LaverieMedia
     private ?Laverie $laverie = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Media $media = null;
 
     #[ORM\Column(length: 255, nullable: true)]
