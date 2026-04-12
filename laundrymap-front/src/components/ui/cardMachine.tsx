@@ -20,7 +20,7 @@ export default function CardMachine({
         w-full max-w-sm
         border border-gray-100
         transition-all duration-200
-        ${available ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer" : "opacity-60 cursor-not-allowed"}
+        ${available ? "hover:shadow-lg hover:-translate-y-0.5" : "opacity-60 cursor-not-allowed"}
       `}
     >
       {/* ── Icône machine ── */}
