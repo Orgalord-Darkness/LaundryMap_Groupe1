@@ -438,6 +438,7 @@ function AddLaundry() {
             { value: 'Parking',                label: 'Parking'                },
             { value: 'Distributeur de snack',  label: 'Distributeur de snack'  },
           ]}
+          disabled={false}
           value={selectedEquipments}
           onChange={setSelectedEquipments}
         />
@@ -456,6 +457,7 @@ function AddLaundry() {
             { value: 'Pièces',         label: 'Pièces'         },
             { value: 'Billet',         label: 'Billets'        },
           ]} 
+          disabled={false}
           value={selectedPayments}
           onChange={setSelectedPayments}
         /> 

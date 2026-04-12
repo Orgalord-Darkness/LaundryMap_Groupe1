@@ -9,11 +9,12 @@ interface CheckboxOption {
 interface CheckboxGroupProps {
   title: string;
   options: CheckboxOption[];
+  disabled: boolean; 
   value?: string[];
   onChange?: Dispatch<SetStateAction<string[]>>;
 }
 
-export const CheckboxGroup = ({ title, options, value = [], onChange }: CheckboxGroupProps) => {
+export const CheckboxGroup = ({ title, options, disabled, value = [], onChange }: CheckboxGroupProps) => {
   const handleCheckboxChange = (option: string | React.Key | null | undefined) => {
     const optionString = String(option);
     if (onChange) {
@@ -36,6 +37,7 @@ export const CheckboxGroup = ({ title, options, value = [], onChange }: Checkbox
           >
             <input
               type="checkbox"
+              disabled={disabled}
               checked={value.includes(String(option.value))}
               onChange={() => handleCheckboxChange(option.value)}
               className="h-4 w-4 text-blue-600 rounded-full border-gray-300 focus:ring-blue-500"

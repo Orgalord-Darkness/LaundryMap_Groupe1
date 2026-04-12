@@ -200,8 +200,8 @@ console.log("api =", api)
                     value: String(s.id),
                     label: s.nom
                 }))}
+                disabled={true}
                 value={laverie.services.map((s:Service) => String(s.id))}
-                disabled
             />
 
         </div>
@@ -214,8 +214,8 @@ console.log("api =", api)
                     value: String(p.id),
                     label: p.nom
                 }))}
+                disabled={true}
                 value={laverie.methodePaiements.map((p:Paiement) => String(p.id))}
-                disabled
             />
         </div>
 

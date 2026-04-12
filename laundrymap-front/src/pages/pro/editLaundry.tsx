@@ -617,6 +617,7 @@ export default function FormEditLaverie() {
                 <CheckboxGroup
                     title="Équipements"
                     options={allServices.map(s => ({ value: String(s.id), label: s.nom }))}
+                    disabled={false}
                     value={selectedServices}
                     onChange={setSelectedServices}
                 />
@@ -632,6 +633,7 @@ export default function FormEditLaverie() {
                 <CheckboxGroup
                     title="Moyens de paiement"
                     options={allPaiements.map(p => ({ value: String(p.id), label: p.nom }))}
+                    disabled={false}
                     value={selectedPayments}
                     onChange={setSelectedPayments}
                 />
