@@ -1,8 +1,8 @@
-// main.tsx
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { BrowserRouter } from "react-router"
+import './i18n'
+import { BrowserRouter } from "react-router-dom"
 import Router from "./pages/Router.tsx"
 import { GoogleOAuthProvider } from "@react-oauth/google"
 import { Header } from "@/components/layout/Header"

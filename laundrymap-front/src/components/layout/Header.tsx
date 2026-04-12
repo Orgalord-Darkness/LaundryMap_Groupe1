@@ -1,4 +1,5 @@
 import { BurgerMenu } from "@/components/layout/BurgerMenu";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 export function Header() {
   return (
@@ -33,8 +34,10 @@ export function Header() {
           LaundryMap
         </span>
       </div>
-      
-      <BurgerMenu />
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <LanguageSwitcher />
+        <BurgerMenu />
+      </div>
     </header>
   );
 }

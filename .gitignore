@@ -4,8 +4,6 @@
 .env.local
 .env.dev
 .env.test
-
-# Symfony secrets (clé privée)
 config/secrets/*/private.key
 config/secrets/*/private.pem
 
@@ -20,10 +18,7 @@ docker/
 *.Dockerfile
 docker-compose*.yaml
 docker-compose*.yml
-docker/
-docker-compose.yml
 docker-compose.prod.yml
-.docker/
 
 ##############################
 # SYMFONY / PHP
@@ -38,13 +33,13 @@ laundrymap-back/vendor/
 /public/uploads/
 /public/media/
 /public/storage/
-
-# Cache & logs
 /var/cache/
 /var/log/
-
-# PHPUnit
 .phpunit.result.cache
+
+# Fichiers de config serveur — ne jamais écraser
+laundrymap-back/config/bundles.php
+deploy.sh
 
 ##############################
 # NODE / REACT
@@ -59,8 +54,6 @@ yarn-error.log
 .pnp/
 .pnp.js
 .pnpm-debug.log
-
-# Build React
 /build/
 /dist/
 
@@ -79,4 +72,3 @@ Thumbs.db
 ##############################
 /coverage/
 *.cache
-*.lock

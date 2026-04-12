@@ -3,14 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 
-import { useNavigate } from 'react-router';
+// import { useNavigate } from 'react-router';
 import { useAuth } from "@/components/context/AuthContext";
-
+import axios from 'axios';
 function AdminLogin() {
   
   const { login } = useAuth();
-  const navigate = useNavigate();
-
+  
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/login_check`;
   
   const [email, setEmail] = useState("");
@@ -37,30 +36,35 @@ function AdminLogin() {
     return !newErrors.email && !newErrors.password;
   };
 
-  // Soumission
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  // const navigate = useNavigate();
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (validateForm()) {
 
-      fetch(url, {
-        method: "POST",
+      const response = await axios.post(url, {
+        email,
+        password
+      }, {
         headers: {
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        }
       })
-        .then((response) => {
-          if (!response.ok) throw new Error("Identifiants invalides");
-          return response.json();
-        })
-        .then((data) => {
-          login(data.token); 
-          navigate("/admin/dashboard"); 
-        })
-        .catch(() => {
-          setErrors({ email: "", password: "Email ou mot de passe incorrect" });
+      const data = response.data 
+
+      if (data.errors) {
+        Object.keys(data.errors).forEach((champ) => {
+          setErrors((prev) => ({
+            ...prev,
+            [champ]: data.errors[champ],
+          }));
         });
+        return;
+      }
+
+      login(data.token);
+      // navigate("/admin/dashboard", { state: { popup: { title: "Bienvenue", content: "Connexion réussie", variant: "success" } } });
     }
   };
 

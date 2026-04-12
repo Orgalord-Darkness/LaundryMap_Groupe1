@@ -429,4 +429,40 @@ class LaverieController extends AbstractController
         ], RESPONSE::HTTP_OK); 
 
     }
+
+    #[Route('/{id}', name: 'laverie_show', methods: ['GET'])]
+    #[OA\Tag(name: 'Laverie')]
+    #[OA\Security(name: 'Bearer')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de la laverie',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Détails de la laverie',
+        content: new OA\JsonContent(type: 'object')
+    )]
+    #[OA\Response(response: 401, description: 'Non authentifié')]
+    #[OA\Response(response: 404, description: 'Laverie non trouvée')]
+    public function show(
+        int $id,
+        LaverieRepository $laverieRepository,
+    ): JsonResponse {
+        $utilisateur = $this->getUser();
+
+        if (!$utilisateur) {
+            return $this->json(['message' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $laverie = $laverieRepository->findOneWithDetails($id);
+
+        if (!$laverie) {
+            return $this->json(['message' => 'Laverie non trouvée.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($laverie, Response::HTTP_OK);
+    }
 }

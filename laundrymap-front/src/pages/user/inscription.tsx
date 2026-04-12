@@ -3,6 +3,7 @@ import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import GoogleLoginButton from "@/components/utils/google"
+import axios from "axios"
 
 type Inputs = {
     prenom: string
@@ -32,45 +33,37 @@ export default function Inscription() {
         formState: { errors },
         setError,
     } = useForm<Inputs>()
-
+    
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
-            const reponse = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(donnees),
-            })
+            const reponse = await axios.post(url, {
+                email: donnees.email,
+                mot_de_passe: donnees.mot_de_passe,
+                prenom: donnees.prenom,
+                nom: donnees.nom,
+                confirmation_mot_de_passe: donnees.confirmation_mot_de_passe
+            });
 
-            const text = await reponse.text();
-            let data
-            try {
-                data = JSON.parse(text)
-            } catch (e) {
-                console.error("Réponse non-JSON:", text)
-                throw new Error("Réponse invalide du serveur")
-            }
-
-            if (!reponse.ok) {
-                if (data && typeof data === 'object') {
-                    Object.keys(data).forEach((champ) => {
-                        setError(champ as keyof Inputs, {
-                            type: "server",
-                            message: data[champ]
-                        })
-                    })
-                }
-                return
-            }
-
-            setSuccessMessage("Inscription réussie ! Vous pouvez maintenant vous connecter.")
-            setTimeout(() => {
-                window.location.href = '/user/login'
-            }, 5000)
-
+            setSuccessMessage("Inscription réussie ! Vérifiez votre email.");
+            
         } catch (erreur) {
-            console.error("Erreur lors de l'inscription :", erreur)
+            if (axios.isAxiosError(erreur) && erreur.response) {
+                const erreursServeur = erreur.response.data;
+
+                Object.keys(erreursServeur).forEach((champ) => {
+                    setError(champ as keyof Inputs, {
+                        type: "server",
+                        message: erreursServeur[champ],
+                    });
+                });
+
+                return;
+            }
+
+            console.error("Erreur inconnue :", erreur);
         }
-    }
+    };
+
 
     return (
         <div className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-white rounded-2xl shadow-lg">
@@ -180,7 +173,7 @@ export default function Inscription() {
                     </label>
                     <p id="mot_de_passe-hint" className="text-xs text-gray-500 mt-1">
                     Longueur minimale : 8 caractères.{" "}
-                    Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial.
+                    Utiliser minimum 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial.
                     </p>
                     <Input
                     id="mot_de_passe"

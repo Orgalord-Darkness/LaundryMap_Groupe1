@@ -7,12 +7,15 @@ security:
             entity:
                 class: App\Entity\Utilisateur
                 property: email 
-
-        # Nouveau provider dédié à l'Administrateur
         admin_provider:
             entity:
                 class: App\Entity\Administrateur
                 property: email
+
+        # Fusion des deux providers pour les routes communes
+        all_users_provider:
+            chain:
+                providers: [admin_provider, app_user_provider]
 
     firewalls:
         dev:
@@ -20,8 +23,6 @@ security:
             security: false
 
         public_api:
-            # pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/doc
-            # pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/doc
             pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/doc
             stateless: true
             security: false
@@ -47,15 +48,14 @@ security:
         api:
             pattern: ^/api
             stateless: true
-            provider: app_user_provider
+            # On utilise le chain provider ici pour accepter Admin ET Pro
+            provider: all_users_provider 
             jwt: ~ 
 
     access_control:
         - { path: ^/api/v1/utilisateur/(login_check|inscription), roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/professionnel/(login_check|inscription), roles: PUBLIC_ACCESS }
-        - { path: ^/api/v1/professionnel/inscription, roles: PUBLIC_ACCESS } 
         - { path: ^/api/v1/admin/login_check, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
-        # - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
-        # - { path: ^/api/v1/admin, roles: ROLE_ADMIN }    // A discuter de façon/méthode pour sécuriser les routes
-        # - { path: ^/api/v1/professionnel, roles: ROLE_PRO }
+        # Optionnel : décommenter pour sécuriser globalement
+        # - { path: ^/api/v1/admin, roles: ROLE_ADMIN }
