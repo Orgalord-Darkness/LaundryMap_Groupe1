@@ -77,6 +77,7 @@ function AddLaundry() {
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    console.log(logo, images); 
     event.preventDefault();
     setApiError("")
     setSuccess("")

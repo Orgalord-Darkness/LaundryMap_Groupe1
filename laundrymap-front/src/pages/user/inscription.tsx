@@ -44,6 +44,8 @@ export default function Inscription() {
                 confirmation_mot_de_passe: donnees.confirmation_mot_de_passe
             });
 
+            console.log(reponse.status); 
+
             setSuccessMessage("Inscription réussie ! Vérifiez votre email.");
             
         } catch (erreur) {

@@ -1,5 +1,7 @@
+
 import React from 'react';
 import type { Dispatch, SetStateAction } from 'react';
+import { useState, useEffect } from 'react';
 
 interface CheckboxOption {
   value: string;
@@ -38,7 +40,8 @@ export const CheckboxGroup = ({ title, options, value = [], onChange }: Checkbox
               type="checkbox"
               checked={value.includes(String(option.value))}
               onChange={() => handleCheckboxChange(option.value)}
-              className="h-4 w-4 text-blue-600 rounded-full border-gray-300 focus:ring-blue-500"
+              disabled={disabled}
+              className="h-4 w-4 text-blue-600 rounded-full border-gray-300"
             />
             <span className="ml-2 text-gray-700">{option.label}</span>
           </label>
@@ -47,16 +50,3 @@ export const CheckboxGroup = ({ title, options, value = [], onChange }: Checkbox
     </div>
   );
 };
-
-// Exemple d'utilisation :
-/*
-<CheckboxGroup
-  title="Moyens de paiement acceptés"
-  options={[
-    { value: 'carte-bleu', label: 'Carte Bleu' },
-    { value: 'carte-fidelite', label: 'Carte Fidélité' },
-    { value: 'pieces', label: 'Pièces' },
-    { value: 'billets', label: 'Billets' },
-  ]}
-/>
-*/

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { Textarea } from '@/components/ui/textarea'
 import { FieldLabel } from "@/components/ui/field"
@@ -7,14 +7,21 @@ import { Field} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { CheckboxGroup } from '@/components/ui/checkboxGroup'
 import axios from 'axios'
+import type {Service} from '@/components/utils/type.ts'
+import type {Paiement} from '@/components/utils/type.ts'
+
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
+
 
 export const api = axios.create({
     baseURL: `${API_BASE}/api/v1`,
     withCredentials: true,
     headers: { "Content-Type": "application/json" },
 })
+
+    console.log("API_BASE =", API_BASE)
+    console.log("api =", api)
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token")
@@ -52,6 +59,13 @@ export default function LaverieValidation() {
     useEffect(() => {
         if (id) fetchLaverieData()
     }, [id])
+
+    useEffect(() => {
+        console.log("ID =", id)
+        console.log("API_BASE =", API_BASE)
+console.log("api =", api)
+
+    }, [])
 
     const handleAction = async (action: "VALIDE" | "REFUSE") => {
         if (action === "REFUSE" && !motif.trim()) {
@@ -182,19 +196,26 @@ export default function LaverieValidation() {
         <div className="w-full mt-4">
             <CheckboxGroup
                 title="Équipements disponibles"
-                options={laverie.services.map((s: { id: any; nom: any }) => ({ value: s.id, label: s.nom }))}
-                // selected={laverie.services.map(s => String(s.id))}
-                // disabled
+                options={laverie.services.map((s:Service) => ({
+                    value: String(s.id),
+                    label: s.nom
+                }))}
+                value={laverie.services.map((s:Service) => String(s.id))}
+                disabled
             />
+
         </div>
 
         {/* Paiements */}
         <div className="w-full mt-4">
             <CheckboxGroup
                 title="Moyens de paiement acceptés"
-                options={laverie.methodePaiements.map((p: { id: any; nom: any }) => ({ value: p.id, label: p.nom }))}
-                // selected={laverie.methodePaiements.map(p => String(p.id))}
-                // disabled
+                options={laverie.methodePaiements.map((p:Paiement) => ({
+                    value: String(p.id),
+                    label: p.nom
+                }))}
+                value={laverie.methodePaiements.map((p:Paiement) => String(p.id))}
+                disabled
             />
         </div>
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
