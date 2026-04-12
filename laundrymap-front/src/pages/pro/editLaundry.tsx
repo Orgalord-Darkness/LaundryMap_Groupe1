@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { CheckboxGroup } from '@/components/ui/checkboxGroupEdit'
 import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE, type DayKey } from '@/components/ui/timePicker'
 import axios from 'axios'
-import CarouselWithThumbs from '@/components/ui/carouselImageEdit'
+import CarouselFromUrls from '@/components/ui/carouselImageEdit'
+import CarouselFromFiles from '@/components/ui/carouselImage'
 import CardMachine from '@/components/ui/cardMachine'
 import MachineModal, { type EquipementFormData } from '@/components/ui/MachineModal'
 
@@ -35,6 +36,7 @@ api.interceptors.request.use((config) => {
 
 export default function FormEditLaverie() {
     const { id } = useParams<{ id: string }>()
+    const navigate = useNavigate()
 
     const [loading, setLoading]               = useState(true)
     const [saving, setSaving]                 = useState(false)
@@ -58,6 +60,9 @@ export default function FormEditLaverie() {
     const [selectedPayments, setSelectedPayments]   = useState<string[]>([])
     const [week, setWeek]                     = useState<WeekSchedule>(DEFAULT_WEEK_SCHEDULE)
     const [logo, setLogo]                     = useState<File | null>(null)
+    const [logoPreview, setLogoPreview]       = useState<string | null>(null)
+    const logoInputRef                        = useRef<HTMLInputElement>(null)
+    const logoUrlRef                          = useRef<string | null>(null)
     const [images, setImages]                 = useState<FileList | null>(null)
     const [existingImages, setExistingImages] = useState<string[]>([])
     const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null)
@@ -330,7 +335,7 @@ export default function FormEditLaverie() {
             await api.put(`/edit/${id}`, payload)
 
             setSuccessMessage('Laverie mise à jour avec succès !')
-            setTimeout(() => setSuccessMessage(''), 5000)
+            setTimeout(() => navigate('/pro/dashboard'), 2000)
         } catch (err: any) {
             console.error('Erreur submit:', err)
             setError(err?.response?.data?.message || 'Une erreur est survenue lors de la mise à jour.')
@@ -338,6 +343,11 @@ export default function FormEditLaverie() {
             setSaving(false)
         }
     }
+
+    // Cleanup uniquement au démontage — évite la révocation prématurée en React Strict Mode
+    useEffect(() => {
+        return () => { if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current) }
+    }, [])
 
     // ─── Rendu ────────────────────────────────────────────────────────────────
 
@@ -353,22 +363,79 @@ export default function FormEditLaverie() {
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col items-center p-4 max-w-md mx-auto">
-            <h1 className="font-semibold mt-10 text-2xl text-gray-900 text-center">
+
+            {/* Bouton retour */}
+            <div className="w-full mt-6">
+                <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+                >
+                    ← Retour
+                </button>
+            </div>
+
+            <h1 className="font-semibold mt-4 text-2xl text-gray-900 text-center">
                 Modifier la laverie
             </h1>
             <p className="text-gray-500 text-center mb-6">
                 Mettez à jour les informations de votre établissement
             </p>
 
-            {/* Logo */}
+            {/* Logo — prévisualisation comme dans le formulaire d'ajout */}
+            {logoPreview && (
+                <div className="mt-3 flex flex-col items-center gap-2">
+                    <img
+                        src={logoPreview}
+                        alt="Aperçu du nouveau logo"
+                        className="w-24 h-24 object-contain rounded-xl border border-gray-200 shadow-sm"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current)
+                            logoUrlRef.current = null
+                            setLogoPreview(null)
+                            setLogo(null)
+                            if (logoInputRef.current) logoInputRef.current.value = ""
+                        }}
+                        className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                    >
+                        Annuler la sélection
+                    </button>
+                </div>
+            )}
+            {!logoPreview && existingLogoUrl && (
+                <div className="mt-3 flex flex-col items-center gap-2">
+                    <img src={existingLogoUrl} alt="Logo actuel" className="w-24 h-24 object-contain rounded-xl border border-gray-200 shadow-sm" />
+                    <button
+                        type="button"
+                        onClick={() => setExistingLogoUrl(null)}
+                        className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                    >
+                        Supprimer le logo actuel
+                    </button>
+                </div>
+            )}
+
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="logo">
                     Logo <span className="text-orange-500">*</span>
                 </FieldLabel>
-                {existingLogoUrl && !logo && (
-                    <img src={existingLogoUrl} alt="Logo actuel" className="h-16 w-16 object-contain rounded-lg border mb-2" />
-                )}
-                <Input id="logo" type="file" accept="image/*" onChange={e => setLogo(e.target.files?.[0] ?? null)} />
+                <Input
+                    id="logo"
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={e => {
+                        const file = e.target.files?.[0] ?? null
+                        setLogo(file)
+                        if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current)
+                        const newUrl = file ? URL.createObjectURL(file) : null
+                        logoUrlRef.current = newUrl
+                        setLogoPreview(newUrl)
+                    }}
+                />
                 <FieldDescription>
                     {existingLogoUrl ? "Sélectionnez un nouveau logo pour remplacer l'actuel." : "Sélectionnez un logo."}
                 </FieldDescription>
@@ -380,7 +447,10 @@ export default function FormEditLaverie() {
                 <p className="text-gray-500 text-center mb-3">
                     Vous pouvez ajouter plusieurs images de votre laverie
                 </p>
-                <CarouselWithThumbs images={existingImages} />
+                {images
+                    ? <CarouselFromFiles files={images} />
+                    : <CarouselFromUrls images={existingImages} />
+                }
             </div>
 
             {/* Upload images */}

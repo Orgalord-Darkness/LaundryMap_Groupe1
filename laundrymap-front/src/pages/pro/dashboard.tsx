@@ -106,7 +106,8 @@ function ProDashboard() {
                         <LaverieActions
                           id={laundry.id}
                           onDeleted={() => {
-                            console.log("supprimé")
+                            setLaundries(prev => prev.filter(l => l.id !== laundry.id))
+                            setTotal(prev => prev - 1)
                           }}
                           onEdit={() => {
                             console.log("edit")

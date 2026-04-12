@@ -72,8 +72,9 @@ class AjouterLaverieController extends AbstractController
         $country    = trim((string) $request->request->get('country',    ''));
         $latRaw     = $request->request->get('latitude',  null);
         $lngRaw     = $request->request->get('longitude', null);
-        $description = trim((string) $request->request->get('description', ''));
-        $wilineCode  = trim((string) $request->request->get('wilineCode',  ''));
+        $description  = trim((string) $request->request->get('description',   ''));
+        $wilineCode   = trim((string) $request->request->get('wilineCode',    ''));
+        $contactEmail = trim((string) $request->request->get('contact_email', ''));
 
 
         // ──Validation des champs obligatoires ────────────────
@@ -122,6 +123,7 @@ class AjouterLaverieController extends AbstractController
         $laverie = new Laverie();
         $laverie->setNomEtablissement($name);
         $laverie->setDescription($description !== '' ? $description : null);
+        $laverie->setContactEmail($contactEmail !== '' ? $contactEmail : null);
         $laverie->setStatut(LaverieStatutEnum::EN_ATTENTE);
         $laverie->setAdresse($adresse);
         $laverie->setProfessionnel($professionnel);
@@ -129,7 +131,7 @@ class AjouterLaverieController extends AbstractController
         $laverie->setDateModification(new \DateTime());
 
         if ($wilineCode !== '') {
-            $laverie->setWiLineReference((int) $wilineCode);
+            $laverie->setWiLineReference($wilineCode);
         }
 
         $this->em->persist($laverie);

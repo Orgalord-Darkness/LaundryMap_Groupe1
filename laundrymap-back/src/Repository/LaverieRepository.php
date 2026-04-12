@@ -135,7 +135,7 @@ class LaverieRepository extends ServiceEntityRepository
             'SELECT id, jour, heure_debut, heure_fin
             FROM laverie_fermeture
             WHERE laverie_id = :id
-            ORDER BY FIELD(jour, "lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche")',
+            ORDER BY FIELD(jour, "lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"), heure_debut',
             ['id' => $id]
         );
 
