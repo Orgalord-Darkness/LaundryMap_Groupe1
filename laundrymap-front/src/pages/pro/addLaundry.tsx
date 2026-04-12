@@ -9,7 +9,7 @@ import { CheckboxGroup } from '@/components/ui/checkboxGroup'
 import CarouselWithThumbs from '@/components/ui/carouselImage'
 import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE } from '@/components/ui/timePicker'
 import type { Machine } from '@/components/utils/laundry'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 
 function AddLaundry() {
