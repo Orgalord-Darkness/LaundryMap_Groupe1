@@ -1,5 +1,6 @@
 import { useState } from "react";
-
+import type { Machine } from '@/components/utils/laundry'
+import { createPortal } from "react-dom";
 
 const EQUIPEMENT_ENUM = {
   MACHINE_A_LAVER: "machine_a_laver",
@@ -12,9 +13,9 @@ type EquipementEnum = typeof EQUIPEMENT_ENUM[keyof typeof EQUIPEMENT_ENUM];
 export interface EquipementFormData {
   nom:      string;
   type:     EquipementEnum;
-  capacite: number | null;
-  tarif:    number | null;
-  duree:    number | null;
+  capacite: number;
+  tarif:    number;
+  duree:    number;
 }
 
 /** Labels affichés dans le select */
@@ -25,9 +26,8 @@ export const EQUIPEMENT_LABELS: Record<EquipementEnum, string> = {
 };
 
 
-
-interface AddMachineModalProps {
-  onAdd: (data: EquipementFormData) => void;
+interface EquipementFormDataProps {
+  onAdd: (machine: Machine) => void
 }
 
 
@@ -36,9 +36,9 @@ interface AddMachineModalProps {
 const INITIAL_FORM: EquipementFormData = {
   nom:      "",
   type:     EQUIPEMENT_ENUM.MACHINE_A_LAVER,
-  capacite: null,
-  tarif:    null,
-  duree:    null,
+  capacite: 0,
+  tarif:    0,
+  duree:    0,
 };
 
 const TYPE_CONFIG: Record<EquipementEnum, { showCapacite: boolean; showDuree: boolean }> = {
@@ -49,7 +49,7 @@ const TYPE_CONFIG: Record<EquipementEnum, { showCapacite: boolean; showDuree: bo
 
 type FormErrors = Partial<Record<keyof EquipementFormData, string>>;
 
-export default function AddMachineModal({ onAdd }: AddMachineModalProps) {
+export default function AddMachineModal({ onAdd }: EquipementFormDataProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [form,   setForm]   = useState<EquipementFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -59,8 +59,8 @@ export default function AddMachineModal({ onAdd }: AddMachineModalProps) {
   const open  = () => { setForm(INITIAL_FORM); setErrors({}); setIsOpen(true); };
   const close = () => setIsOpen(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = event.target;
     setForm((prev) => ({
       ...prev,
       [name]: type === "number" ? (value === "" ? null : Number(value)) : value,
@@ -81,10 +81,18 @@ export default function AddMachineModal({ onAdd }: AddMachineModalProps) {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (!validate()) return;
-    onAdd(form);
+    onAdd({
+      name: form.nom,
+      capacity: form.capacite,
+      duration: form.duree,
+      price: form.tarif,
+      available: true,
+    });
     close();
   };
 
@@ -102,16 +110,17 @@ export default function AddMachineModal({ onAdd }: AddMachineModalProps) {
 
   return (
     <>
+
+ 
       <button
+        type="button"
         onClick={open}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-150 shadow-sm"
-        aria-label="Ajouter un équipement"
-      >
-        Ajouter une machine
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-150 shadow-sm cursor-pointer"
+        aria-label="Ajouter un équipement" > Ajouter une machine
         <span className="flex items-center justify-center w-5 h-5 rounded border border-gray-400 text-gray-500 text-sm leading-none select-none" aria-hidden="true">+</span>
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="modal-title">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={close} aria-hidden="true" />
 
@@ -130,7 +139,7 @@ export default function AddMachineModal({ onAdd }: AddMachineModalProps) {
                 </div>
                 <h2 id="modal-title" className="text-base font-semibold text-gray-900">Ajouter un équipement</h2>
               </div>
-              <button onClick={close} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" aria-label="Fermer">✕</button>
+              <button type="button" onClick={close} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" aria-label="Fermer">✕</button>
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
@@ -195,7 +204,8 @@ export default function AddMachineModal({ onAdd }: AddMachineModalProps) {
 
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

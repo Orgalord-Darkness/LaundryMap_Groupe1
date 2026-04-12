@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     cover_image_directory: '%kernel.project_dir%/public/assets/cover'
+    upload_dir: '%kernel.project_dir%/public/uploads'  # Dossier de destination pour les fichiers/images téléchargés pour addLaundry Q
 
 services:
     # default configuration for services in *this* file
@@ -31,3 +32,12 @@ services:
         tags:
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
 
+    App\EventListener\JWTAuthenticatedListener:
+        tags:
+            - name: kernel.event_listener
+              event: lexik_jwt_authentication.on_jwt_authenticated
+              method: onJWTAuthenticated
+
+    App\Service\FileUploader:
+        arguments:
+            $uploadDir: '%upload_dir%'

@@ -2,13 +2,10 @@
 
 namespace App\Enum; 
 
+
 enum EquipementEnum: string {
 
-    case WIFI = 'wifi';
-
-    case PARKING = 'parking'; 
-
-    case BANC = 'banc'; 
-
-    case DISTRIBUTEUR_LESSIVE = 'ditributeur de lessive'; 
+    case MACHINE_A_LAVER = 'machine à laver';
+    case SECHE_LINGE = 'sèche-linge'; 
+    case AUTRE = 'autre'; 
 }

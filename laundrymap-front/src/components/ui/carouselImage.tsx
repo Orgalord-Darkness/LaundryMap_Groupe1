@@ -1,5 +1,3 @@
-// "use client";
-
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -12,20 +10,37 @@ import {
 } from "@/components/ui/carousel";
 
 
-// Images de test, à remplacer par les images uploadées par le pro lors de l'ajout de la laverie
-const images = [
-  "https://www.fffuel.co/images/dddepth-preview/dddepth-248.jpg",
-  "https://www.fffuel.co/images/dddepth-preview/dddepth-051.jpg",
-  "https://www.fffuel.co/images/dddepth-preview/dddepth-029.jpg",
-  "https://www.fffuel.co/images/dddepth-preview/dddepth-038.jpg",
-  "https://www.fffuel.co/images/dddepth-preview/dddepth-012.jpg",
-];
 
 
+interface CarouselWithThumbsProps {
+  files?: FileList | null
+}
 
-export default function CarouselWithThumbs() {
+
+export default function CarouselWithThumbs({ files }: CarouselWithThumbsProps) {
+
   const [api, setApi] = React.useState<CarouselApi>();
-  const [current, setCurrent] = React.useState(0);
+  const [current, setCurrent] = React.useState(1);
+
+  // utilise les fichiers uploadés sinon utilise une image de test
+  const imageUrls = React.useMemo(() => {
+    if (files && files.length > 0) {
+      return Array.from(files).map((file) => URL.createObjectURL(file))
+    }
+    return [ "https://www.fffuel.co/images/dddepth-preview/dddepth-248.jpg" ];
+  }, [files])
+
+  // Libérer les object URLs quand le composant se démonte
+  React.useEffect(() => {
+    return () => {
+      if (files) {
+        imageUrls.forEach((url) => URL.revokeObjectURL(url))
+      }
+    }
+  }, [imageUrls, files])
+
+
+
 
   React.useEffect(() => {
     if (!api) {
@@ -50,12 +65,12 @@ export default function CarouselWithThumbs() {
     <div className="mx-auto max-w-xs">
       <Carousel className="w-full max-w-xs" setApi={setApi}>
         <CarouselContent>
-          {images.map((image) => (
-            <CarouselItem key={image}>
+          {imageUrls.map((url) => (
+            <CarouselItem key={url}>
               <img
-                alt="dddepth-248"
+                alt="Image Principale de la Laverie"
                 className="size-full rounded-xl object-cover"
-                src={image}
+                src={url}
               />
             </CarouselItem>
           ))}
@@ -65,19 +80,19 @@ export default function CarouselWithThumbs() {
       <Carousel className="mt-4 w-full max-w-xs">
         <div className="mask-x-from-90%">
           <CarouselContent className="my-1 flex">
-            {images.map((image, index) => (
+            {imageUrls.map((url, index) => (
               <CarouselItem
                 className={cn(
                   "basis-1/4 cursor-pointer transition-opacity",
                   current === index + 1 ? "opacity-100" : "opacity-50"
                 )}
-                key={image}
+                key={url}
                 onClick={() => handleThumbClick(index)}
               >
                 <img
-                  alt="dddepth-248"
+                  alt="Images secondaires de la Laverie"
                   className="size-full rounded-xl object-cover"
-                  src={image}
+                  src={url}
                 />
               </CarouselItem>
             ))}
