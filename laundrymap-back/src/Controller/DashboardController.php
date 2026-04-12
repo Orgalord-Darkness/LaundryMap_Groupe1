@@ -54,7 +54,7 @@ class DashboardController extends AbstractController
         $data = array_map(function (Laverie $laverie) use ($baseUrl) {
             $logo    = $laverie->getLogo();
             $logoUrl = $logo
-                ? $baseUrl . '/' . $logo->getEmplacement()
+                ? $baseUrl . str_replace('/app/public', '', $logo->getEmplacement())
                 : null;
 
             return [

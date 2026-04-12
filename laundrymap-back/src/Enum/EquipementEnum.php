@@ -2,8 +2,8 @@
 
 namespace App\Enum;
 
-enum EquipementEnum: string
-{
+enum EquipementEnum: string {
+    case AUTRE = 'autre'; 
     // ─── Machines ────────────────────────────────
     case MACHINE_A_LAVER      = 'machine_a_laver';
     case SECHE_LINGE          = 'seche_linge';
