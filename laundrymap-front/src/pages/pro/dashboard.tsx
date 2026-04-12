@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
-import {
+import { 
   Card,
   CardAction,
   CardDescription,
@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LaverieActions } from "@/components/ui/optionsButton"
 
 // Valeurs de LaverieStatutEnum::value
 interface Laundry {
@@ -99,6 +100,22 @@ function ProDashboard() {
                       alt={laundry.nom}
                       className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
                     />
+                      {/* 🔵 bouton 3 points */}
+                    <div className="absolute top-2 right-2 z-40">
+                      <div className="bg-white/90 backdrop-blur rounded-lg shadow-sm">
+                        <LaverieActions
+                          id={laundry.id}
+                          onDeleted={() => {
+                            setLaundries(prev => prev.filter(l => l.id !== laundry.id))
+                            setTotal(prev => prev - 1)
+                          }}
+                          onEdit={() => {
+                            console.log("edit")
+                          }}
+                          name={laundry.nom}
+                        />
+                      </div>
+                    </div>
 
                     <CardHeader>
                       <CardAction>

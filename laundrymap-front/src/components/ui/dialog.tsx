@@ -4,6 +4,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
+import { cva } from "class-variance-authority"
 
 function Dialog({
   ...props
@@ -92,28 +93,43 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
     />
   )
 }
-
+const dialogFooterVariants = cva(
+  "-mx-4 -mb-4 rounded-b-xl border-t bg-muted/50 p-4 flex gap-2",
+  {
+    variants: {
+      variant: {
+        default: "sm:flex-row sm:justify-end",
+        delete: "flex-col",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
 function DialogFooter({
   className,
+  variant = "default",
   showCloseButton = false,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
+  variant?: "default" | "delete"
   showCloseButton?: boolean
 }) {
   return (
     <div
       data-slot="dialog-footer"
-      className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
-        className
-      )}
+      className={cn(dialogFooterVariants({ variant }), className)}
       {...props}
     >
       {children}
+
       {showCloseButton && (
         <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline" className="w-full sm:w-auto">
+            Close
+          </Button>
         </DialogPrimitive.Close>
       )}
     </div>

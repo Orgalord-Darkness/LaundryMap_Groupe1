@@ -26,6 +26,7 @@ use App\Service\UtilisateurService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\LaverieRepository;
 use App\Repository\LaverieHistoriqueInteractionRepository;
+use App\Service\WiLineService;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -248,6 +249,9 @@ class LaverieController extends AbstractController
             }
             $laverie->setContactEmail($donnees['contact_email']);
         }
+        if (array_key_exists('wi_line_reference', $donnees)) {
+            $laverie->setWiLineReference($donnees['wi_line_reference'] ?: null);
+        }
 
         // ─────────────────────────────────────────────
         // 2. Adresse
@@ -362,10 +366,11 @@ class LaverieController extends AbstractController
                 $equipement = new LaverieEquipement();
                 $equipement->setLaverie($laverie);
                 $equipement->setNom($eqData['nom']);
-                $equipement->setCapacite((int)($eqData['capacite'] ?? 0));
-                $equipement->setTarif((float)($eqData['tarif'] ?? 0));
-                
-                $typeStr = strtoupper($eqData['type'] ?? 'MACHINE_A_LAVER');
+                $equipement->setCapacite(isset($eqData['capacite']) ? (int)$eqData['capacite'] : null);
+                $equipement->setTarif(isset($eqData['tarif']) ? (float)$eqData['tarif'] : null);
+                $equipement->setDuree(isset($eqData['duree']) ? (int)$eqData['duree'] : null);
+
+                $typeStr = $eqData['type'] ?? 'machine_a_laver';
                 $typeEnum = EquipementEnum::tryFrom($typeStr) ?? EquipementEnum::MACHINE_A_LAVER;
                 $equipement->setType($typeEnum);
                 
@@ -611,6 +616,40 @@ class LaverieController extends AbstractController
 
     }
 
+    #[Route('/wiline-data', name: 'laverie_wiline_data', methods: ['GET'])]
+    #[OA\Tag(name: 'Laverie')]
+    #[OA\Security(name: 'Bearer')]
+    #[OA\Parameter(
+        name: 'serial',
+        in: 'query',
+        description: 'Numéro de série de la centrale Wi-Line',
+        required: true,
+        schema: new OA\Schema(type: 'string')
+    )]
+    #[OA\Response(response: 200, description: 'Données de la centrale Wi-Line')]
+    #[OA\Response(response: 400, description: 'Paramètre serial manquant')]
+    #[OA\Response(response: 401, description: 'Non authentifié')]
+    #[OA\Response(response: 502, description: 'Erreur de communication avec l\'API Wi-Line')]
+    public function wilineData(Request $request, WiLineService $wiLineService): JsonResponse
+    {
+        $utilisateur = $this->getUser();
+        if (!$utilisateur) {
+            return $this->json(['message' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $serial = trim($request->query->get('serial', ''));
+        if (!$serial) {
+            return $this->json(['message' => 'Le paramètre serial est requis.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $data = $wiLineService->getCentraleData($serial);
+        if (isset($data['error'])) {
+            return $this->json(['message' => $data['error']], Response::HTTP_BAD_GATEWAY);
+        }
+
+        return $this->json($data, Response::HTTP_OK);
+    }
+
     #[Route('/{id}', name: 'laverie_show', methods: ['GET'])]
     #[OA\Tag(name: 'Laverie')]
     #[OA\Security(name: 'Bearer')]
@@ -663,6 +702,32 @@ class LaverieController extends AbstractController
             $paiementRepository->findAll(),
             Response::HTTP_OK
         );
+    }
+
+    #[Route('/suppression/{id}', name: 'delete_laverie', methods:['DELETE'])]
+    #[OA\Tag(name: 'Laverie')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de la laverie',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    public function deleteLaundry(
+        LaverieRepository $laverieRepository,
+        int $id,
+    ) 
+    {
+        $laverie = $laverieRepository->find($id); 
+
+        if(!$laverie) {
+            return $this->json(['message' => 'laverie introuvable'], Response::HTTP_NOT_FOUND); 
+        }
+
+        $laverieRepository->deleteLaundry($laverie);
+        return $this->json(['message' => 'Laverie supprimée']);
+         
+
     }
 
 

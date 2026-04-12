@@ -18,7 +18,7 @@ class LaverieEquipement
     // #[ORM\Column]
     // private ?int $laverie_id = null;
     #[ORM\ManyToOne(targetEntity: Laverie::class)]
-    #[ORM\JoinColumn(name: 'laverie_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'laverie_id', referencedColumnName: 'id', nullable: false, onDelete:'CASCADE')]
     private ?Laverie $laverie = null;
 
     #[ORM\Column(nullable: true)]

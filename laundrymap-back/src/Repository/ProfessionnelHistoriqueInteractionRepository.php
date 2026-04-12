@@ -3,6 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\ProfessionnelHistoriqueInteraction;
+use App\Entity\Professionnel;
+use App\Entity\Administrateur;
+use App\Enum\StatutEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +43,25 @@ class ProfessionnelHistoriqueInteractionRepository extends ServiceEntityReposito
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    public function professionnelValidation(
+        Professionnel $professionnel,
+        Administrateur $administrateur,
+        StatutEnum $action,
+        string $motif
+    ): ProfessionnelHistoriqueInteraction {
+        $entityManager = $this->getEntityManager();
+
+        $interaction = new ProfessionnelHistoriqueInteraction();
+        $interaction->setProfessionnel($professionnel);
+        $interaction->setAdministrateur($administrateur);
+        $interaction->setAction($action);
+        $interaction->setMotifAction($motif);
+        $interaction->setDate(new \DateTime('now'));
+
+        $entityManager->persist($interaction);
+        $entityManager->flush();
+
+        return $interaction;
+    }
 }

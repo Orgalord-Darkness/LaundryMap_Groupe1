@@ -29,7 +29,7 @@ class DashboardController extends AbstractController
 
     #[Route('/dashboard', name: 'dashboard', methods: ['GET'])]
     #[OA\Tag(name: 'Professionnel')]
-    #[OA\SecurityScheme(name: 'bearer', type: 'http', scheme: 'bearer')]
+    #[OA\Security(name: 'bearer')]
     public function dashboard(Request $request): JsonResponse
     {
         
@@ -54,7 +54,7 @@ class DashboardController extends AbstractController
         $data = array_map(function (Laverie $laverie) use ($baseUrl) {
             $logo    = $laverie->getLogo();
             $logoUrl = $logo
-                ? $baseUrl . '/' . $logo->getEmplacement()
+                ? $baseUrl . str_replace('/app/public', '', $logo->getEmplacement())
                 : null;
 
             return [

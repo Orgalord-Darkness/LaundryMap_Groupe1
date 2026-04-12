@@ -32,7 +32,6 @@
 // }
 
 
-
 // router/Router.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../components/context/AuthContext";
@@ -51,9 +50,10 @@ import ProDashboard from "./pro/dashboard";
 import AdminLogin from "./admin/login";
 import AdminDashboard from "./admin/dashboard";
 import AdminValidationLaverieForm from "./admin/laveries/formLaverieValidation.tsx";
+import AdminValidationAccountForm from "./admin/professional/formProfessionnelValidation.tsx";
 import FormEditLaverie from "./pro/editLaundry"; 
 import AdminValidationLaverie from "./admin/laveries/list.tsx";
-import ProfessionnalAccountValidationList from "./admin/professional/validation";
+import ProfessionnalAccountValidationList from "./admin/professional/list.tsx";
 import NewPassword from '@/components/layout/NewPassword'; 
 import AddLaundry from "./pro/addLaundry";
 
@@ -112,6 +112,12 @@ export default function Router() {
           <AdminValidationLaverieForm />
         </ProtectedRoute>
       } />
+
+      <Route path="/admin/professionnel/:id" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <AdminValidationAccountForm />
+        </ProtectedRoute>
+      } />
       
       <Route path="/pro/laverie/:id" element={
         <ProtectedRoute allowedRoles={["professionnel"]}>
@@ -163,7 +169,7 @@ export default function Router() {
           <AdminValidationLaverieForm />
         </ProtectedRoute>
       } /> */}
-      <Route path="/admin/professionnalAdministration/professionnalAccountValidationList" element={
+      <Route path="/admin/professional/list" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <ProfessionnalAccountValidationList />
         </ProtectedRoute>
