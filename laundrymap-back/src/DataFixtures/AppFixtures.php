@@ -845,6 +845,280 @@ class AppFixtures extends Fixture
 
 
 
+        // ───────────────────────────────────────────────────────────────────────
+        // LAVERIES DE TEST POUR LA RECHERCHE GÉOLOCALISÉE (US 18)
+        // Groupe A : autour de Survilliers / Chantilly / Senlis → doivent apparaître
+        // Groupe B : villes éloignées en France → ne doivent PAS apparaître
+        // ───────────────────────────────────────────────────────────────────────
+
+        $adressesGeoData = [
+            // Groupe A — proches de Survilliers (Île-de-France)
+            [
+                'adresse'                => '5',
+                'rue'                    => 'Rue de la Mairie',
+                'code_postal'            => 95470,
+                'ville'                  => 'Survilliers',
+                'pays'                   => 'France',
+                'latitude'               => 49.0415,
+                'longitude'              => 2.5283,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            [
+                'adresse'                => '12',
+                'rue'                    => 'Allée de la Gare',
+                'code_postal'            => 95470,
+                'ville'                  => 'Survilliers',
+                'pays'                   => 'France',
+                'latitude'               => 49.0530,
+                'longitude'              => 2.5150,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            [
+                'adresse'                => '3',
+                'rue'                    => 'Avenue du Connétable',
+                'code_postal'            => 60500,
+                'ville'                  => 'Chantilly',
+                'pays'                   => 'France',
+                'latitude'               => 49.1940,
+                'longitude'              => 2.4700,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            [
+                'adresse'                => '8',
+                'rue'                    => 'Rue de la République',
+                'code_postal'            => 60300,
+                'ville'                  => 'Senlis',
+                'pays'                   => 'France',
+                'latitude'               => 49.2040,
+                'longitude'              => 2.5880,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            [
+                'adresse'                => '2',
+                'rue'                    => 'Rue du Parc',
+                'code_postal'            => 95270,
+                'ville'                  => 'Luzarches',
+                'pays'                   => 'France',
+                'latitude'               => 49.1130,
+                'longitude'              => 2.4390,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            // Groupe B — villes éloignées (ne doivent PAS apparaître dans la zone Survilliers)
+            [
+                'adresse'                => '14',
+                'rue'                    => 'Quai du Vieux-Port',
+                'code_postal'            => 13001,
+                'ville'                  => 'Marseille',
+                'pays'                   => 'France',
+                'latitude'               => 43.2965,
+                'longitude'              => 5.3698,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            [
+                'adresse'                => '7',
+                'rue'                    => 'Quai des Chartrons',
+                'code_postal'            => 33000,
+                'ville'                  => 'Bordeaux',
+                'pays'                   => 'France',
+                'latitude'               => 44.8378,
+                'longitude'              => -0.5792,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            [
+                'adresse'                => '22',
+                'rue'                    => 'Rue de la République',
+                'code_postal'            => 69002,
+                'ville'                  => 'Lyon',
+                'pays'                   => 'France',
+                'latitude'               => 45.7640,
+                'longitude'              => 4.8357,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            [
+                'adresse'                => '1',
+                'rue'                    => 'Rue de Paris',
+                'code_postal'            => 59000,
+                'ville'                  => 'Lille',
+                'pays'                   => 'France',
+                'latitude'               => 50.6292,
+                'longitude'              => 3.0573,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+            [
+                'adresse'                => '4',
+                'rue'                    => 'Rue des Bouchers',
+                'code_postal'            => 67000,
+                'ville'                  => 'Strasbourg',
+                'pays'                   => 'France',
+                'latitude'               => 48.5734,
+                'longitude'              => 7.7521,
+                'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
+            ],
+        ];
+
+        $adressesGeo = [];
+        foreach ($adressesGeoData as $adresseData) {
+            $adresse = new Adresse();
+            $adresse->setAdresse($adresseData['adresse']);
+            $adresse->setRue($adresseData['rue']);
+            $adresse->setCodePostal($adresseData['code_postal']);
+            $adresse->setVille($adresseData['ville']);
+            $adresse->setPays($adresseData['pays']);
+            $adresse->setLatitude($adresseData['latitude']);
+            $adresse->setLongitude($adresseData['longitude']);
+            $adresse->setStatutGeolocalisation($adresseData['statut_geolocalisation']);
+
+            $manager->persist($adresse);
+            $adressesGeo[] = $adresse;
+        }
+        // $adressesGeo[0] = Survilliers Mairie      | $adressesGeo[1] = Survilliers Gare
+        // $adressesGeo[2] = Chantilly Connétable    | $adressesGeo[3] = Senlis République
+        // $adressesGeo[4] = Luzarches Parc
+        // $adressesGeo[5] = Marseille Vieux-Port    | $adressesGeo[6] = Bordeaux Chartrons
+        // $adressesGeo[7] = Lyon République         | $adressesGeo[8] = Lille Paris
+        // $adressesGeo[9] = Strasbourg Bouchers
+
+        $laveriesGeoData = [
+            // Groupe A — Survilliers / Chantilly / Senlis
+            [
+                'professionnel'     => $professionnels[0],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie du Bourg',
+                'contact_email'     => 'contact@laveriedubourg.fr',
+                'description'       => 'Laverie au cœur du bourg de Survilliers, ouverte 7j/7.',
+                'adresse'           => $adressesGeo[0],
+                'date_ajout'        => new \DateTime('2026-02-01 09:00:00'),
+                'date_modification' => new \DateTime('2026-02-01 09:00:00'),
+                'supprimee_le'      => null,
+            ],
+            [
+                'professionnel'     => $professionnels[0],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie de la Gare',
+                'contact_email'     => 'contact@laveriegare.fr',
+                'description'       => 'Proche de la gare de Survilliers, idéale pour les pendulaires.',
+                'adresse'           => $adressesGeo[1],
+                'date_ajout'        => new \DateTime('2026-02-02 10:00:00'),
+                'date_modification' => new \DateTime('2026-02-02 10:00:00'),
+                'supprimee_le'      => null,
+            ],
+            [
+                'professionnel'     => $professionnels[0],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie des Princes',
+                'contact_email'     => 'contact@laverie-chantilly.fr',
+                'description'       => 'Laverie moderne à Chantilly, près du château.',
+                'adresse'           => $adressesGeo[2],
+                'date_ajout'        => new \DateTime('2026-02-03 11:00:00'),
+                'date_modification' => new \DateTime('2026-02-03 11:00:00'),
+                'supprimee_le'      => null,
+            ],
+            [
+                'professionnel'     => $professionnels[0],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie de la Cathédrale',
+                'contact_email'     => 'contact@laverie-senlis.fr',
+                'description'       => 'Laverie en plein cœur de Senlis, face à la cathédrale.',
+                'adresse'           => $adressesGeo[3],
+                'date_ajout'        => new \DateTime('2026-02-04 12:00:00'),
+                'date_modification' => new \DateTime('2026-02-04 12:00:00'),
+                'supprimee_le'      => null,
+            ],
+            [
+                'professionnel'     => $professionnels[0],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie du Parc',
+                'contact_email'     => 'contact@laverie-luzarches.fr',
+                'description'       => 'Laverie calme et spacieuse à Luzarches.',
+                'adresse'           => $adressesGeo[4],
+                'date_ajout'        => new \DateTime('2026-02-05 13:00:00'),
+                'date_modification' => new \DateTime('2026-02-05 13:00:00'),
+                'supprimee_le'      => null,
+            ],
+            // Groupe B — villes éloignées
+            [
+                'professionnel'     => $professionnels[1],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie du Vieux-Port',
+                'contact_email'     => 'contact@laverie-marseille.fr',
+                'description'       => 'Laverie en bord de mer à Marseille.',
+                'adresse'           => $adressesGeo[5],
+                'date_ajout'        => new \DateTime('2026-02-06 09:00:00'),
+                'date_modification' => new \DateTime('2026-02-06 09:00:00'),
+                'supprimee_le'      => null,
+            ],
+            [
+                'professionnel'     => $professionnels[1],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie des Quais',
+                'contact_email'     => 'contact@laverie-bordeaux.fr',
+                'description'       => 'Laverie sur les quais de Bordeaux.',
+                'adresse'           => $adressesGeo[6],
+                'date_ajout'        => new \DateTime('2026-02-07 09:00:00'),
+                'date_modification' => new \DateTime('2026-02-07 09:00:00'),
+                'supprimee_le'      => null,
+            ],
+            [
+                'professionnel'     => $professionnels[1],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie de la Bourse',
+                'contact_email'     => 'contact@laverie-lyon.fr',
+                'description'       => 'Laverie au cœur de Lyon Presqu\'île.',
+                'adresse'           => $adressesGeo[7],
+                'date_ajout'        => new \DateTime('2026-02-08 09:00:00'),
+                'date_modification' => new \DateTime('2026-02-08 09:00:00'),
+                'supprimee_le'      => null,
+            ],
+            [
+                'professionnel'     => $professionnels[1],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie de la Grand-Place',
+                'contact_email'     => 'contact@laverie-lille.fr',
+                'description'       => 'Laverie en plein centre de Lille.',
+                'adresse'           => $adressesGeo[8],
+                'date_ajout'        => new \DateTime('2026-02-09 09:00:00'),
+                'date_modification' => new \DateTime('2026-02-09 09:00:00'),
+                'supprimee_le'      => null,
+            ],
+            [
+                'professionnel'     => $professionnels[1],
+                'statut'            => LaverieStatutEnum::VALIDE,
+                'wi_line_reference' => null,
+                'nom_etablissement' => 'Laverie de la Cathédrale',
+                'contact_email'     => 'contact@laverie-strasbourg.fr',
+                'description'       => 'Laverie dans le centre historique de Strasbourg.',
+                'adresse'           => $adressesGeo[9],
+                'date_ajout'        => new \DateTime('2026-02-10 09:00:00'),
+                'date_modification' => new \DateTime('2026-02-10 09:00:00'),
+                'supprimee_le'      => null,
+            ],
+        ];
+
+        foreach ($laveriesGeoData as $data) {
+            $laverie = new Laverie();
+            $laverie->setProfessionnel($data['professionnel']);
+            $laverie->setStatut($data['statut']);
+            $laverie->setWiLineReference($data['wi_line_reference']);
+            $laverie->setNomEtablissement($data['nom_etablissement']);
+            $laverie->setContactEmail($data['contact_email']);
+            $laverie->setDescription($data['description']);
+            $laverie->setAdresse($data['adresse']);
+            $laverie->setDateAjout($data['date_ajout']);
+            $laverie->setDateModification($data['date_modification']);
+            $laverie->setSupprimeLe($data['supprimee_le']);
+
+            $manager->persist($laverie);
+        }
+
         $manager->flush();
     }
 }

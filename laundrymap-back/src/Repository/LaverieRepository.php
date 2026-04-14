@@ -18,33 +18,8 @@ class LaverieRepository extends ServiceEntityRepository
         parent::__construct($registry, Laverie::class);
     }
 
-//    /**
-//     * @return Laverie[] Returns an array of Laverie objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('l')
-//            ->andWhere('l.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('l.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Laverie
-//    {
-//        return $this->createQueryBuilder('l')
-//            ->andWhere('l.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
-
     public function findAllWithDetails(int $offset = 0, int $limit = 10, LaverieStatutEnum $statut=LaverieStatutEnum::EN_ATTENTE): array
-    { 
+    {
         $queryBuilder = $this->createQueryBuilder('l')
         ->leftJoin('l.logo', 'logo')
         ->leftJoin('l.adresse', 'adresse')
@@ -64,7 +39,6 @@ class LaverieRepository extends ServiceEntityRepository
         $query = $queryBuilder->getQuery();
         $laveries = $query->getArrayResult();
         return $laveries;
-
     }
 
     public function findAsk(
@@ -164,10 +138,6 @@ class LaverieRepository extends ServiceEntityRepository
 
         return $laverie;
     }
-    
-
-
-
 
     // Pour le dashboard professionnel : Récupérer les laveries actives (validées ou en attente) d'un professionnel
     public function findActivesByProfessionnel(Professionnel $professionnel): array
@@ -181,19 +151,89 @@ class LaverieRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function deleteLaundry(Laverie $laverie) 
+    public function deleteLaundry(Laverie $laverie): void
     {
-        $laverie->setStatut(LaverieStatutEnum::SUPPRIME); 
-        $laverie->setSupprimeLe(new \DateTime()); 
-        $laverie->setDateModification(new \DateTime()); 
+        $laverie->setStatut(LaverieStatutEnum::SUPPRIME);
+        $laverie->setSupprimeLe(new \DateTime());
+        $laverie->setDateModification(new \DateTime());
 
-        $em = $this->getEntityManager(); 
-        $em->persist($laverie); 
-        $em->flush(); 
+        $em = $this->getEntityManager();
+        $em->persist($laverie);
+        $em->flush();
     }
 
+    /**
+     * Recherche les laveries validées dans un rayon donné autour d'un point GPS.
+     *
+     * La distance est calculée avec la formule haversine directement en SQL.
+     * Seules les laveries avec statut VALIDE, non supprimées et avec des coordonnées
+     * renseignées sont retournées. Les résultats sont triés par distance croissante.
+     *
+     * @param float $lat    Latitude du point de référence (position de l'utilisateur)
+     * @param float $lng    Longitude du point de référence
+     * @param int   $radius Rayon de recherche en mètres (défaut : 2000 m = 2 km)
+     * @return array        Liste de laveries avec leur distance en mètres
+     */
+    public function findByLocation(float $lat, float $lng, int $radius = 2000): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
 
+        // La formule haversine calcule la distance en mètres entre 2 points GPS.
+        // LEAST(1.0, ...) évite une erreur de calcul si les deux points sont identiques.
+        $sql = '
+            SELECT
+                l.id,
+                l.nom_etablissement  AS nomEtablissement,
+                l.contact_email      AS contactEmail,
+                l.description,
+                a.adresse,
+                a.rue,
+                a.code_postal        AS codePostal,
+                a.ville,
+                a.pays,
+                a.latitude,
+                a.longitude,
+                ROUND(
+                    6371000 * acos(LEAST(1.0,
+                        cos(radians(:lat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:lng))
+                        + sin(radians(:lat)) * sin(radians(a.latitude))
+                    ))
+                , 1) AS distanceMetres
+            FROM laverie l
+            INNER JOIN adresse a ON l.adresse_id = a.id
+            WHERE l.statut = :statut
+              AND l.supprime_le IS NULL
+              AND a.latitude IS NOT NULL
+              AND a.longitude IS NOT NULL
+            HAVING distanceMetres <= :radius
+            ORDER BY distanceMetres ASC
+        ';
 
+        return $conn->fetchAllAssociative($sql, [
+            'lat'    => $lat,
+            'lng'    => $lng,
+            'radius' => $radius,
+            'statut' => LaverieStatutEnum::VALIDE->value,
+        ]);
+    }
 
-
+    /**
+     * Retourne toutes les laveries validées avec leur adresse.
+     * Utilisé comme fallback quand aucune coordonnée n'est disponible.
+     *
+     * @return array
+     */
+    public function findValidated(): array
+    {
+        return $this->createQueryBuilder('l')
+            ->select('l')
+            ->addSelect('PARTIAL adresse.{id, adresse, rue, code_postal, ville, pays, latitude, longitude}')
+            ->leftJoin('l.adresse', 'adresse')
+            ->where('l.statut = :statut')
+            ->andWhere('l.supprime_le IS NULL')
+            ->setParameter('statut', LaverieStatutEnum::VALIDE)
+            ->orderBy('l.date_ajout', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

@@ -26,6 +26,7 @@ use App\Service\UtilisateurService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\LaverieRepository;
 use App\Repository\LaverieHistoriqueInteractionRepository;
+use App\Service\GeolocationService;
 use App\Service\WiLineService;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
@@ -650,7 +651,7 @@ class LaverieController extends AbstractController
         return $this->json($data, Response::HTTP_OK);
     }
 
-    #[Route('/{id}', name: 'laverie_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'laverie_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     #[OA\Tag(name: 'Laverie')]
     #[OA\Security(name: 'Bearer')]
     #[OA\Parameter(
@@ -726,9 +727,177 @@ class LaverieController extends AbstractController
 
         $laverieRepository->deleteLaundry($laverie);
         return $this->json(['message' => 'Laverie supprimée']);
-         
-
     }
 
+    /**
+     * Recherche de laveries par position GPS ou par adresse textuelle.
+     *
+     * L'utilisateur peut fournir :
+     * - lat + lng : coordonnées GPS directes (ex: envoyées par le navigateur)
+     * - query     : adresse textuelle (ville, code postal, rue...) → géocodage automatique
+     *
+     * Si lat+lng sont fournis, query est ignoré.
+     * Seules les laveries validées par un administrateur sont retournées.
+     * Les résultats sont triés par distance croissante.
+     */
+    #[Route('/search', name: 'laverie_search', methods: ['GET'])]
+    #[OA\Tag(name: 'Laverie')]
+    #[OA\Parameter(
+        name: 'lat',
+        in: 'query',
+        description: 'Latitude GPS de l\'utilisateur (ex: 49.0415). Prioritaire sur "query".',
+        required: false,
+        schema: new OA\Schema(type: 'number', format: 'float', example: 49.0415)
+    )]
+    #[OA\Parameter(
+        name: 'lng',
+        in: 'query',
+        description: 'Longitude GPS de l\'utilisateur (ex: 2.5283). Prioritaire sur "query".',
+        required: false,
+        schema: new OA\Schema(type: 'number', format: 'float', example: 2.5283)
+    )]
+    #[OA\Parameter(
+        name: 'radius',
+        in: 'query',
+        description: 'Rayon de recherche en mètres (défaut : 2000 m = 2 km).',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 2000, example: 5000)
+    )]
+    #[OA\Parameter(
+        name: 'query',
+        in: 'query',
+        description: 'Adresse, ville ou code postal (ex: "Survilliers", "60500 Chantilly"). Ignoré si lat+lng sont fournis.',
+        required: false,
+        schema: new OA\Schema(type: 'string', example: 'Survilliers 95470')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Liste des laveries trouvées dans le périmètre, triées par distance croissante.',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'id',               type: 'integer', example: 1),
+                    new OA\Property(property: 'nomEtablissement', type: 'string',  example: 'Laverie du Bourg'),
+                    new OA\Property(property: 'contactEmail',     type: 'string',  example: 'contact@laverie.fr'),
+                    new OA\Property(property: 'description',      type: 'string',  example: 'Laverie moderne et accessible.'),
+                    new OA\Property(
+                        property: 'adresse',
+                        type: 'object',
+                        properties: [
+                            new OA\Property(property: 'adresse',    type: 'string',  example: '5'),
+                            new OA\Property(property: 'rue',        type: 'string',  example: 'Rue de la Mairie'),
+                            new OA\Property(property: 'codePostal', type: 'integer', example: 95470),
+                            new OA\Property(property: 'ville',      type: 'string',  example: 'Survilliers'),
+                            new OA\Property(property: 'pays',       type: 'string',  example: 'France'),
+                            new OA\Property(property: 'latitude',   type: 'number',  format: 'float', example: 49.0415),
+                            new OA\Property(property: 'longitude',  type: 'number',  format: 'float', example: 2.5283),
+                        ]
+                    ),
+                    new OA\Property(property: 'distanceMetres', type: 'number', format: 'float', example: 350.5),
+                ]
+            )
+        )
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Paramètres invalides ou géocodage impossible.',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [new OA\Property(property: 'message', type: 'string')]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Aucune laverie trouvée dans ce périmètre.',
+        content: new OA\JsonContent(
+            type: 'object',
+            properties: [new OA\Property(property: 'message', type: 'string')]
+        )
+    )]
+    public function search(
+        Request $request,
+        LaverieRepository $laverieRepository,
+        GeolocationService $geolocationService,
+    ): JsonResponse {
+        // Lecture des paramètres de la requête
+        $latParam    = $request->query->get('lat');
+        $lngParam    = $request->query->get('lng');
+        $radiusParam = $request->query->get('radius', 2000);
+        $query       = $request->query->get('query');
 
+        // Validation du rayon : entier positif, max 50 km
+        $radius = (int) $radiusParam;
+        if ($radius <= 0) {
+            $radius = 2000;
+        }
+        if ($radius > 50000) {
+            return $this->json(['message' => 'Le rayon ne peut pas dépasser 50 000 mètres (50 km).'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Cas 1 : coordonnées GPS fournies directement (prioritaires sur query)
+        if ($latParam !== null && $lngParam !== null) {
+            $lat = (float) $latParam;
+            $lng = (float) $lngParam;
+
+            // Validation des plages de coordonnées GPS
+            if ($lat < -90 || $lat > 90) {
+                return $this->json(['message' => 'La latitude doit être comprise entre -90 et 90.'], Response::HTTP_BAD_REQUEST);
+            }
+            if ($lng < -180 || $lng > 180) {
+                return $this->json(['message' => 'La longitude doit être comprise entre -180 et 180.'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+        // Cas 2 : adresse textuelle → géocodage
+        elseif ($query !== null) {
+            $query = trim($query);
+
+            if ($query === '' || strlen($query) > 255) {
+                return $this->json(['message' => 'Le paramètre "query" doit contenir entre 1 et 255 caractères.'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $coords = $geolocationService->geocodeAdresse($query);
+
+            if ($coords === null) {
+                return $this->json(['message' => 'Adresse introuvable. Vérifiez votre saisie et réessayez.'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $lat = $coords['lat'];
+            $lng = $coords['lng'];
+        }
+        // Cas 3 : aucun paramètre fourni
+        else {
+            return $this->json(['message' => 'Veuillez fournir une position GPS (lat + lng) ou une adresse (query).'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Recherche des laveries dans le rayon
+        $laveries = $laverieRepository->findByLocation($lat, $lng, $radius);
+
+        if (empty($laveries)) {
+            return $this->json(['message' => 'Aucune laverie trouvée dans ce périmètre. Essayez d\'augmenter le rayon de recherche.'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Formatage de la réponse en camelCase
+        $result = array_map(function (array $laverie) {
+            return [
+                'id'               => $laverie['id'],
+                'nomEtablissement' => $laverie['nomEtablissement'],
+                'contactEmail'     => $laverie['contactEmail'],
+                'description'      => $laverie['description'],
+                'adresse'          => [
+                    'adresse'    => $laverie['adresse'],
+                    'rue'        => $laverie['rue'],
+                    'codePostal' => (int) $laverie['codePostal'],
+                    'ville'      => $laverie['ville'],
+                    'pays'       => $laverie['pays'],
+                    'latitude'   => (float) $laverie['latitude'],
+                    'longitude'  => (float) $laverie['longitude'],
+                ],
+                'distanceMetres'   => (float) $laverie['distanceMetres'],
+            ];
+        }, $laveries);
+
+        return $this->json($result, Response::HTTP_OK);
+    }
 }
