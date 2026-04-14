@@ -1,10 +1,7 @@
-function App() {
+import HomePage from "@/pages/home/HomePage"
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center from-slate-900 to-slate-700 text-white p-6">
-      
-    </div>
-  )
+function App() {
+  return <HomePage />
 }
 
 export default App

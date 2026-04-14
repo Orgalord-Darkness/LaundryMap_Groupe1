@@ -81,3 +81,29 @@ export interface DaySchedule {
 
 export type WeekSchedule = Record<JourSemaine, DaySchedule>
 
+// ─── Types recherche laveries (carte dynamique) ───────────────────────────────
+
+export interface AdresseSearch {
+    adresse: string
+    rue: string
+    codePostal: number
+    ville: string
+    pays: string
+    latitude: number
+    longitude: number
+}
+
+export interface LaverieSearch {
+    id: number
+    nomEtablissement: string
+    contactEmail: string | null
+    description: string | null
+    adresse: AdresseSearch
+    distanceMetres: number
+}
+
+export interface Coordinates {
+    lat: number
+    lng: number
+}
+

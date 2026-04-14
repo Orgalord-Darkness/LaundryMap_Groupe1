@@ -179,34 +179,38 @@ class LaverieRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
 
         // La formule haversine calcule la distance en mètres entre 2 points GPS.
-        // LEAST(1.0, ...) évite une erreur de calcul si les deux points sont identiques.
+        // Sous-requête pour éviter le HAVING sur alias (incompatible strict SQL).
+        // LEAST(1.0, ...) évite un acos(>1) sur des points identiques (flottant).
         $sql = '
-            SELECT
-                l.id,
-                l.nom_etablissement  AS nomEtablissement,
-                l.contact_email      AS contactEmail,
-                l.description,
-                a.adresse,
-                a.rue,
-                a.code_postal        AS codePostal,
-                a.ville,
-                a.pays,
-                a.latitude,
-                a.longitude,
-                ROUND(
-                    6371000 * acos(LEAST(1.0,
-                        cos(radians(:lat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:lng))
-                        + sin(radians(:lat)) * sin(radians(a.latitude))
-                    ))
-                , 1) AS distanceMetres
-            FROM laverie l
-            INNER JOIN adresse a ON l.adresse_id = a.id
-            WHERE l.statut = :statut
-              AND l.supprime_le IS NULL
-              AND a.latitude IS NOT NULL
-              AND a.longitude IS NOT NULL
-            HAVING distanceMetres <= :radius
-            ORDER BY distanceMetres ASC
+            SELECT *
+            FROM (
+                SELECT
+                    l.id,
+                    l.nom_etablissement  AS nomEtablissement,
+                    l.contact_email      AS contactEmail,
+                    l.description,
+                    a.adresse,
+                    a.rue,
+                    a.code_postal        AS codePostal,
+                    a.ville,
+                    a.pays,
+                    a.latitude,
+                    a.longitude,
+                    ROUND(
+                        6371000 * acos(LEAST(1.0,
+                            cos(radians(:lat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:lng))
+                            + sin(radians(:lat)) * sin(radians(a.latitude))
+                        ))
+                    , 1) AS distanceMetres
+                FROM laverie l
+                INNER JOIN adresse a ON l.adresse_id = a.id
+                WHERE l.statut = :statut
+                  AND l.supprime_le IS NULL
+                  AND a.latitude IS NOT NULL
+                  AND a.longitude IS NOT NULL
+            ) AS sub
+            WHERE sub.distanceMetres <= :radius
+            ORDER BY sub.distanceMetres ASC
         ';
 
         return $conn->fetchAllAssociative($sql, [
