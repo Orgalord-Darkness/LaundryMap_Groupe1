@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { SearchBar } from "@/components/search/SearchBar"
 import { MapView } from "@/components/search/MapView"
 import { LaverieList } from "@/components/search/LaverieList"
-import { searchByQuery } from "@/services/laverieService"
+import { searchByQuery } from "@/components/utils/laverieService"
 import type { LaverieSearch } from "@/components/utils/type"
 
 // ─── HomePage — page d'accueil avec carte et liste de laveries ────────────────
