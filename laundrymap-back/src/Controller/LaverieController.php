@@ -934,16 +934,30 @@ class LaverieController extends AbstractController
     #[OA\Parameter(
         name: 'hourly_open',
         in: 'query',
-        description: 'Heure d\'ouverture',
+        description: 'Heure d\'ouverture souhaitée (ex: "08:00"). La laverie doit ouvrir à cette heure ou avant.',
         required: false,
-        schema: new OA\Schema(type: 'datetime', example: '08:00')
+        schema: new OA\Schema(type: 'string', format: 'time', example: '08:00')
     )]
     #[OA\Parameter(
         name: 'hourly_end',
         in: 'query',
-        description: 'Heure de fermeture',
+        description: 'Heure de fermeture souhaitée (ex: "19:00"). La laverie doit fermer à cette heure ou après.',
         required: false,
-        schema: new OA\Schema(type: 'datetime', example: '08:00')
+        schema: new OA\Schema(type: 'string', format: 'time', example: '19:00')
+    )]
+    #[OA\Parameter(
+        name: 'services[]',
+        in: 'query',
+        description: 'Services souhaités (wifi, parking, banc). Peut être répété.',
+        required: false,
+        schema: new OA\Schema(type: 'array', items: new OA\Items(type: 'string'), example: ['wifi', 'parking'])
+    )]
+    #[OA\Parameter(
+        name: 'payments[]',
+        in: 'query',
+        description: 'Moyens de paiement souhaités (carte, especes, carte_fidelite). Peut être répété.',
+        required: false,
+        schema: new OA\Schema(type: 'array', items: new OA\Items(type: 'string'), example: ['carte'])
     )]
     #[OA\Response(
         response: 200,
@@ -1046,11 +1060,28 @@ class LaverieController extends AbstractController
             return $this->json(['message' => 'Veuillez fournir une position GPS (lat + lng) ou une adresse (query).'], Response::HTTP_BAD_REQUEST);
         }
 
-        // Recherche des laveries dans le rayon
-        $laveries = $laverieRepository->findByLocation($lat, $lng, $radius);
+        // Lecture des filtres optionnels
+        $services   = $request->query->all('services');     // ex: ["wifi", "parking"]
+        $payments   = $request->query->all('payments');     // ex: ["carte", "especes"]
+        $hourlyOpen = $request->query->get('hourly_open'); // ex: "08:00"
+        $hourlyEnd  = $request->query->get('hourly_end');  // ex: "19:00"
+
+        $filters = [
+            'services'    => $services,
+            'payments'    => $payments,
+            'hourly_open' => $hourlyOpen,
+            'hourly_end'  => $hourlyEnd,
+        ];
+
+        $hasFilters = !empty($services) || !empty($payments) || $hourlyOpen !== null || $hourlyEnd !== null;
+
+        // Recherche avec ou sans filtres
+        $laveries = $hasFilters
+            ? $laverieRepository->findByLocationAndFilters($lat, $lng, $radius, $filters)
+            : $laverieRepository->findByLocation($lat, $lng, $radius);
 
         if (empty($laveries)) {
-            return $this->json(['message' => 'Aucune laverie trouvée dans ce périmètre. Essayez d\'augmenter le rayon de recherche.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Aucune laverie trouvée. Essayez de modifier vos filtres ou d\'augmenter le rayon.'], Response::HTTP_NOT_FOUND);
         }
 
         // Formatage de la réponse en camelCase
