@@ -236,4 +236,78 @@ class LaverieRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    public function findSomeWithDetails($hourly_open, $hourly_end, $payments, $services): ?array
+    {
+        // ── Partie DQL : relations déclarées dans l'entité ────────────────────────
+       $qb = $this->createQueryBuilder('l')
+        ->select('l')
+
+        // Logo
+        ->addSelect('logo')
+
+        // Adresse
+        ->addSelect('adr')
+
+        // Professionnel + utilisateur
+        ->addSelect('pro')
+        ->addSelect('u')
+
+        // Services
+        ->addSelect('s')
+
+        // Paiements
+        ->addSelect('mp')
+
+        // Interactions
+        ->addSelect('i')
+
+        // Fermetures
+        ->addSelect('f')
+
+        // Médias
+        ->addSelect('lm')
+        ->addSelect('m')
+
+        // Équipements
+        ->addSelect('e')
+
+        // JOINTURES
+        ->leftJoin('l.logo', 'logo')
+        ->leftJoin('l.adresse', 'adr')
+        ->leftJoin('l.professionnel', 'pro')
+        ->leftJoin('pro.utilisateur', 'u')
+
+        ->leftJoin('l.services', 's')
+        ->leftJoin('l.methodePaiements', 'mp')
+        ->leftJoin('l.laverieHistoriqueInteractions', 'i')
+
+        ->leftJoin('l.laverieFermetures', 'f')
+        ->leftJoin('l.laverieMedias', 'lm')
+        ->leftJoin('lm.media', 'm')
+
+        ->leftJoin('l.equipements', 'e'); 
+
+        if ($hourly_open !== null && $hourly_end !== null) {
+            $qb->andWhere('f.heure_debut <= :open')
+                ->andWhere('f.heure_fin >= :end')
+                ->setParameter('open', $hourly_open)
+                ->setParameter('end', $hourly_end);
+        }
+        if (!empty($payments)) {
+            $qb->andWhere('mp.nom IN (:payments)')
+            ->setParameter('payments', $payments);
+        }
+        if (!empty($services)) {
+            $qb->andWhere('s.nom IN (:services)')
+            ->setParameter('services', $services);
+        }
+            $result = $qb->getQuery()->getArrayResult();
+
+        if (empty($result)) {
+            return null;
+        }
+
+        return $result;
+    }
 }
