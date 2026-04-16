@@ -240,4 +240,89 @@ class LaverieRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    /**
+     * Recherche les laveries validées dans un rayon donné, avec filtres optionnels.
+     *
+     * @param float $lat     Latitude du point de référence
+     * @param float $lng     Longitude du point de référence
+     * @param int   $radius  Rayon en mètres (défaut : 2000)
+     * @param array $filters Filtres optionnels : services[], payments[], openAt (HH:MM)
+     */
+    public function findByLocationAndFilters(float $lat, float $lng, int $radius = 2000, array $filters = []): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $params = [
+            'lat'    => $lat,
+            'lng'    => $lng,
+            'radius' => $radius,
+            'statut' => LaverieStatutEnum::VALIDE->value,
+        ];
+        $types  = [];
+        $joins  = '';
+        $wheres = '';
+
+        if (!empty($filters['services'])) {
+            $joins  .= ' LEFT JOIN laverie_service ls ON ls.laverie_id = l.id
+                         LEFT JOIN service s ON s.id = ls.service_id';
+            $wheres .= ' AND s.nom IN (:services)';
+            $params['services'] = $filters['services'];
+            $types['services']  = \Doctrine\DBAL\ArrayParameterType::STRING;
+        }
+
+        if (!empty($filters['payments'])) {
+            $joins  .= ' LEFT JOIN laverie_paiement lp ON lp.laverie_id = l.id
+                         LEFT JOIN methode_paiement mp ON mp.id = lp.methode_paiement_id';
+            $wheres .= ' AND mp.nom IN (:payments)';
+            $params['payments'] = $filters['payments'];
+            $types['payments']  = \Doctrine\DBAL\ArrayParameterType::STRING;
+        }
+
+        if (!empty($filters['hourly_open']) || !empty($filters['hourly_end'])) {
+            $joins .= ' LEFT JOIN laverie_fermeture lf ON lf.laverie_id = l.id';
+            if (!empty($filters['hourly_open'])) {
+                $wheres .= ' AND lf.heure_debut <= :hourly_open';
+                $params['hourly_open'] = $filters['hourly_open'];
+            }
+            if (!empty($filters['hourly_end'])) {
+                $wheres .= ' AND lf.heure_fin >= :hourly_end';
+                $params['hourly_end'] = $filters['hourly_end'];
+            }
+        }
+
+        $sql = "
+            SELECT DISTINCT
+                l.id,
+                l.nom_etablissement  AS nomEtablissement,
+                l.contact_email      AS contactEmail,
+                l.description,
+                a.adresse,
+                a.rue,
+                a.code_postal        AS codePostal,
+                a.ville,
+                a.pays,
+                a.latitude,
+                a.longitude,
+                ROUND(
+                    6371000 * acos(LEAST(1.0,
+                        cos(radians(:lat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:lng))
+                        + sin(radians(:lat)) * sin(radians(a.latitude))
+                    ))
+                , 1) AS distanceMetres
+            FROM laverie l
+            INNER JOIN adresse a ON l.adresse_id = a.id
+            {$joins}
+            WHERE l.statut = :statut
+              AND l.supprime_le IS NULL
+              AND a.latitude IS NOT NULL
+              AND a.longitude IS NOT NULL
+              {$wheres}
+            HAVING distanceMetres <= :radius
+            ORDER BY distanceMetres ASC
+        ";
+
+        return $conn->executeQuery($sql, $params, $types)->fetchAllAssociative();
+    }
+
 }
