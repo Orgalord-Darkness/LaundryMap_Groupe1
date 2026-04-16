@@ -761,7 +761,7 @@ class LaverieController extends AbstractController
         in: 'query',
         description: 'Rayon de recherche en mètres (défaut : 2000 m = 2 km).',
         required: false,
-        schema: new OA\Schema(type: 'integer', default: 2000, example: 5000)
+        schema: new OA\Schema(type: 'integer', default: 5000, example: 5000)
     )]
     #[OA\Parameter(
         name: 'query',
@@ -824,13 +824,13 @@ class LaverieController extends AbstractController
         // Lecture des paramètres de la requête
         $latParam    = $request->query->get('lat');
         $lngParam    = $request->query->get('lng');
-        $radiusParam = $request->query->get('radius', 2000);
+        $radiusParam = $request->query->get('radius', 5000);
         $query       = $request->query->get('query');
 
         // Validation du rayon : entier positif, max 50 km
         $radius = (int) $radiusParam;
         if ($radius <= 0) {
-            $radius = 2000;
+            $radius = 30000;
         }
         if ($radius > 50000) {
             return $this->json(['message' => 'Le rayon ne peut pas dépasser 50 000 mètres (50 km).'], Response::HTTP_BAD_REQUEST);
