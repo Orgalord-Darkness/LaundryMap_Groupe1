@@ -23,7 +23,7 @@ security:
             security: false
 
         public_api:
-            pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/doc|^/api/v1/laverie/search
+            pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/doc|^/api/v1/laverie/search|^/api/v1/laverie/filter-search
             stateless: true
             security: false
 
@@ -58,5 +58,6 @@ security:
         - { path: ^/api/v1/admin/login_check, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/laverie/search, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/laverie/filter-search, roles: PUBLIC_ACCESS }
         # Optionnel : décommenter pour sécuriser globalement
         # - { path: ^/api/v1/admin, roles: ROLE_ADMIN }

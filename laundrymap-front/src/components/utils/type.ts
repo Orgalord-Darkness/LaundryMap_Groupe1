@@ -94,6 +94,7 @@ export interface AdresseSearch {
 }
 
 export interface LaverieSearch {
+
     id: number
     nomEtablissement: string
     contactEmail: string | null
@@ -106,4 +107,22 @@ export interface Coordinates {
     lat: number
     lng: number
 }
+ 
+export interface SearchFilters {
+    openAt: string
+    services: string[]
+    payments: string[]
+    }
 
+export interface SearchResult {
+       adresse: {
+        adresse: string
+        rue: string
+        codePostal: number
+        ville: string
+        pays: string
+        latitude: number
+        longitude: number
+    }
+    distanceMetres: number
+}

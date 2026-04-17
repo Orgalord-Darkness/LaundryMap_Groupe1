@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
-import { Search } from "lucide-react"
+import { Search, SlidersHorizontal } from "lucide-react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,9 +35,11 @@ async function fetchSuggestions(query: string): Promise<Suggestion[]> {
 interface SearchBarProps {
     onSearch: (query: string) => void
     loading: boolean
+    onFilterClick: () => void
+    activeFilterCount: number
 }
 
-export function SearchBar({ onSearch, loading }: SearchBarProps) {
+export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount }: SearchBarProps) {
     const { t } = useTranslation()
 
     const [value, setValue] = useState("")
@@ -203,6 +205,25 @@ export function SearchBar({ onSearch, loading }: SearchBarProps) {
                             </li>
                         ))}
                     </ul>
+                )}
+            </div>
+
+            {/* Bouton filtres */}
+            <div className="relative shrink-0">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onFilterClick}
+                    aria-label="Ouvrir les filtres"
+                    className="rounded-xl px-4 gap-2 py-2.5"
+                >
+                    <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Filtres</span>
+                </Button>
+                {activeFilterCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+                        {activeFilterCount}
+                    </span>
                 )}
             </div>
 

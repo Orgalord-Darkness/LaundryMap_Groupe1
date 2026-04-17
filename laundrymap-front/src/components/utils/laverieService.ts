@@ -1,5 +1,5 @@
 import axios from "axios"
-import type { LaverieSearch } from "@/components/utils/type"
+import type { LaverieSearch, SearchFilters } from "@/components/utils/type"
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -47,6 +47,33 @@ export async function searchByQuery(
 ): Promise<LaverieSearch[]> {
     const response = await api.get("/laverie/search", {
         params: { query, radius },
+        validateStatus: (status) => status === 200 || status === 400 || status === 404,
+    })
+    if (response.status === 404 || response.status === 400) return []
+    return response.data as LaverieSearch[]
+}
+
+/**
+ * Recherche les laveries avec filtres (services, paiements, horaires).
+ * Utilise l'endpoint /filter-search qui accepte les mêmes params que /search
+ * plus des filtres optionnels.
+ */
+export async function searchWithFilters(
+    query: string,
+    filters: SearchFilters,
+    radius: number = 5000
+): Promise<LaverieSearch[]> {
+    const params: Record<string, unknown> = { query, radius }
+
+    if (filters.services.length > 0) params["services[]"] = filters.services
+    if (filters.payments.length > 0) params["payments[]"] = filters.payments
+    if (filters.openAt) {
+        params.hourly_open = filters.openAt
+        params.hourly_end = filters.openAt
+    }
+
+    const response = await api.get("/laverie/filter-search", {
+        params,
         validateStatus: (status) => status === 200 || status === 400 || status === 404,
     })
     if (response.status === 404 || response.status === 400) return []

@@ -14,6 +14,7 @@ interface LaverieListProps {
     hasSearched: boolean
     selectedId: number | null
     onSelectLaverie: (id: number) => void
+    hasActiveFilters?: boolean
 }
 
 export function LaverieList({
@@ -23,6 +24,7 @@ export function LaverieList({
     hasSearched,
     selectedId,
     onSelectLaverie,
+    hasActiveFilters = false,
 }: LaverieListProps) {
     const { t } = useTranslation()
 
@@ -74,7 +76,11 @@ export function LaverieList({
     if (laveries.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-10 gap-3 text-center px-4">
-                <p className="text-sm text-gray-400">{t("search_no_results")}</p>
+                <p className="text-sm text-gray-400">
+                    {hasActiveFilters
+                        ? "Aucune laverie trouvée. Essayez de modifier vos filtres."
+                        : t("search_no_results")}
+                </p>
             </div>
         )
     }
