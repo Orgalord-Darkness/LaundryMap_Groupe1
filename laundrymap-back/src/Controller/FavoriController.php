@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\FavoriRepository;
+use App\Repository\LaverieRepository;
 use App\Entity\Utilisateur;
 use App\Entity\Laverie;
 use OpenApi\Attributes as OA;
@@ -71,6 +72,36 @@ class FavoriController extends AbstractController
             'total'       => $total,
             'total_pages' => (int) ceil($total / $limit),
         ], Response::HTTP_OK);
+    }
+
+    #[Route('/remove/{id}', name: 'app_favori_remove', methods: ['DELETE'])]
+    #[OA\Tag(name: 'Favori')]
+    #[OA\Security(name: 'bearer')]
+    public function remove(int $id, FavoriRepository $repository, LaverieRepository $laverieRepository): Response
+    {
+        $user = $this->getUser();
+        
+        if (!$user instanceof Utilisateur) {
+            return $this->json(
+                ['message' => 'Vous n\'êtes pas connecté'],
+                Response::HTTP_FORBIDDEN
+            );
+        }
+
+        $laverie = $laverieRepository->find($id);
+        if (!$laverie instanceof Laverie) {
+            return $this->json(
+                ['message' => 'Laverie introuvable'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $repository->removeFavori($user, $laverie);
+
+        return $this->json(
+            ['message' => 'Laverie retirée des favoris'],
+            Response::HTTP_OK
+        );
     }
 
 }
