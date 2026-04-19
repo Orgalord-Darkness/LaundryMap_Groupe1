@@ -1342,6 +1342,27 @@ class AppFixtures extends Fixture
             $manager->persist($laverie);
         }
 
+        // ── FAVORIS (laverie_favori) ──────────────────────────────────────────
+        // $users[0] = Luce | $users[1] = Roussel | $users[2] = Buisson
+        // $users[3] = Lambert | $users[4] = Deschamps
+        // $laveries[0] = Laverie Express   | $laveries[1] = Laverie Express 2
+        // $laveries[2] = AutoLaverie       | $laveries[3] = AutoLaverie 2
+
+        // Luce : 2 favoris (happy path + multi-favoris par user)
+        $laveries[0]->addFavori($users[0]);
+        $laveries[1]->addFavori($users[0]);
+
+        // Roussel : 2 favoris (multi-users sur même laverie + laverie EN_ATTENTE)
+        $laveries[0]->addFavori($users[1]);
+        $laveries[2]->addFavori($users[1]);
+
+        // Lambert : 1 favori (3e user sur Laverie Express 2)
+        $laveries[1]->addFavori($users[3]);
+
+        // Buisson : 1 favori (user EN_ATTENTE + laverie REFUSE → cas limite)
+        $laveries[3]->addFavori($users[2]);
+        // ─────────────────────────────────────────────────────────────────────
+
         $manager->flush();
     }
 }
