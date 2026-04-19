@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { PersonalSpaceNavbar, TAB_ROUTES, type PersonalSpaceTab } from "@/components/ui/PersonalSpaceNavbar"
 import axios from "axios"
 
 type Inputs = {
@@ -18,6 +20,12 @@ const urlInfo = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/mes_inf
 
 export default function MonProfi() {
     const { t } = useTranslation()
+    const navigate = useNavigate()
+
+    const handleTabChange = (tab: PersonalSpaceTab) => {
+        const route = TAB_ROUTES[tab]
+        if (route) navigate(route)
+    }
 
     const {
         register,
@@ -136,79 +144,93 @@ export default function MonProfi() {
         }
     }
     return (
-        <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-white rounded-2xl shadow-lg"
-        >
-            <h2 className="text-2xl font-semibold text-gray-900 text-center mb-2">
-                {t('mes_informations', 'Mes informations')}
-            </h2>
-            <p className="text-gray-600 text-center">
-                {t('modifier_mes_informations', 'Modifier mes informations')}
-            </p>
-
-            {successMessage && (
-                <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
-                    {successMessage}
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            <div className="bg-white px-4 pt-6 pb-0">
+                <div className="max-w-lg mx-auto">
+                    <div className="text-center mb-4">
+                        <h1 className="text-xl font-bold text-gray-900">Espace personnel</h1>
+                        <p className="text-sm text-gray-500 mt-0.5">Mon profil</p>
+                    </div>
+                    <PersonalSpaceNavbar active="Profil" onChange={handleTabChange} />
                 </div>
-            )}
-
-            <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">Prénom</label>
-                <Input
-                    type="text"
-                    {...register("prenom", { required: false })}
-                />
-                {errors.prenom && <p className="text-red-500 text-xs mt-1">{errors.prenom.message}</p>}
             </div>
 
-            <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">Nom</label>
-                <Input
-                    type="text"
-                    {...register("nom", { required: false })}
-                />
-                {errors.nom && <p className="text-red-500 text-xs mt-1">{errors.nom.message}</p>}
-            </div>
+            <main className="flex-1 px-4 py-5">
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-white rounded-2xl shadow-lg"
+                >
+                    <h2 className="text-2xl font-semibold text-gray-900 text-center mb-2">
+                        {t('mes_informations', 'Mes informations')}
+                    </h2>
+                    <p className="text-gray-600 text-center">
+                        {t('modifier_mes_informations', 'Modifier mes informations')}
+                    </p>
 
-            <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">Email</label>
-                <Input
-                    type="email"
-                    {...register("email", { required: false })}
-                    disabled={true}
-                />
-            </div>
+                    {successMessage && (
+                        <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                            {successMessage}
+                        </div>
+                    )}
 
-            <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">Mot de passe</label>
-                <p className="text-xs text-gray-500 mt-1">
-                    Longueur minimal : 8 caractères<br />
-                    Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial
-                </p>
-                <Input
-                    type="password"
-                    {...register("mot_de_passe", { required: false })}
-                />
-                {errors.mot_de_passe && <p className="text-red-500 text-xs mt-1 whitespace-pre-wrap">{errors.mot_de_passe.message}<br /></p>}
-            </div>
+                    <div className="flex flex-col">
+                        <label className="text-sm font-medium mb-1">Prénom</label>
+                        <Input
+                            type="text"
+                            {...register("prenom", { required: false })}
+                        />
+                        {errors.prenom && <p className="text-red-500 text-xs mt-1">{errors.prenom.message}</p>}
+                    </div>
 
-            <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">Confirmation du mot de passe</label>
-                <Input
-                    type="password"
-                    {...register("confirmation_mot_de_passe", { required: false })}
-                />
-                {errors.confirmation_mot_de_passe && <p className="text-red-500 text-xs mt-1">{errors.confirmation_mot_de_passe.message}</p>}
-            </div>
+                    <div className="flex flex-col">
+                        <label className="text-sm font-medium mb-1">Nom</label>
+                        <Input
+                            type="text"
+                            {...register("nom", { required: false })}
+                        />
+                        {errors.nom && <p className="text-red-500 text-xs mt-1">{errors.nom.message}</p>}
+                    </div>
 
-            <Button type="submit" className="mt-4 w-full">
-                Confirmation
-            </Button>
+                    <div className="flex flex-col">
+                        <label className="text-sm font-medium mb-1">Email</label>
+                        <Input
+                            type="email"
+                            {...register("email", { required: false })}
+                            disabled={true}
+                        />
+                    </div>
 
-            {/* <p className="text-center text-sm text-gray-700 underline font-medium mt-2 cursor-pointer">
-                S'inscrire en tant que professionnel ?
-            </p> */}
-        </form>
+                    <div className="flex flex-col">
+                        <label className="text-sm font-medium mb-1">Mot de passe</label>
+                        <p className="text-xs text-gray-500 mt-1">
+                            Longueur minimal : 8 caractères<br />
+                            Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial
+                        </p>
+                        <Input
+                            type="password"
+                            {...register("mot_de_passe", { required: false })}
+                        />
+                        {errors.mot_de_passe && <p className="text-red-500 text-xs mt-1 whitespace-pre-wrap">{errors.mot_de_passe.message}<br /></p>}
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-sm font-medium mb-1">Confirmation du mot de passe</label>
+                        <Input
+                            type="password"
+                            {...register("confirmation_mot_de_passe", { required: false })}
+                        />
+                        {errors.confirmation_mot_de_passe && <p className="text-red-500 text-xs mt-1">{errors.confirmation_mot_de_passe.message}</p>}
+                    </div>
+
+                    <Button type="submit" className="mt-4 w-full">
+                        Confirmation
+                    </Button>
+
+                    {/* <p className="text-center text-sm text-gray-700 underline font-medium mt-2 cursor-pointer">
+                        S'inscrire en tant que professionnel ?
+                    </p> */}
+                </form>
+            </main>
+        </div>
     )
 }
