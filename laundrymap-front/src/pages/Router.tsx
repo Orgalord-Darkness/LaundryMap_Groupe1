@@ -56,6 +56,7 @@ import AdminValidationLaverie from "./admin/laveries/list.tsx";
 import ProfessionnalAccountValidationList from "./admin/professional/list.tsx";
 import NewPassword from '@/components/layout/NewPassword'; 
 import AddLaundry from "./pro/addLaundry";
+import { FavorisList } from "./user/FavorisList";
 
 function ProtectedRoute({
   children,
@@ -106,6 +107,7 @@ export default function Router() {
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/user/favoris" element={<FavorisList />} />
 
       <Route path="/admin/laverie/:id" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
