@@ -5,12 +5,14 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/components/context/AuthContext";
 import axios from 'axios';
+import { RedirectDialog } from "@/components/ui/RedirectDialog";
 function AdminLogin() {
   
   const { login } = useAuth();
-  
+
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/login_check`;
-  
+
+  const [redirectOpen, setRedirectOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors]     = useState({ email: "", password: "" });
@@ -63,7 +65,7 @@ function AdminLogin() {
       }
 
       login(data.token);
-      navigate("/admin/dashboard", { state: { popup: { title: "Bienvenue", content: "Connexion réussie", variant: "success" } } });
+      setRedirectOpen(true);
     }
   };
 
@@ -95,6 +97,14 @@ function AdminLogin() {
           <Button type="submit" className="w-full">Connexion</Button>
         </div>
 
+        <RedirectDialog
+          open={redirectOpen}
+          title="Connexion réussie !"
+          message="Vous êtes maintenant connecté en tant qu'administrateur."
+          destinationLabel="votre tableau de bord"
+          duration={1500}
+          onNavigate={() => navigate("/admin/dashboard")}
+        />
       </form>
     </>
   );

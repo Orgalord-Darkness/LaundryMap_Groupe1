@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -54,6 +56,8 @@ function ProInscription() {
     country: "",
   });
 
+  const navigate = useNavigate()
+  const [redirectOpen, setRedirectOpen] = useState(false)
   const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -102,9 +106,7 @@ function ProInscription() {
     }
 
     setSuccess("Inscription réussie ! Vous pouvez maintenant vous connecter.")
-    setTimeout(() => {
-      window.location.href = '/pro/dashboard'
-    }, 5000)
+    setRedirectOpen(true)
   }
 
   return (
@@ -207,7 +209,14 @@ function ProInscription() {
           )}
       </div>
 
-
+      <RedirectDialog
+        open={redirectOpen}
+        title="Inscription réussie !"
+        message="Votre compte professionnel a été créé. Vous allez être redirigé vers votre tableau de bord."
+        destinationLabel="votre tableau de bord"
+        duration={3000}
+        onNavigate={() => navigate("/pro/dashboard")}
+      />
       </form>
     </>
   );
