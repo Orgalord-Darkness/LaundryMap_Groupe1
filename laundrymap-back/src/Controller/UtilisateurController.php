@@ -621,6 +621,7 @@ final class UtilisateurController extends AbstractController
         $prenom = htmlspecialchars($donnees['prenom'] ?? $utilisateur->getPrenom());
         $motDePasse = $donnees['mot_de_passe'] ?? '';
         $confirmationMotDePasse = $donnees['confirmation_mot_de_passe'] ?? '';
+        $motDePasseActuel = $donnees['mot_de_passe_actuel'] ?? '';
 
         $changed = false;
         if ($nom !== $utilisateur->getNom() || $prenom !== $utilisateur->getPrenom()) {
@@ -629,6 +630,14 @@ final class UtilisateurController extends AbstractController
 
         if ($motDePasse !== '' || $confirmationMotDePasse !== '') {
             $changed = true;
+
+            if ($motDePasseActuel === '') {
+                $messages['mot_de_passe_actuel'] = "Le mot de passe actuel est requis pour modifier le mot de passe.";
+                $isGood = false;
+            } elseif (!$passwordHasher->isPasswordValid($utilisateur, $motDePasseActuel)) {
+                $messages['mot_de_passe_actuel'] = "Le mot de passe actuel est incorrect.";
+                $isGood = false;
+            }
 
             if ($motDePasse !== $confirmationMotDePasse) {
                 $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe ne correspond pas.";
@@ -680,11 +689,6 @@ final class UtilisateurController extends AbstractController
                 $messages['mot_de_passe'][] = "Le mot de passe doit contenir au moins 1 caractère spécial.";
                 $isGood = false;
             }    
-        } else {
-            if (!empty($motDePasse)) {
-                $messages['confirmation_mot_de_passe'] = "La confirmation du mot de passe est requise lorsque le mot de passe est modifié.";
-                $isGood = false;
-            }
         }
         
 
