@@ -92,11 +92,11 @@ export function FilterModal({ open, onOpenChange, filters, onFiltersChange }: Fi
                     }}
                 />
 
-                <DialogFooter className="flex-col sm:flex-row">
-                    <Button variant="outline" className="w-full sm:w-auto" onClick={handleReset}>
+                <DialogFooter>
+                    <Button variant="outline" onClick={handleReset}>
                         Réinitialiser
                     </Button>
-                    <Button className="w-full sm:w-auto" onClick={handleApply}>
+                    <Button onClick={handleApply}>
                         Appliquer
                     </Button>
                 </DialogFooter>
