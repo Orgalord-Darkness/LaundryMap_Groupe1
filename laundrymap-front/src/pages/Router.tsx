@@ -57,6 +57,8 @@ import ProfessionnalAccountValidationList from "./admin/professional/list.tsx";
 import NewPassword from '@/components/layout/NewPassword'; 
 import AddLaundry from "./pro/addLaundry";
 import { FavorisList } from "./user/FavorisList";
+import FicheLaverie from "./user/ficheLaverie";
+
 
 function ProtectedRoute({
   children,
@@ -126,6 +128,16 @@ export default function Router() {
           <FormEditLaverie />
         </ProtectedRoute>
       } />
+
+
+      {/* ── Utilisateur ── */}
+      <Route path="/user/fiche-laverie/:id" element={
+        <ProtectedRoute allowedRoles={["professionnel"]}>
+          <FicheLaverie />
+        </ProtectedRoute>
+      } />
+
+
 
       
       {/* ── Professionnel ── */}
