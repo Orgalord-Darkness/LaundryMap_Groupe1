@@ -380,12 +380,12 @@ function AddLaundry() {
 
 
          {/* Wi-Line */}
-            <Field className="w-85 m-auto mt-10">
+            <Field className="w-full max-w-md mx-auto mt-10">
                 <FieldLabel htmlFor="wilineCode">Code Wi-Line</FieldLabel>
                 <FieldDescription>
                     Numéro de série de votre centrale Wi-Line. Cliquez sur "Importer" pour pré-remplir automatiquement l'adresse, les machines et les horaires.
                 </FieldDescription>
-                <div className="flex gap-2 w-full">
+                <div className="flex gap-2 mt-2 w-full">
                     <Input
                         id="wilineCode"
                         type="text"
@@ -398,7 +398,7 @@ function AddLaundry() {
                         type="button"
                         onClick={handleWilineImport}
                         disabled={!wilineCode.trim() || wilineLoading}
-                        className="h-11 whitespace-nowrap"
+                        className="h-11 whitespace-nowrap px-4 py-2"
                     >
                         {wilineLoading ? 'Chargement…' : 'Importer'}
                     </Button>
