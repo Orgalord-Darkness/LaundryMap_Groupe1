@@ -8,35 +8,62 @@ export function Header() {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "10px 16px",
-        background: "#ffffff",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+        gap: "8px",
+        padding: "10px 12px",
+        background: "linear-gradient(90deg, #1ab3d8 0%, #4ecfee 100%)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
         position: "sticky",
         top: 0,
         zIndex: 100,
+        minHeight: "72px",
       }}
     >
-      {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <div style={{
-          width: "46px", height: "46px",
-          background: "linear-gradient(135deg, #2bbcd4, #1a9ab0)",
-          borderRadius: "50%", display: "flex",
-          alignItems: "center", justifyContent: "center",
-          boxShadow: "0 2px 8px rgba(43,188,212,0.3)",
-        }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-            <circle cx="12" cy="9" r="2.5" />
-          </svg>
-        </div>
-        <span style={{ fontWeight: 700, fontSize: "17px", color: "#1a1a1a", letterSpacing: "-0.3px" }}>
-          LaundryMap
-        </span>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <LanguageSwitcher />
+      {/* Burger — taille fixe */}
+      <div style={{ flexShrink: 0 }}>
         <BurgerMenu />
+      </div>
+
+      {/* Logo centré */}
+      <div style={{
+        flex: "1 1 0",
+        minWidth: 0,
+        display: "flex",
+        justifyContent: "center",
+      }}>
+        <div style={{
+          background: "#ffffff",
+          borderRadius: "12px",
+          padding: "8px 16px",
+          display: "flex",
+          alignItems: "center",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+          maxWidth: "220px",
+          width: "100%",
+          justifyContent: "center",
+          overflow: "hidden",
+        }}>
+          <img
+            src="/fichiers/logo/logo_titre.png"
+            alt="LaundryMap"
+            style={{
+              height: "52px",
+              width: "auto",
+              maxWidth: "100%",
+              display: "block",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Language switcher */}
+      <div style={{
+        flexShrink: 0,
+        background: "#ffffff",
+        borderRadius: "8px",
+        padding: "4px 10px",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+      }}>
+        <LanguageSwitcher />
       </div>
     </header>
   );
