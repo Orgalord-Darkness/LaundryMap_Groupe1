@@ -65,7 +65,9 @@ function ProtectedRoute({
   children: React.ReactNode;
   allowedRoles: Role[];
 }) {
-  const { role } = useAuth();
+  const { role, isLoading } = useAuth();
+
+  if (isLoading) return null;
 
   if (!allowedRoles.includes(role)) {
     if (role === "guest")          return <Navigate to="/" replace />;

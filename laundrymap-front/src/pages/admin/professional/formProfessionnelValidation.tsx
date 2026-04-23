@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { RedirectDialog } from '@/components/ui/RedirectDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -48,6 +49,7 @@ export default function FormProfessionnelValidation() {
     const [motifError, setMotifError] = useState('')
     const [submitting, setSubmitting] = useState(false)
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+    const [redirectOpen, setRedirectOpen] = useState(false)
 
     useEffect(() => {
         if (!id) return
@@ -78,8 +80,7 @@ export default function FormProfessionnelValidation() {
                     ? 'Compte professionnel validé avec succès.'
                     : 'Compte professionnel refusé.',
             })
-
-            setTimeout(() => navigate('/admin/professionnal/validation'), 1500)
+            setRedirectOpen(true)
         } catch {
             setFeedback({ type: 'error', message: 'Une erreur est survenue lors de l\'action.' })
         } finally {
@@ -216,6 +217,15 @@ export default function FormProfessionnelValidation() {
                     Valider
                 </Button>
             </div>
+
+            <RedirectDialog
+                open={redirectOpen}
+                title="Action effectuée"
+                message={feedback?.message ?? ""}
+                destinationLabel="la liste de validation"
+                duration={1500}
+                onNavigate={() => navigate('/admin/professionnal/validation')}
+            />
         </form>
     )
 }

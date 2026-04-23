@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -64,6 +65,7 @@ function AddLaundry() {
   const [apiError, setApiError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
+  const [redirectOpen, setRedirectOpen] = useState(false)
 
   // Aperçu du logo
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -235,7 +237,7 @@ function AddLaundry() {
         const data = await response.json()
         if (response.ok) {
           setSuccess("Laverie ajoutée avec succès !")
-          setTimeout(() => navigate('/pro/dashboard'), 1500)
+          setRedirectOpen(true)
         } else {
           setApiError(data.message ?? "Une erreur est survenue.")
         }
@@ -466,13 +468,20 @@ function AddLaundry() {
         {apiError && <p className="text-red-500 text-sm mt-4 font-semibold">{apiError}</p>}
         {success  && <p className="text-green-600 text-sm mt-4 font-semibold">{success}</p>}
 
-
         <div className='flex flex-col items-center justify-center my-12'>
           <Button type="submit" disabled={loading}>
             {loading ? "Envoi en cours..." : "Ajouter une laverie"}
           </Button>
         </div>
 
+        <RedirectDialog
+          open={redirectOpen}
+          title="Laverie ajoutée !"
+          message="Laverie ajoutée avec succès."
+          destinationLabel="votre tableau de bord"
+          duration={1500}
+          onNavigate={() => navigate('/pro/dashboard')}
+        />
       </form>
     </>
   );

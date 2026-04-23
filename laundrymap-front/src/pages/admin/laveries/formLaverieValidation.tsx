@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { RedirectDialog } from '@/components/ui/RedirectDialog'
 import { Button } from "@/components/ui/button"
 import { Textarea } from '@/components/ui/textarea'
 import { FieldLabel } from "@/components/ui/field"
@@ -42,6 +43,7 @@ export default function LaverieValidation() {
     const [motifError, setMotifError] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null)
+    const [redirectOpen, setRedirectOpen] = useState(false)
 
     const fetchLaverieData = async () => {
         try {
@@ -86,13 +88,13 @@ console.log("api =", api)
                 type: "success",
                 message: action === "VALIDE" ? "Laverie validée." : "Laverie refusée.",
             })
-
             await fetchLaverieData()
+            setRedirectOpen(true)
         } catch (err) {
             setFeedback({ type: "error", message: "Une erreur est survenue lors de l'action." })
+            setRedirectOpen(true)
         } finally {
             setSubmitting(false)
-            navigate('/admin/laveries/list')
         }
     }
 
@@ -251,6 +253,16 @@ console.log("api =", api)
                 Valider
             </Button>
         </div>
+
+        <RedirectDialog
+            open={redirectOpen}
+            title={feedback?.type === 'success' ? "Action effectuée" : "Erreur"}
+            message={feedback?.message ?? ""}
+            destinationLabel="la liste des laveries"
+            variant={feedback?.type === 'error' ? 'error' : 'success'}
+            duration={1500}
+            onNavigate={() => navigate('/admin/laveries/list')}
+        />
     </form>
 
     )
