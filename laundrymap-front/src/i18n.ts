@@ -12,6 +12,7 @@ const resources = {
       en_tant_que_professionnel: 'en tant que professionnel',
       mes_informations: 'Mes informations',
       modifier_mes_informations: 'Modifier mes informations',
+      consigne_co_pro: 'Se connecter en tant que professionnel ?',
       // Recherche / carte
       search_placeholder: 'Ville, adresse ou code postal...',
       search_button: 'Rechercher',
@@ -21,6 +22,9 @@ const resources = {
       search_error: 'Une erreur est survenue. Veuillez réessayer.',
       search_open: 'Ouverte',
       search_loading: 'Recherche en cours...',
+      consigne_co_google: 'Si vous utilisez votre compte google merci de cliquer sur le bouton ci-dessous pour vous connecter', 
+      mdp_oublie: 'Mot de passe oublié ?',
+      lien_inscription: 'Pas de compte ? Cliquer ici pour s\'inscrire',
     },
   },
   en: {
@@ -33,6 +37,10 @@ const resources = {
       en_tant_que_professionnel: 'as professional',
       mes_informations: 'My information',
       modifier_mes_informations: 'Update my information',
+      consigne_co_pro: 'Login as a professional ?',
+      consigne_co_google: 'If you are using your google account please click on the button below to login', 
+      mdp_oublie: 'Forgot password ?',
+      lien_inscription: 'No account ? Click here to register', 
       // Search / map
       search_placeholder: 'City, address or postal code...',
       search_button: 'Search',
