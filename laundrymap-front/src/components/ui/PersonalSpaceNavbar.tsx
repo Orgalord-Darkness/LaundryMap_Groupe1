@@ -6,6 +6,8 @@
 //   active   — onglet actuellement actif (doit correspondre à l'une des valeurs de TABS)
 //   onChange — callback appelé avec la valeur de l'onglet sélectionné
 
+import { useAuth } from "@/components/context/AuthContext"
+
 export const PERSONAL_SPACE_TABS = ["Profil", "Favoris", "Préférences", "Avis"] as const
 export type PersonalSpaceTab = (typeof PERSONAL_SPACE_TABS)[number]
 
@@ -16,19 +18,26 @@ export const TAB_ROUTES: Record<PersonalSpaceTab, string | null> = {
     Avis: null,
 }
 
+const TABS_HIDDEN_FOR_PRO: PersonalSpaceTab[] = ["Favoris", "Avis"]
+
 interface PersonalSpaceNavbarProps {
     active: PersonalSpaceTab
     onChange: (tab: PersonalSpaceTab) => void
 }
 
 export function PersonalSpaceNavbar({ active, onChange }: PersonalSpaceNavbarProps) {
+    const { role } = useAuth()
+    const visibleTabs = PERSONAL_SPACE_TABS.filter(
+        (tab) => role !== "professionnel" || !TABS_HIDDEN_FOR_PRO.includes(tab)
+    )
+
     return (
         <nav aria-label="Navigation espace personnel" className="w-full">
             <div
                 role="tablist"
                 className="flex items-center w-full border-b border-gray-200 bg-white"
             >
-                {PERSONAL_SPACE_TABS.map((tab) => {
+                {visibleTabs.map((tab) => {
                     const isActive = tab === active
                     return (
                         <button

@@ -109,7 +109,11 @@ export default function Router() {
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/user/favoris" element={<FavorisList />} />
+      <Route path="/user/favoris" element={
+        <ProtectedRoute allowedRoles={["utilisateur"]}>
+          <FavorisList />
+        </ProtectedRoute>
+      } />
 
       <Route path="/admin/laverie/:id" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
