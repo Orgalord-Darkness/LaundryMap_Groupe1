@@ -59,5 +59,6 @@ security:
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/laverie/search, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/laverie/filter-search, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/fiche-laverie, roles: PUBLIC_ACCESS }
         # Optionnel : décommenter pour sécuriser globalement
         # - { path: ^/api/v1/admin, roles: ROLE_ADMIN }

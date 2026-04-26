@@ -111,6 +111,8 @@ export default function Router() {
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/user/fiche-laverie/:id" element={ <FicheLaverie /> } /> 
+      
       <Route path="/user/favoris" element={
         <ProtectedRoute allowedRoles={["utilisateur"]}>
           <FavorisList />
@@ -132,14 +134,6 @@ export default function Router() {
       <Route path="/pro/laverie/:id" element={
         <ProtectedRoute allowedRoles={["professionnel"]}>
           <FormEditLaverie />
-        </ProtectedRoute>
-      } />
-
-
-      {/* ── Utilisateur ── */}
-      <Route path="/user/fiche-laverie/:id" element={
-        <ProtectedRoute allowedRoles={["professionnel"]}>
-          <FicheLaverie />
         </ProtectedRoute>
       } />
 
