@@ -3,10 +3,13 @@ import { useForm, type SubmitHandler } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/context/AuthContext"
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldLabel, FieldGroup } from "@/components/ui/field"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import { RedirectDialog } from "@/components/ui/RedirectDialog"
+import { useTranslation } from "react-i18next"
+
+
 
 type Inputs = {
     email: string
@@ -16,6 +19,9 @@ type Inputs = {
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/login_check`
 
 function ProLogin() {
+
+    const { t } = useTranslation()
+
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
     const [redirectOpen, setRedirectOpen] = useState(false)
@@ -25,7 +31,7 @@ function ProLogin() {
         if (successMessage) {
             const timer = setTimeout(() => {
                 setSuccessMessage("")
-            }, 5000)
+            }, 3000)
             return () => clearTimeout(timer)
         }
     }, [successMessage])
@@ -58,7 +64,7 @@ function ProLogin() {
                     })
                 })
                 return
-             }
+            }
 
             localStorage.setItem("token", data.token_data)
             login(data.token_data)
@@ -70,66 +76,102 @@ function ProLogin() {
         }
     }
 
+
+
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center p-4">
+        <>
 
-            <h1 className="font-bold text-2xl mt-6">Connexion</h1>
-            <p className="text-gray-500 text-center mt-2">Se connecter en tant que professionnel</p>
 
-            {successMessage && (
-                <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
-                    {successMessage}
+        <div className="grid min-h-svh lg:grid-cols-2">
+            <div className="flex flex-col gap-4 lg:gap-0 p-6 md:p-10">
+
+                <div className="flex justify-center gap-2">
+                    <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
+                        <img src="../public/logo_ec2e.png"  alt="Image" className="w-82" />
+                    </a>
                 </div>
-            )}
 
-            <Field className="w-11/12 max-w-md mt-16">
-                <FieldLabel htmlFor="email">Email <span className="text-orange-600">*</span></FieldLabel>
-                <Input
-                    id="email"
-                    type="email"
-                    placeholder="votre@email.com"
-                    className="h-11"
-                    {...register("email", { required: "L'email est requis" })}
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-            </Field>
+                <div className="flex flex-1 items-center justify-center">
+                    <div className="w-full max-w-md">
 
-            <Field className="w-11/12 max-w-md mt-4">
-                <FieldLabel htmlFor="mot_de_passe">Mot de passe <span className="text-orange-600">*</span></FieldLabel>
-                <Input
-                    id="mot_de_passe"
-                    type="password"
-                    placeholder="••••••••"
-                    className="h-11"
-                    {...register("mot_de_passe", { required: "Le mot de passe est requis" })}
-                />
-                <FieldDescription>Ne communiquez pas votre mot de passe.</FieldDescription>
-                {errors.mot_de_passe && <p className="text-red-500 text-sm mt-1">{errors.mot_de_passe.message}</p>}
-            </Field>
+                        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
 
-            <p className="text-sm text-right w-11/12 max-w-md mt-2">
-                <a href="/pro/mot-de-passe-oublie" className="text-blue-500 hover:underline">Mot de passe oublié ?</a>
-            </p>
+                            {successMessage && (
+                                <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                                    {successMessage}
+                                </div>
+                            )}
 
-            <div className="w-11/12 max-w-md mt-4 text-center">
-                <p className="text-sm inline">Pas de compte ?{" "}
-                    <a href="/pro/inscription" className="text-blue-500 hover:underline">S'inscrire</a>
-                </p>
+                            <FieldGroup>
+
+                                <div className="flex flex-col items-center gap-1 text-center">
+                                    <h1 className="text-2xl font-bold">{t("connexion")}</h1>
+                                    <p className="text-sm text-balance text-muted-foreground">
+                                        {t("connexion")}  {t("en_tant_que_professionnel")}
+                                    </p>
+                                </div>
+
+                                <Field>
+                                    <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
+                                    <Input id="email" type="email" placeholder="lambert@example.net" required {...register("email", { required: "L'email est requis" })}/>
+                                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+                                </Field>
+
+                                <Field>
+                                    <div className="flex items-center">
+                                        <FieldLabel htmlFor="mot_de_passe">{t("mot_de_passe")}</FieldLabel>
+                                        <a
+                                        href="/pro/mot-de-passe-oublie"
+                                        className="ml-auto text-sm underline-offset-4 hover:underline"
+                                        >
+                                        {t("mot_de_passe_oublie")}
+                                        </a>
+                                    </div>
+                                    <Input id="mot_de_passe" type="password" required {...register("mot_de_passe", { required: "Le mot de passe est requis" })}/>
+                                    {errors.mot_de_passe && <p className="text-red-500 text-sm mt-1">{errors.mot_de_passe.message}</p>}
+                                </Field>
+
+                                <Field>
+                                    <Button type="submit">{t("connexion")}</Button>
+                                </Field>
+                                       
+                                <Field>
+                                    <FieldDescription className="text-center">
+                                        {t("pas_de_compte")}{" "}
+                                        <a href="/pro/inscription" className="underline underline-offset-4">
+                                            {t("inscription")}
+                                        </a>
+                                    </FieldDescription>
+                                </Field>
+
+                            </FieldGroup>
+
+                            <RedirectDialog
+                                open={redirectOpen}
+                                title="Connexion réussie !"
+                                message="Vous êtes maintenant connecté en tant que professionnel."
+                                destinationLabel="votre tableau de bord"
+                                duration={1500}
+                                onNavigate={() => navigate("/pro/dashboard")}
+                            />
+
+                        </form>
+
+                    </div>
+                </div>
             </div>
 
-            <div className="w-11/12 max-w-md mt-8">
-                <Button type="submit" className="w-full">Connexion</Button>
+            <div className="relative hidden bg-muted lg:block">
+                <img src="../public/laundry_cartoon.jpg" alt="Image"
+                className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
             </div>
 
-            <RedirectDialog
-                open={redirectOpen}
-                title="Connexion réussie !"
-                message="Vous êtes maintenant connecté en tant que professionnel."
-                destinationLabel="votre tableau de bord"
-                duration={1500}
-                onNavigate={() => navigate("/pro/dashboard")}
-            />
-        </form>
+
+        </div>
+
+
+    </>
     )
 }
 
