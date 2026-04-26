@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
 import GoogleLoginButton from "@/components/utils/google"
 import axios from "axios"
 
@@ -17,6 +18,7 @@ const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription
 
 export default function Inscription() {
     const [successMessage, setSuccessMessage] = useState("");
+    const [cguAccepted, setCguAccepted] = useState(false);
     
     useEffect(() => {
         if (successMessage) {
@@ -222,11 +224,17 @@ export default function Inscription() {
                     )}
                 </div>
 
+                <CGUAcceptCheckbox
+                    checked={cguAccepted}
+                    onChange={setCguAccepted}
+                />
+
                 <Button
                     type="submit"
                     tabIndex={6}
                     className="mt-4 w-full"
                     aria-label="Confirmer l'inscription"
+                    disabled={!cguAccepted}
                 >
                     Confirmation
                 </Button>

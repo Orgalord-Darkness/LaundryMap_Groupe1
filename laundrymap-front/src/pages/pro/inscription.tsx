@@ -5,7 +5,8 @@ import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'; 
+import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 function ProInscription() {
 
@@ -60,6 +61,7 @@ function ProInscription() {
   const [redirectOpen, setRedirectOpen] = useState(false)
   const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState("");
+  const [cguAccepted, setCguAccepted] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors = {
@@ -190,8 +192,12 @@ function ProInscription() {
           {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
         </Field>
 
-        <div className='flex flex-col items-center justify-center my-12'>
-          <Button type="submit">Inscription</Button>
+        <div className='w-85 m-auto mt-6'>
+          <CGUAcceptCheckbox checked={cguAccepted} onChange={setCguAccepted} />
+        </div>
+
+        <div className='flex flex-col items-center justify-center my-6'>
+          <Button type="submit" disabled={!cguAccepted}>Inscription</Button>
         </div>
         <div className="flex flex-col items-center gap-2 mt-4 mb-2">
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>

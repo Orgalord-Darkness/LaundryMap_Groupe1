@@ -58,6 +58,8 @@ import NewPassword from '@/components/layout/NewPassword';
 import AddLaundry from "./pro/addLaundry";
 import { FavorisList } from "./user/FavorisList";
 import FicheLaverie from "./user/ficheLaverie";
+import MentionsLegales from "./legal/MentionsLegales";
+import CGU from "./legal/CGU";
 
 
 function ProtectedRoute({
@@ -111,7 +113,9 @@ export default function Router() {
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/user/fiche-laverie/:id" element={ <FicheLaverie /> } /> 
+      <Route path="/user/fiche-laverie/:id" element={ <FicheLaverie /> } />
+      <Route path="/mentions-legales" element={<MentionsLegales />} />
+      <Route path="/cgu" element={<CGU />} />
       
       <Route path="/user/favoris" element={
         <ProtectedRoute allowedRoles={["utilisateur"]}>
