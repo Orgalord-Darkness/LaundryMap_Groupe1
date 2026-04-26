@@ -7,6 +7,7 @@ import { useAuth } from "@/components/context/AuthContext"
 import GoogleLoginButton from "@/components/utils/google"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import { RedirectDialog } from "@/components/ui/RedirectDialog"
 
 type Inputs = {
     email: string
@@ -19,6 +20,7 @@ export default function Connexion() {
     const { t } = useTranslation()
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
+    const [redirectOpen, setRedirectOpen] = useState(false)
     
     useEffect(() => {
         if (successMessage) {
@@ -65,10 +67,7 @@ export default function Connexion() {
             login(data.token_data)
 
             setSuccessMessage("Connexion réussie !")
-
-            setTimeout(() => {
-            navigate("/")
-            }, 2000)
+            setRedirectOpen(true)
 
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)
@@ -109,7 +108,7 @@ export default function Connexion() {
             </p>
 
             <a href="/pro/login" className="text-center text-sm text-gray-700 underline font-medium cursor-pointer" aria-label="Se connecter en tant que professionnel">
-                Se connecter en tant que professionnel ?
+               {t('consigne_co_pro')}
             </a>
 
             {successMessage && (
@@ -152,22 +151,30 @@ export default function Connexion() {
 
             <div className="flex justify-end">
                 <a href="/user/mot-de-passe-oublie" className="text-sm text-gray-700 underline underline-offset-2 hover:text-[#1e90d6] transition-colors" aria-label="Mot de passe oublié">
-                    Mot de passe oublié ?
+                    {t('mdp_oublie')}
                 </a>
             </div>
 
             <a href='/user/inscription' className="text-center text-sm text-gray-700 underline font-medium cursor-pointer" aria-label="S'inscrire en tant qu'utilisateur">
-                Pas de compte ? Cliquer ici pour s'inscrire
+                {t('lien_inscription')}
             </a>
 
             <Button type="submit" className="mt-2 w-full h-12 rounded-xl" aria-label='Se connecter'>
-                Se connecter
+                {t('connexion')}
             </Button>
+            <p className="text-center text-sm text-gray-600 mt-4">{t('consigne_co_google')}</p>
             <GoogleLoginButton
                 route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`}
                 title='Se connecter avec Google'
                 onSuccess={() => setSuccessMessage("Connexion Google réussie !")}
             />
+        <RedirectDialog
+            open={redirectOpen}
+            title="Connexion réussie !"
+            message="Vous êtes maintenant connecté."
+            destinationLabel="l'accueil"
+            onNavigate={() => navigate("/")}
+          />
         </form>
     )
 }

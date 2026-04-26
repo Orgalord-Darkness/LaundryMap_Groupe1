@@ -67,7 +67,9 @@ function ProtectedRoute({
   children: React.ReactNode;
   allowedRoles: Role[];
 }) {
-  const { role } = useAuth();
+  const { role, isLoading } = useAuth();
+
+  if (isLoading) return null;
 
   if (!allowedRoles.includes(role)) {
     if (role === "guest")          return <Navigate to="/" replace />;
@@ -109,9 +111,13 @@ export default function Router() {
       <Route path="/pro/inscription" element={<ProInscription />} />
       <Route path="/pro/login" element={<ProLogin />} />
       <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/user/favoris" element={<FavorisList />} />
       <Route path="/user/fiche-laverie/:id" element={ <FicheLaverie /> } /> 
       
+      <Route path="/user/favoris" element={
+        <ProtectedRoute allowedRoles={["utilisateur"]}>
+          <FavorisList />
+        </ProtectedRoute>
+      } />
 
       <Route path="/admin/laverie/:id" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>

@@ -11,6 +11,7 @@ type Inputs = {
     prenom: string
     nom: string
     email: string
+    mot_de_passe_actuel: string
     mot_de_passe: string
     confirmation_mot_de_passe: string
 }
@@ -77,6 +78,16 @@ export default function MonProfi() {
         try {
             const token = localStorage.getItem("token")
 
+            if ((donnees.mot_de_passe || "").trim()) {
+                if (!(donnees.mot_de_passe_actuel || "").trim()) {
+                    setError("mot_de_passe_actuel", {
+                        type: "manual",
+                        message: "Le mot de passe actuel est requis pour modifier le mot de passe.",
+                    })
+                    return
+                }
+            }
+
             // validation front sur les mots de passe pour éviter le 400 de confirmation
             if ((donnees.mot_de_passe || "").trim() || (donnees.confirmation_mot_de_passe || "").trim()) {
                 if (donnees.mot_de_passe !== donnees.confirmation_mot_de_passe) {
@@ -95,6 +106,7 @@ export default function MonProfi() {
             }
 
             if ((donnees.mot_de_passe || "").trim()) {
+                payload.mot_de_passe_actuel = donnees.mot_de_passe_actuel
                 payload.mot_de_passe = donnees.mot_de_passe
                 payload.confirmation_mot_de_passe = donnees.confirmation_mot_de_passe
             }
@@ -125,13 +137,20 @@ export default function MonProfi() {
 
             if (axios.isAxiosError(erreur) && erreur.response) {
                 const data = erreur.response.data
+                console.log("data reponse back:", JSON.stringify(data))
 
                 if (data && typeof data === "object") {
-                    Object.keys(data).forEach((champ) => {
-                        setError(champ as keyof Inputs, {
-                            type: "server",
-                            message: data[champ],
-                        })
+                    const erreurs = data.erreurs ?? data.errors ?? data
+                    console.log("erreurs extraites:", JSON.stringify(erreurs))
+                    Object.keys(erreurs).forEach((champ) => {
+                        if (champ !== "message") {
+                            setError(champ as keyof Inputs, {
+                                type: "server",
+                                message: Array.isArray(erreurs[champ])
+                                    ? erreurs[champ].join(" ")
+                                    : erreurs[champ],
+                            })
+                        }
                     })
                     return
                 }
@@ -201,7 +220,16 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Mot de passe</label>
+                        <label className="text-sm font-medium mb-1">Mot de passe actuel</label>
+                        <Input
+                            type="password"
+                            {...register("mot_de_passe_actuel", { required: false })}
+                        />
+                        {errors.mot_de_passe_actuel && <p className="text-red-500 text-xs mt-1">{errors.mot_de_passe_actuel.message}</p>}
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-sm font-medium mb-1">Nouveau Mot de passe</label>
                         <p className="text-xs text-gray-500 mt-1">
                             Longueur minimal : 8 caractères<br />
                             Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial
@@ -214,7 +242,7 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Confirmation du mot de passe</label>
+                        <label className="text-sm font-medium mb-1">Confirmation du nouveau mot de passe</label>
                         <Input
                             type="password"
                             {...register("confirmation_mot_de_passe", { required: false })}
