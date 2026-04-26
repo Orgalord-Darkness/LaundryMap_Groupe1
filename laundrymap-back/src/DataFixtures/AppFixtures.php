@@ -439,7 +439,7 @@ class AppFixtures extends Fixture
                 'laverie'              => $laveries[0],
                 'equipement_reference' => 1,
                 'nom'                  => 'Machine à laver',
-                'type'                 => EquipementEnum::BANC,
+                'type'                 => EquipementEnum::MACHINE_A_LAVER,
                 'capacite'             => 7,
                 'tarif'                => 3.00,
                 'duree'                => 30,
@@ -448,7 +448,7 @@ class AppFixtures extends Fixture
                 'laverie'              => $laveries[1],
                 'equipement_reference' => 2,
                 'nom'                  => 'Machine à laver',
-                'type'                 => EquipementEnum::DISTRIBUTEUR_LESSIVE,
+                'type'                 => EquipementEnum::MACHINE_A_LAVER,
                 'capacite'             => 10,
                 'tarif'                => 5.00,
                 'duree'                => 45,
@@ -541,11 +541,14 @@ class AppFixtures extends Fixture
             ['nom' => 'Carte Fidélité'],
         ];
 
+        $methodePaiements = [];
         foreach ($methodePaiementData as $data) {
             $methodePaiement = new MethodePaiement();
             $methodePaiement->setNom($data['nom']);
             $manager->persist($methodePaiement);
+            $methodePaiements[] = $methodePaiement;
         }
+        // $methodePaiements[0]=Carte Bleue | [1]=Billet | [2]=Pièces | [3]=Carte Fidélité
 
 
          
@@ -577,11 +580,14 @@ class AppFixtures extends Fixture
             ['nom' => 'Distributeur de snack'],
         ];
 
+        $services = [];
         foreach ($serviceData as $data) {
             $service = new Service();
             $service->setNom($data['nom']);
             $manager->persist($service);
+            $services[] = $service;
         }
+        // $services[0]=Distrib. lessive | [1]=Wi-Fi | [2]=Table | [3]=Parking | [4]=Distrib. snack
 
 
          
@@ -1326,6 +1332,7 @@ class AppFixtures extends Fixture
             ],
         ];
 
+        $laveriesGeo = [];
         foreach ($laveriesGeoData as $data) {
             $laverie = new Laverie();
             $laverie->setProfessionnel($data['professionnel']);
@@ -1340,7 +1347,102 @@ class AppFixtures extends Fixture
             $laverie->setSupprimeLe($data['supprimee_le']);
 
             $manager->persist($laverie);
+            $laveriesGeo[] = $laverie;
         }
+        // $laveriesGeo[0]=Laverie du Bourg      | [1]=Laverie de la Gare      | [2]=Laverie des Princes
+        // $laveriesGeo[3]=Laverie de la Cathédrale | [4]=Laverie du Parc
+        // $laveriesGeo[5..9]=Survilliers suite  | [9]=Laverie de la Forêt
+
+        // ── RELATIONS COMPLÈTES — LAVERIE DE LA CATHÉDRALE [3] & LAVERIE DE LA FORÊT [9] ──
+        // Permet de tester la fiche laverie avec toutes les sections visibles.
+
+        foreach ([$laveriesGeo[3], $laveriesGeo[9]] as $laverieCible) {
+            foreach ($services as $service) {
+                $laverieCible->addService($service);
+            }
+            foreach ($methodePaiements as $methode) {
+                $laverieCible->addMethodePaiement($methode);
+            }
+        }
+
+        foreach ([
+            ['laverie' => $laveriesGeo[3], 'ref' => 10, 'nom' => 'Machine à laver',   'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 8,  'tarif' => 3.50, 'duree' => 35],
+            ['laverie' => $laveriesGeo[3], 'ref' => 11, 'nom' => 'Machine à laver XL', 'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 14, 'tarif' => 5.00, 'duree' => 45],
+            ['laverie' => $laveriesGeo[3], 'ref' => 12, 'nom' => 'Sèche-linge',        'type' => EquipementEnum::SECHE_LINGE,     'capacite' => 8,  'tarif' => 1.50, 'duree' => 20],
+            ['laverie' => $laveriesGeo[9], 'ref' => 13, 'nom' => 'Machine à laver',   'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 7,  'tarif' => 3.00, 'duree' => 30],
+            ['laverie' => $laveriesGeo[9], 'ref' => 14, 'nom' => 'Sèche-linge',        'type' => EquipementEnum::SECHE_LINGE,     'capacite' => 7,  'tarif' => 1.50, 'duree' => 20],
+        ] as $d) {
+            $eq = new LaverieEquipement();
+            $eq->setLaverie($d['laverie'])
+               ->setEquipementReference($d['ref'])
+               ->setNom($d['nom'])
+               ->setType($d['type'])
+               ->setCapacite($d['capacite'])
+               ->setTarif($d['tarif'])
+               ->setDuree($d['duree']);
+            $manager->persist($eq);
+        }
+
+        $horairesGeo = [
+            [JourEnum::LUNDI,    '08:00', '12:00', '14:00', '19:30'],
+            [JourEnum::MARDI,    '08:00', '12:00', '14:00', '19:30'],
+            [JourEnum::MERCREDI, '08:00', '12:00', '14:00', '19:30'],
+            [JourEnum::JEUDI,    '08:00', '12:00', '14:00', '19:30'],
+            [JourEnum::VENDREDI, '08:00', '12:00', '14:00', '19:30'],
+            [JourEnum::SAMEDI,   '09:00', '12:30', '14:00', '18:00'],
+            [JourEnum::DIMANCHE, '09:00', '12:00', null,    null   ],
+        ];
+        foreach ([$laveriesGeo[3], $laveriesGeo[9]] as $laverieCible) {
+            foreach ($horairesGeo as [$jour, $debAm, $finAm, $debPm, $finPm]) {
+                $fam = new LaverieFermeture();
+                $fam->setLaverie($laverieCible)
+                    ->setJour($jour)
+                    ->setDateAjout(new \DateTime('2026-02-01 09:00:00'))
+                    ->setDateModification(new \DateTime('2026-02-01 09:00:00'))
+                    ->setHeureDebut(new \DateTime("1970-01-01 {$debAm}:00"))
+                    ->setHeureFin(new \DateTime("1970-01-01 {$finAm}:00"));
+                $manager->persist($fam);
+
+                if ($debPm !== null) {
+                    $fpm = new LaverieFermeture();
+                    $fpm->setLaverie($laverieCible)
+                        ->setJour($jour)
+                        ->setDateAjout(new \DateTime('2026-02-01 09:00:00'))
+                        ->setDateModification(new \DateTime('2026-02-01 09:00:00'))
+                        ->setHeureDebut(new \DateTime("1970-01-01 {$debPm}:00"))
+                        ->setHeureFin(new \DateTime("1970-01-01 {$finPm}:00"));
+                    $manager->persist($fpm);
+                }
+            }
+        }
+
+        foreach ([
+            [$laveriesGeo[3], $users[0], 5, 'Laverie magnifique, en plein cœur de Senlis. Machines impeccables !', '2026-03-10 10:00:00', '2026-03-10 10:05:00', 'Merci ! À bientôt à la Cathédrale !', '2026-03-11 08:00:00'],
+            [$laveriesGeo[3], $users[1], 3, 'Correct mais un peu cher pour la région.',                              '2026-03-15 14:00:00', '2026-03-15 14:10:00', null, null],
+            [$laveriesGeo[9], $users[0], 4, 'Cadre verdoyant, très agréable. Machines en bon état.',                 '2026-03-12 11:00:00', '2026-03-12 11:05:00', 'Merci ! La forêt nous inspire !', '2026-03-13 09:00:00'],
+        ] as [$lav, $user, $note, $comment, $noteLe, $commentLe, $reponse, $repondLe]) {
+            $n = new LaverieNote();
+            $n->setLaverie($lav)
+              ->setUtilisateur($user)
+              ->setNote($note)
+              ->setNoteLe(new \DateTime($noteLe))
+              ->setCommentaire($comment)
+              ->setCommentaireLe(new \DateTime($commentLe))
+              ->setReponse($reponse)
+              ->setRepondLe($repondLe ? new \DateTime($repondLe) : null)
+              ->setCommentaireSupprimeMotif(null)
+              ->setCommentaireSupprimeLe(null);
+            $manager->persist($n);
+        }
+
+        $geoMedia3 = new LaverieMedia();
+        $geoMedia3->setLaverie($laveriesGeo[3])->setMedia($medias[0])->setDescription('Vue de la façade');
+        $manager->persist($geoMedia3);
+
+        $geoMedia9 = new LaverieMedia();
+        $geoMedia9->setLaverie($laveriesGeo[9])->setMedia($medias[1])->setDescription('Intérieur de la laverie');
+        $manager->persist($geoMedia9);
+        // ─────────────────────────────────────────────────────────────────────
 
         // ── FAVORIS (laverie_favori) ──────────────────────────────────────────
         // $users[0] = Luce | $users[1] = Roussel | $users[2] = Buisson
