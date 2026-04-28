@@ -47,7 +47,7 @@ export default function MentionsLegales() {
               <p><span className="font-semibold">Fax :</span> +33 (0)1 34 08 18 18</p>
               <p><span className="font-semibold">Email :</span> contact@ec2e.com</p>
               <p><span className="font-semibold">Site institutionnel :</span> https://www.ec2e.com</p>
-              <p><span className="font-semibold">Directeurs de la publication :</span> Marion LAMY, Florence MARTINEAU, Pierre FUSTRER</p>
+              <p><span className="font-semibold">Directeurs de la publication :</span> Marion LAMY, Florence MARTINEAU, Pierre FUSTIER</p>
             </div>
           </section>
 
