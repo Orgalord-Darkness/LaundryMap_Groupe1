@@ -5,9 +5,10 @@ import './i18n'
 import { BrowserRouter } from "react-router-dom"
 import Router from "./pages/Router.tsx"
 import { GoogleOAuthProvider } from "@react-oauth/google"
-import { Header } from "@/components/layout/Header"
+import {Header} from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
 import { AuthProvider } from "@/components/context/AuthContext"
+
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -16,9 +17,7 @@ createRoot(document.getElementById('root')!).render(
                 <AuthProvider>
                     <div className="min-h-screen flex flex-col">
                         <Header />
-                        <main className="flex-1 pt-[72px]">
                             <Router />
-                        </main>
                         <Footer />
                     </div>
                 </AuthProvider>

@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from 'react'
-import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -65,7 +64,6 @@ function AddLaundry() {
   const [apiError, setApiError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
-  const [redirectOpen, setRedirectOpen] = useState(false)
 
   // Aperçu du logo
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -237,7 +235,7 @@ function AddLaundry() {
         const data = await response.json()
         if (response.ok) {
           setSuccess("Laverie ajoutée avec succès !")
-          setRedirectOpen(true)
+          navigate('/pro/dashboard')
         } else {
           setApiError(data.message ?? "Une erreur est survenue.")
         }
@@ -473,15 +471,6 @@ function AddLaundry() {
             {loading ? "Envoi en cours..." : "Ajouter une laverie"}
           </Button>
         </div>
-
-        <RedirectDialog
-          open={redirectOpen}
-          title="Laverie ajoutée !"
-          message="Laverie ajoutée avec succès."
-          destinationLabel="votre tableau de bord"
-          duration={1500}
-          onNavigate={() => navigate('/pro/dashboard')}
-        />
       </form>
     </>
   );

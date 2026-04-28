@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use App\Service\SendEmailService;
 
 
 #[Route('/api/v1/laverie')]
@@ -245,6 +246,9 @@ class LaverieController extends AbstractController
             $laverie->setDescription(htmlspecialchars($donnees['description']));
         }
         if (isset($donnees['contact_email'])) {
+            if (empty($donnees['contact_email'])) {
+                $laverie->setContactEmail(null);
+            } else
             if (!filter_var($donnees['contact_email'], FILTER_VALIDATE_EMAIL)) {
                 return $this->json(['message' => 'Email de contact invalide.'], Response::HTTP_BAD_REQUEST);
             }
@@ -494,6 +498,7 @@ class LaverieController extends AbstractController
         AdministrateurRepository $administrateurRepository,
         TagAwareCacheInterface $cachePool,
         Request $request,
+        SendEmailService $sendEmailService, 
         int $id,
     ): JsonResponse 
     {
@@ -533,18 +538,20 @@ class LaverieController extends AbstractController
             ], 400);
         }   
         $statutEnum = LaverieStatutEnum::EN_ATTENTE;
+        $statutString = null; 
 
         switch($actionEnum) {
             case ActionEnum::VALIDE:
                 $statutEnum = LaverieStatutEnum::VALIDE;
+                $statutString = 'validée';
                 break;
             case ActionEnum::REFUSE:
                 $statutEnum = LaverieStatutEnum::REFUSE;
+                $statutString = 'refusée';
                 break;
             case ActionEnum::EN_ATTENTE:        
                 $statutEnum = LaverieStatutEnum::EN_ATTENTE;    
         }
-
         $motif = htmlspecialchars($donnees['motif'] ?? 'La laverie a été validée par un administrateur.');
 
         $laverieHistoriqueInteractionRepository->laverieValidation(
@@ -554,8 +561,12 @@ class LaverieController extends AbstractController
             $motif,
         );
 
+        //return $this->json(['message' => "Laverie $statutString avec succès. Historique mis à jour."], Response::HTTP_OK);
+
         $laverieRepository->setStatut($laverie, $statutEnum);
         $cachePool->invalidateTags(['laverieCache']);
+
+        $sendEmail = $sendEmailService->sendEmail($laverie->getContactEmail(), 'updateStatutLaundry.html.twig', 'Mise à jour du statut de votre laverie', $statutString, $laverie->getNomEtablissement(), $motif ?? null);
 
         return $this->json(['message' => 'Laverie validée avec succès.'], Response::HTTP_OK);
     }

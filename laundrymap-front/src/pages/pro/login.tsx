@@ -6,7 +6,6 @@ import { useAuth } from "@/components/context/AuthContext"
 import { Field, FieldDescription, FieldLabel, FieldGroup } from "@/components/ui/field"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
-import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { useTranslation } from "react-i18next"
 
 
@@ -24,7 +23,6 @@ function ProLogin() {
 
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
-    const [redirectOpen, setRedirectOpen] = useState(false)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -69,7 +67,7 @@ function ProLogin() {
             localStorage.setItem("token", data.token_data)
             login(data.token_data)
             setSuccessMessage("Connexion réussie !")
-            setRedirectOpen(true)
+            navigate("/pro/dashboard")
 
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)
@@ -146,15 +144,6 @@ function ProLogin() {
                                 </Field>
 
                             </FieldGroup>
-
-                            <RedirectDialog
-                                open={redirectOpen}
-                                title="Connexion réussie !"
-                                message="Vous êtes maintenant connecté en tant que professionnel."
-                                destinationLabel="votre tableau de bord"
-                                duration={1500}
-                                onNavigate={() => navigate("/pro/dashboard")}
-                            />
 
                         </form>
 

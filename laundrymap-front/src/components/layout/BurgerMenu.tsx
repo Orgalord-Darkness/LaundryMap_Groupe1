@@ -159,11 +159,6 @@ export function BurgerMenu() {
           padding: "14px 20px",
           background: "linear-gradient(90deg, #1ab3d8 0%, #4ecfee 100%)",
         }}>
-          <img
-          src="/fichiers/logo/logo.png"
-          alt="LaundryMap"
-          style={{ height: "50px", width: "max-content" }}
-        />
           <button
             onClick={() => setIsOpen(false)}
             aria-label="Fermer le menu"

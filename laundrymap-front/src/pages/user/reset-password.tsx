@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import axios from "axios";
-import { RedirectDialog } from "@/components/ui/RedirectDialog";
 
 export default function ResetPassword() {
   const { token } = useParams();
@@ -10,7 +9,6 @@ export default function ResetPassword() {
   const [confirmation, setConfirmation] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [redirectOpen, setRedirectOpen] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -33,7 +31,7 @@ export default function ResetPassword() {
       });
       setMessage(response.data.message || "Mot de passe réinitialisé.");
       setError("");
-      setRedirectOpen(true);
+      navigate("/user/login");
     } catch (err: unknown) {
       const message = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
       setError(message || "Impossible de réinitialiser le mot de passe.");
@@ -66,13 +64,6 @@ export default function ResetPassword() {
       {message && <p className="text-green-600 mt-3">{message}</p>}
       {error && <p className="text-red-600 mt-3">{error}</p>}
       <Link to="/user/login" className="text-sm text-blue-600 underline mt-3 block">Retour connexion</Link>
-      <RedirectDialog
-        open={redirectOpen}
-        title="Mot de passe réinitialisé"
-        message="Votre mot de passe a été mis à jour avec succès."
-        destinationLabel="la page de connexion"
-        onNavigate={() => navigate("/user/login")}
-      />
     </div>
   );
 }

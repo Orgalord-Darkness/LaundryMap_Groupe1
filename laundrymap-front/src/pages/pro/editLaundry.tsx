@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -43,7 +42,6 @@ export default function FormEditLaverie() {
     const [saving, setSaving]                 = useState(false)
     const [error, setError]                   = useState<string | null>(null)
     const [successMessage, setSuccessMessage] = useState("")
-    const [redirectOpen, setRedirectOpen]     = useState(false)
     const [wilineLoading, setWilineLoading]   = useState(false)
     const [wilineError, setWilineError]       = useState<string | null>(null)
 
@@ -337,7 +335,7 @@ export default function FormEditLaverie() {
             await api.put(`/edit/${id}`, payload)
 
             setSuccessMessage('Laverie mise à jour avec succès !')
-            setRedirectOpen(true)
+            navigate('/pro/dashboard')
         } catch (err: any) {
             console.error('Erreur submit:', err)
             setError(err?.response?.data?.message || 'Une erreur est survenue lors de la mise à jour.')
@@ -646,15 +644,6 @@ export default function FormEditLaverie() {
                     {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
                 </Button>
             </div>
-
-            <RedirectDialog
-                open={redirectOpen}
-                title="Laverie mise à jour !"
-                message="Les modifications ont été enregistrées avec succès."
-                destinationLabel="votre tableau de bord"
-                duration={2000}
-                onNavigate={() => navigate('/pro/dashboard')}
-            />
         </form>
     )
 }
