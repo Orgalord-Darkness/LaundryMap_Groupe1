@@ -3,6 +3,10 @@ import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { MapPin, Phone } from "lucide-react"
 import type { LaverieSearch } from "@/components/utils/type"
+import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
+import {CardFooter} from "@/components/ui/card"
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,7 +28,7 @@ interface LaverieSearchCardProps {
 export const LaverieSearchCard = forwardRef<HTMLDivElement, LaverieSearchCardProps>(
     ({ laverie, selected, onClick }, ref) => {
         const { t } = useTranslation()
-
+        const navigate = useNavigate()
         return (
             <div ref={ref} onClick={onClick} className="cursor-pointer">
                 <Card
@@ -87,6 +91,14 @@ export const LaverieSearchCard = forwardRef<HTMLDivElement, LaverieSearchCardPro
                             </p>
                         )}
                     </CardContent>
+                    <CardFooter>
+                        <Button
+                        className="w-full"
+                        onClick={() => navigate(`/user/fiche-laverie/${laverie.id}`)}
+                        >
+                        Voir la laverie
+                        </Button>
+                    </CardFooter>
                 </Card>
             </div>
         )

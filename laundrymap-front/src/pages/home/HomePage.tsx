@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react"
 import { useTranslation } from "react-i18next"
+import { useSearchParams } from "react-router-dom"
 import { SearchBar } from "@/components/search/SearchBar"
 import { MapView } from "@/components/search/MapView"
 import { LaverieList } from "@/components/search/LaverieList"
@@ -18,6 +19,9 @@ const EMPTY_FILTERS: SearchFilters = { openAt: "", services: [], payments: [] }
 
 export default function HomePage() {
     const { t } = useTranslation()
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    const initialQuery = searchParams.get("q") ?? ""
 
     // ─── État ─────────────────────────────────────────────────────────────────
     const [laveries, setLaveries] = useState<LaverieSearch[]>([])
@@ -28,7 +32,7 @@ export default function HomePage() {
 
     const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS)
     const [isFilterOpen, setIsFilterOpen] = useState(false)
-    const [lastQuery, setLastQuery] = useState("")
+    const [lastQuery, setLastQuery] = useState(initialQuery)
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -57,8 +61,17 @@ export default function HomePage() {
     // Déclenché par la SearchBar quand l'utilisateur valide une adresse
     const handleSearch = useCallback((query: string) => {
         setLastQuery(query)
+        setSearchParams(prev => { prev.set("q", query); return prev })
         runSearch(query, filters)
-    }, [filters, runSearch])
+    }, [filters, runSearch, setSearchParams])
+
+    // Re-lance la recherche au chargement si q est présent dans l'URL
+    useEffect(() => {
+        if (initialQuery) {
+            runSearch(initialQuery, EMPTY_FILTERS)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     // Re-recherche automatique quand les filtres changent (si une recherche a déjà eu lieu)
     useEffect(() => {
@@ -99,6 +112,7 @@ export default function HomePage() {
                         loading={loading}
                         onFilterClick={() => setIsFilterOpen(true)}
                         activeFilterCount={activeFilterCount}
+                        initialValue={initialQuery}
                     />
                 </div>
 
