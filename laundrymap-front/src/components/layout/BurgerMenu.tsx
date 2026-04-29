@@ -31,6 +31,7 @@ function getMenuItems(role: Role): MenuItem[] {
       ];
     case "professionnel":
       return [
+        { label: "Accueil", href: "/", icon: <Icon.Home /> },
         { label: "Tableau de bord", href: "/pro/dashboard", icon: <Icon.Home /> },
         { label: "Mes informations", href: "/pro/informations", icon: <Icon.Info /> },
         { label: "Mes préférences", href: "/pro/preferences", icon: <Icon.Sliders /> },
@@ -38,6 +39,7 @@ function getMenuItems(role: Role): MenuItem[] {
       ];
     case "administrateur":
       return [
+        { label: "Accueil", href: "/", icon: <Icon.Home /> },
         { label: "Tableau de bord", href: "/admin/dashboard", icon: <Icon.Home /> },
         { label: "Laveries", href: "/admin/laveries/list", icon: <Icon.Laundry /> },
         { label: "Comptes", href: "/admin/professional/list", icon: <Icon.People /> },

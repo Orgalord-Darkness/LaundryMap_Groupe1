@@ -325,4 +325,17 @@ class LaverieRepository extends ServiceEntityRepository
         return $conn->executeQuery($sql, $params, $types)->fetchAllAssociative();
     }
 
+    public function findProfessionnalByLaverieId(int $laverieId): ?array
+    {
+        return $this->createQueryBuilder('l')
+            ->select('pro.id, utilisateur.email AS email')
+            ->leftJoin('l.professionnel', 'pro')
+            ->leftJoin('pro.utilisateur', 'utilisateur')
+            ->where('l.id = :id')
+            ->setParameter('id', $laverieId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+
 }
