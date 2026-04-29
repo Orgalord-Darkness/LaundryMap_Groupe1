@@ -195,21 +195,25 @@ console.log("api =", api)
 
         {/* Services */}
         <div className="w-full mt-4">
-            <CheckboxGroup
-                title="Équipements disponibles"
-                options={laverie.services.map((s:Service) => ({
-                    value: String(s.id),
-                    label: s.nom
-                }))}
-                disabled={true}
-                value={laverie.services.map((s:Service) => String(s.id))}
-            />
-
+            { laverie.services.length > 0 && (
+                <CheckboxGroup
+                    title="Équipements disponibles"
+                    options={laverie.services.map((s:Service) => ({
+                        value: String(s.id),
+                        label: s.nom
+                    }))}
+                    disabled={true}
+                    value={laverie.services.map((s:Service) => String(s.id))}
+                />
+            )}
+            {laverie.services.length === 0 && (
+                <p className="text-gray-500 text-sm">Aucun équipement spécifié</p>
+            )}
         </div>
 
         {/* Paiements */}
         <div className="w-full mt-4">
-            <CheckboxGroup
+            { laverie.methodePaiements.length > 0 && (<CheckboxGroup
                 title="Moyens de paiement acceptés"
                 options={laverie.methodePaiements.map((p:Paiement) => ({
                     value: String(p.id),
@@ -217,7 +221,11 @@ console.log("api =", api)
                 }))}
                 disabled={true}
                 value={laverie.methodePaiements.map((p:Paiement) => String(p.id))}
-            />
+            />)}
+            {laverie.methodePaiements.length === 0 && (
+                <p className="text-gray-500 text-sm">Aucun moyen de paiement spécifié</p>
+            )}
+            
         </div>
 
         {/* Champ motif */}
