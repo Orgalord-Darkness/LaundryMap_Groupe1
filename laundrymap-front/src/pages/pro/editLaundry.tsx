@@ -44,18 +44,16 @@ export default function FormEditLaverie() {
     const [successMessage, setSuccessMessage] = useState("")
     const [wilineLoading, setWilineLoading]   = useState(false)
     const [wilineError, setWilineError]       = useState<string | null>(null)
+    const [geoErreur, setGeoErreur]              = useState<string | null>(null)
 
     const [name, setName]                     = useState("")
     const [contactEmail, setContactEmail]     = useState("")
     const [description, setDescription]       = useState("")
     const [wilineCode, setWilineCode]         = useState("")
     const [adresse, setAdresse]               = useState("")
-    const [rue, setRue]                       = useState("")
     const [codePostal, setCodePostal]         = useState("")
     const [city, setCity]                     = useState("")
     const [country, setCountry]               = useState("")
-    const [latitude, setLatitude]             = useState("")
-    const [longitude, setLongitude]           = useState("")
     const [selectedServices, setSelectedServices]   = useState<string[]>([])
     const [selectedPayments, setSelectedPayments]   = useState<string[]>([])
     const [week, setWeek]                     = useState<WeekSchedule>(DEFAULT_WEEK_SCHEDULE)
@@ -63,6 +61,7 @@ export default function FormEditLaverie() {
     const [logoPreview, setLogoPreview]       = useState<string | null>(null)
     const logoInputRef                        = useRef<HTMLInputElement>(null)
     const logoUrlRef                          = useRef<string | null>(null)
+    const fieldsRef = useRef<Record<string,HTMLDivElement | null>>({})
     const [images, setImages]                 = useState<FileList | null>(null)
     const [existingImages, setExistingImages] = useState<string[]>([])
     const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null)
@@ -114,11 +113,16 @@ export default function FormEditLaverie() {
             const res = await api.get(`/wiline-data?serial=${encodeURIComponent(wilineCode.trim())}`)
             const d = res.data
 
+            if (d.name) {
+                setName(d.name)
+            }
+
+            if(d.pub) {
+                setDescription(d.pub)
+            }
             // Adresse : "4 Boulevard Napoléon Premier" → adresse="4", rue="Boulevard Napoléon Premier"
             if (d.address) {
-                const parts = d.address.split(' ')
-                setAdresse(parts[0] ?? '')
-                setRue(parts.slice(1).join(' '))
+                setAdresse(d.address)
             }
             if (d.postal_code) setCodePostal(String(d.postal_code))
             if (d.city)        setCity(d.city)
@@ -168,6 +172,24 @@ export default function FormEditLaverie() {
                 }
                 setWeek(newWeek)
             }
+
+            const paymentNameMap: Record<string, string> = {
+                coin_accepted:     'Pièces',
+                bill_accepted:     'Billet',
+                card_accepted:     'Carte Bleue',
+                fidelity_accepted: 'Carte Fidélité',
+            }
+            const newPaymentIds: string[] = []
+            for (const [key, label] of Object.entries(paymentNameMap)) {
+                if (d[key] === true) {
+                    const found = allPaiements.find(p => p.nom === label)
+                    if (found) newPaymentIds.push(String(found.id))
+                }
+            }
+            if (newPaymentIds.length > 0) {
+                setSelectedPayments(prev => [...new Set([...prev, ...newPaymentIds])])
+            }
+
         } catch (err: any) {
             setWilineError(err?.response?.data?.message || 'Erreur lors de la récupération des données Wi-Line.')
         } finally {
@@ -204,12 +226,9 @@ export default function FormEditLaverie() {
 
                 if (data.adresse) {
                     setAdresse(data.adresse.adresse ?? "")
-                    setRue(data.adresse.rue ?? "")
                     setCodePostal(String(data.adresse.code_postal ?? ""))
                     setCity(data.adresse.ville ?? "")
                     setCountry(data.adresse.pays ?? "")
-                    setLatitude(String(data.adresse.latitude ?? ""))
-                    setLongitude(String(data.adresse.longitude ?? ""))
                 }
 
                 setSelectedServices(data.services?.map((s: any) => String(s.id)) ?? [])
@@ -283,24 +302,35 @@ export default function FormEditLaverie() {
 
     // ─── Validation ───────────────────────────────────────────────────────────
 
-    const validate = (): boolean => {
+    const validate = (): Record<string, string>  => {
         const e: Record<string, string> = {}
         if (!name)       e.name       = "Le nom est requis"
         if (!adresse)    e.adresse    = "L'adresse est requise"
-        if (!rue)        e.rue        = "La rue est requise"
         if (!codePostal) e.codePostal = "Le code postal est requis"
         if (!city)       e.city       = "La ville est requise"
         if (!country)    e.country    = "Le pays est requis"
         setErrors(e)
-        return Object.keys(e).length === 0
+        return e; 
     }
 
     // ─── Soumission du formulaire ─────────────────────────────────────────────
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!validate()) return
-
+        const newErrors = validate()
+        const fieldScrollOrder = [
+            {key:'name', refKey: 'name'}, 
+            {key:'adresse', refKey: 'adresse'},
+            {key:'codePostal', refKey: 'adresse'},
+            {key:'city', refKey: 'adresse'},
+            {key:'country', refKey: 'adresse'},
+        ]
+        const firstError = fieldScrollOrder.find(({key}) => newErrors[key])
+        if (firstError) {
+            fieldsRef.current[firstError.refKey]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            return
+        }
+        setGeoErreur("")
         setSaving(true)
         setError(null)
 
@@ -314,12 +344,9 @@ export default function FormEditLaverie() {
                 contact_email:     contactEmail,
                 wi_line_reference: wilineCode.trim() || null,
                 adresse,
-                rue,
                 code_postal:       codePostal,
                 ville:             city,
                 pays:              country,
-                latitude:          latitude  ? parseFloat(latitude)  : undefined,
-                longitude:         longitude ? parseFloat(longitude) : undefined,
                 services:          selectedServices.map(Number),
                 methodes_paiement: selectedPayments.map(Number),
                 equipements:       selectedMachines,
@@ -337,7 +364,10 @@ export default function FormEditLaverie() {
             setSuccessMessage('Laverie mise à jour avec succès !')
             navigate('/pro/dashboard')
         } catch (err: any) {
-            console.error('Erreur submit:', err)
+            if (err?.response?.data?.errors?.geolocation) {
+                setGeoErreur(err.response.data.errors.geolocation)
+                fieldsRef.current['adresse']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }
             setError(err?.response?.data?.message || 'Une erreur est survenue lors de la mise à jour.')
         } finally {
             setSaving(false)
@@ -381,6 +411,35 @@ export default function FormEditLaverie() {
             <p className="text-gray-500 text-center mb-6">
                 Mettez à jour les informations de votre établissement
             </p>
+
+            {/* Wi-Line */}
+            <Field className="w-full max-w-md mx-auto mt-10">
+                <FieldLabel htmlFor="wilineCode">Code Wi-Line</FieldLabel>
+                <FieldDescription>
+                    Numéro de série de votre centrale Wi-Line. Cliquez sur "Importer" pour pré-remplir automatiquement l'adresse, les machines et les horaires.
+                </FieldDescription>
+                <div className="flex gap-2 mt-2 w-full">
+                    <Input
+                        id="wilineCode"
+                        type="text"
+                        value={wilineCode}
+                        onChange={e => setWilineCode(e.target.value)}
+                        className="h-11 flex-1"
+                        placeholder="ex : 23128C02604C1521"
+                    />
+                    <Button
+                        type="button"
+                        onClick={handleWilineImport}
+                        disabled={!wilineCode.trim() || wilineLoading}
+                        className="h-11 whitespace-nowrap px-4 py-2"
+                    >
+                        {wilineLoading ? 'Chargement…' : 'Importer'}
+                    </Button>
+                </div>
+                {wilineError && (
+                    <p className="text-red-500 text-xs mt-1">{wilineError}</p>
+                )}
+            </Field>
 
             {/* Logo — prévisualisation comme dans le formulaire d'ajout */}
             {logoPreview && (
@@ -473,113 +532,78 @@ export default function FormEditLaverie() {
             )}
 
             {/* Nom */}
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="name">
-                    Nom de la laverie <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="name" type="text" value={name} onChange={e => setName(e.target.value)} className="h-11" />
-                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-            </Field>
+            <div ref={el => {fieldsRef.current.name = el}} className='w-full'>
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="name">
+                        Nom de la laverie <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="name" type="text" value={name} onChange={e => setName(e.target.value)} className="h-11" />
+                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                </Field>
+            </div>
 
             {/* Email de contact */}
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="contactEmail">Email de contact</FieldLabel>
-                <Input id="contactEmail" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="h-11" />
-            </Field>
-
-            {/* Adresse */}
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="adresse">
-                    Numéro <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="adresse" type="text" value={adresse} onChange={e => setAdresse(e.target.value)} className="h-11" />
-                {errors.adresse && <p className="text-red-500 text-xs mt-1">{errors.adresse}</p>}
-            </Field>
-
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="rue">
-                    Rue <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="rue" type="text" value={rue} onChange={e => setRue(e.target.value)} className="h-11" />
-                {errors.rue && <p className="text-red-500 text-xs mt-1">{errors.rue}</p>}
-            </Field>
-
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="codePostal">
-                    Code postal <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="codePostal" type="text" value={codePostal} onChange={e => setCodePostal(e.target.value)} className="h-11" />
-                {errors.codePostal && <p className="text-red-500 text-xs mt-1">{errors.codePostal}</p>}
-            </Field>
-
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="city">
-                    Ville <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="city" type="text" value={city} onChange={e => setCity(e.target.value)} className="h-11" />
-                {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
-            </Field>
-
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="country">
-                    Pays <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="country" type="text" value={country} onChange={e => setCountry(e.target.value)} className="h-11" />
-                {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
-            </Field>
-
-            <div className="w-full grid grid-cols-2 gap-3 mt-4">
-                <Field>
-                    <FieldLabel htmlFor="latitude">Latitude</FieldLabel>
-                    <Input id="latitude" type="number" value={latitude} onChange={e => setLatitude(e.target.value)} className="h-11" />
+            <div ref={el => {fieldsRef.current.contactEmail = el}} className='w-full'>
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="contactEmail">Email de contact</FieldLabel>
+                    <Input id="contactEmail" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="h-11" />
                 </Field>
-                <Field>
-                    <FieldLabel htmlFor="longitude">Longitude</FieldLabel>
-                    <Input id="longitude" type="number" value={longitude} onChange={e => setLongitude(e.target.value)} className="h-11" />
+            </div>
+
+
+            <div ref={el => {fieldsRef.current.adresse = el}} className='w-full'>
+                {geoErreur && (
+                    <p className="text-red-500 text-xs mt-1">{geoErreur}</p>
+                )}
+
+                {/* Adresse */}
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="adresse">
+                        Adresse <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="adresse" type="text" value={adresse} onChange={e => setAdresse(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
+                    {errors.adresse && <p className="text-red-500 text-xs mt-1">{errors.adresse}</p>}
+                </Field>
+
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="codePostal">
+                        Code postal <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="codePostal" type="text" value={codePostal} onChange={e => setCodePostal(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
+                    {errors.codePostal && <p className="text-red-500 text-xs mt-1">{errors.codePostal}</p>}
+                </Field>
+
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="city">
+                        Ville <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="city" type="text" value={city} onChange={e => setCity(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
+                    {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                </Field>
+
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="country">
+                        Pays <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="country" type="text" value={country} onChange={e => setCountry(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
+                    {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
                 </Field>
             </div>
 
             {/* Description */}
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="description">Description</FieldLabel>
-                <FieldDescription>Décrivez votre laverie en quelques mots.</FieldDescription>
-                <Textarea
-                    id="description"
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    className="h-32"
-                    placeholder="Écrivez une description pour votre laverie."
-                />
-            </Field>
-
-            {/* Wi-Line */}
-            <Field className="w-full max-w-md mx-auto mt-10">
-                <FieldLabel htmlFor="wilineCode">Code Wi-Line</FieldLabel>
-                <FieldDescription>
-                    Numéro de série de votre centrale Wi-Line. Cliquez sur "Importer" pour pré-remplir automatiquement l'adresse, les machines et les horaires.
-                </FieldDescription>
-                <div className="flex gap-2 mt-2 w-full">
-                    <Input
-                        id="wilineCode"
-                        type="text"
-                        value={wilineCode}
-                        onChange={e => setWilineCode(e.target.value)}
-                        className="h-11 flex-1"
-                        placeholder="ex : 23128C02604C1521"
+            <div ref={el => {fieldsRef.current.description = el}} className='w-full'>
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="description">Description</FieldLabel>
+                    <FieldDescription>Décrivez votre laverie en quelques mots.</FieldDescription>
+                    <Textarea
+                        id="description"
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        className="h-32"
+                        placeholder="Écrivez une description pour votre laverie."
                     />
-                    <Button
-                        type="button"
-                        onClick={handleWilineImport}
-                        disabled={!wilineCode.trim() || wilineLoading}
-                        className="h-11 whitespace-nowrap px-4 py-2"
-                    >
-                        {wilineLoading ? 'Chargement…' : 'Importer'}
-                    </Button>
-                </div>
-                {wilineError && (
-                    <p className="text-red-500 text-xs mt-1">{wilineError}</p>
-                )}
-            </Field>
+                </Field>
+            </div>
 
             {/* Machines */}
             <div className="my-5 w-full">

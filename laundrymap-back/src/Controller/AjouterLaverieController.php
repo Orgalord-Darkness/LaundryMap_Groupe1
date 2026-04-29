@@ -17,6 +17,7 @@ use App\Repository\MethodePaiementRepository;
 use App\Repository\ProfessionnelRepository;
 use App\Repository\ServiceRepository;
 use App\Service\FileUploader;
+use App\Service\GeolocationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -49,7 +50,7 @@ class AjouterLaverieController extends AbstractController
     // POST pour /api/v1/professionnel/addLaundry
     
     #[Route('/addLaundry', name: 'add_laundry', methods: ['POST'])]
-    public function addLaundry(Request $request): JsonResponse
+    public function addLaundry(Request $request, GeolocationService $geolocationService): JsonResponse
     {
         // ── Récupération du Professionnel lié au User connecté ─────────────
         $user           = $this->getUser();
@@ -65,44 +66,69 @@ class AjouterLaverieController extends AbstractController
 
         // ─ form-data ─────
         $name       = trim((string) $request->request->get('name',       ''));
-        $rue        = trim((string) $request->request->get('rue',        ''));
         $adress     = trim((string) $request->request->get('adress',     ''));
         $codePostal = trim((string) $request->request->get('codePostal', ''));
         $city       = trim((string) $request->request->get('city',       ''));
         $country    = trim((string) $request->request->get('country',    ''));
-        $latRaw     = $request->request->get('latitude',  null);
-        $lngRaw     = $request->request->get('longitude', null);
+
+        $errors = []; 
+        $isGood = true; 
+
+        $coords = $geolocationService->geocodeAdresse("$adress $codePostal $city $country");
+        if ($coords !== null && isset($coords['lat'], $coords['lng']) && $coords['lat'] !== null && $coords['lng'] !== null) {
+            $latRaw = $coords['lat'];
+            $lngRaw = $coords['lng'];
+        } else {
+            $errors['geolocation'] = 'Impossible de géolocaliser l\'adresse fournie. Veuillez vérifier les informations saisies.';
+            $isGood = false; 
+        }
         $description  = trim((string) $request->request->get('description',   ''));
         $wilineCode   = trim((string) $request->request->get('wilineCode',    ''));
         $contactEmail = trim((string) $request->request->get('contact_email', ''));
 
 
         // ──Validation des champs obligatoires ────────────────
-        $errors = [];
+
+        if(!isset($latRaw)) {
+            $latRaw = null;
+        }
+        if(!isset($lngRaw)) {
+            $lngRaw = null;
+        }
 
         if ($name       === '') { $errors['name']       = 'Le nom de la laverie est requis.'; }
-        if ($rue        === '') { $errors['rue']        = 'La rue est requise.'; }
         if ($adress     === '') { $errors['adress']     = "L'adresse est requise."; }
         if ($codePostal === '') { $errors['codePostal'] = 'Le code postal est requis.'; }
         if ($city       === '') { $errors['city']       = 'La ville est requise.'; }
         if ($country    === '') { $errors['country']    = 'Le pays est requis.'; }
-        if ($latRaw === null || $latRaw === '') { $errors['latitude']  = 'La latitude est requise.'; }
-        if ($lngRaw === null || $lngRaw === '') { $errors['longitude'] = 'La longitude est requise.'; }
+        if ($latRaw === null || $latRaw === '') { $errors['latitude']  = 'Adresse incorrecte.'; }
+        if ($lngRaw === null || $lngRaw === '') { $errors['longitude'] = 'Adresse incorrecte.'; }
 
         if (!empty($errors)) {
             return $this->json(['message' => 'Données invalides.', 'errors' => $errors], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $latitude  = (float) $latRaw;
-        $longitude = (float) $lngRaw;
+        if ($latRaw === null || $latRaw === '') {
+            $latitude = null;
+            $isGood = false; 
+        } else {
+            $latitude = (float) $latRaw;
+        }
 
+        if ($lngRaw === null || $lngRaw === '') {
+            $longitude = null;
+            $isGood = false;
+        } else {
+            $longitude = (float) $lngRaw;
+        }
+
+        $rue = preg_replace('/^\s*\d+\s*/', '', explode(',', $adress)[0]);
 
         // ── Décodage des champs JSON ────
         $equipmentValues  = json_decode((string) $request->request->get('equipment',      '[]'), true) ?? [];
         $paymentValues    = json_decode((string) $request->request->get('paymentMethods', '[]'), true) ?? [];
         $weekScheduleData = json_decode((string) $request->request->get('weekSchedule',   '{}'), true) ?? [];
         $machinesData     = json_decode((string) $request->request->get('machines',       '[]'), true) ?? [];
-
 
         // ── Création de l'Adresse ────────────────────────────────
         $adresse = new Adresse();
@@ -117,24 +143,29 @@ class AjouterLaverieController extends AbstractController
 
         $this->em->persist($adresse);
 
-
-
         // ─ Création de la Laverie ─────────────────────
-        $laverie = new Laverie();
-        $laverie->setNomEtablissement($name);
-        $laverie->setDescription($description !== '' ? $description : null);
-        $laverie->setContactEmail($contactEmail !== '' ? $contactEmail : null);
-        $laverie->setStatut(LaverieStatutEnum::EN_ATTENTE);
-        $laverie->setAdresse($adresse);
-        $laverie->setProfessionnel($professionnel);
-        $laverie->setDateAjout(new \DateTime());
-        $laverie->setDateModification(new \DateTime());
+        if($isGood) {
+            $laverie = new Laverie();
+            $laverie->setNomEtablissement($name);
+            $laverie->setDescription($description !== '' ? $description : null);
+            $laverie->setContactEmail($contactEmail !== '' ? $contactEmail : null);
+            $laverie->setStatut(LaverieStatutEnum::EN_ATTENTE);
+            $laverie->setAdresse($adresse);
+            $laverie->setProfessionnel($professionnel);
+            $laverie->setDateAjout(new \DateTime());
+            $laverie->setDateModification(new \DateTime());
 
-        if ($wilineCode !== '') {
-            $laverie->setWiLineReference($wilineCode);
+            if ($wilineCode !== '') {
+                $laverie->setWiLineReference($wilineCode);
+            }
+
+            $this->em->persist($laverie);
+        } else {
+            return $this->json(
+                ['message' => 'Données invalides.', 'errors' => $errors],
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
         }
-
-        $this->em->persist($laverie);
 
 
 

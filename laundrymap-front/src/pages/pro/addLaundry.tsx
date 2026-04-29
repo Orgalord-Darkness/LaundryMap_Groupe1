@@ -36,13 +36,10 @@ function AddLaundry() {
   const [logo, setLogo] = useState<File | null>(null);
   const [images, setImages] = useState<FileList | null>(null);
   const [name, setName] = useState("");
-  const [rue, setRue] = useState("");
   const [adress, setAdress] = useState("");
   const [codePostal, setCodePostal] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
-  const [latitude, setLatitude] = useState<number | "">("");
-  const [longitude, setLongitude] = useState<number | "">("");
   const [description, setDescription] = useState("");
   const [wilineCode, setWilineCode] = useState("");
   const [wilineLoading, setWilineLoading]   = useState(false)
@@ -62,6 +59,7 @@ function AddLaundry() {
 
   // États feedback API
   const [apiError, setApiError] = useState("")
+  const [geoErreur, setGeoErreur] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -69,19 +67,19 @@ function AddLaundry() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const logoUrlRef   = useRef<string | null>(null)
+  const fieldRefs    = useRef<Record<string, HTMLDivElement | null>>({})
 
   const navigate = useNavigate()
 
   const [errors, setErrors] = useState({
     name: "",
-    rue: "",
     adress: "", 
     codePostal: "",
     city: "",
     country: "",
-    latitude: "",
-    longitude: "",
   });
+
+  
   // ─── Utilitaires ─────────────────────────────────────────────────────────
   
   const emptyDay = () => ({
@@ -104,15 +102,43 @@ function AddLaundry() {
           const res = await api.get(`/wiline-data?serial=${encodeURIComponent(wilineCode.trim())}`)
           const d = res.data
 
-          // Adresse : "4 Boulevard Napoléon Premier" → adresse="4", rue="Boulevard Napoléon Premier"
-          if (d.address) {
-              const parts = d.address.split(' ')
-              setAdress(parts[0] ?? '')
-              setRue(parts.slice(1).join(' '))
-          }
+          if (d.name)      setName(d.name)
+          if (d.pub)     setDescription(d.pub)
+          if (d.address) { setAdress(d.address) }
           if (d.postal_code) setCodePostal(String(d.postal_code))
           if (d.city)        setCity(d.city)
           if (d.country)     setCountry(d.country)
+
+          if (d.opening_hours) {
+            if (d.opening_hours.monday)    setWeek((w) => ({ ...w, lundi:    { morning: { start: d.opening_hours.monday[0]?.open ?? '', end: d.opening_hours.monday[0]?.close ?? '' }, afternoon: { start: d.opening_hours.monday[1]?.open ?? '', end: d.opening_hours.monday[1]?.close ?? '' } } }))
+            if (d.opening_hours.tuesday)   setWeek((w) => ({ ...w, mardi:   { morning: { start: d.opening_hours.tuesday[0]?.open ?? '', end: d.opening_hours.tuesday[0]?.close ?? '' }, afternoon: { start: d.opening_hours.tuesday[1]?.open ?? '', end: d.opening_hours.tuesday[1]?.close ?? '' } } }))
+            if (d.opening_hours.wednesday) setWeek((w) => ({ ...w, mercredi: { morning: { start: d.opening_hours.wednesday[0]?.open ?? '', end: d.opening_hours.wednesday[0]?.close ?? '' }, afternoon: { start: d.opening_hours.wednesday[1]?.open ?? '', end: d.opening_hours.wednesday[1]?.close ?? '' } } }))
+            if (d.opening_hours.thursday)  setWeek((w) => ({ ...w, jeudi:   { morning: { start: d.opening_hours.thursday[0]?.open ?? '', end: d.opening_hours.thursday[0]?.close ?? '' }, afternoon: { start: d.opening_hours.thursday[1]?.open ?? '', end: d.opening_hours.thursday[1]?.close ?? '' } } }))
+            if (d.opening_hours.friday)    setWeek((w) => ({ ...w, vendredi: { morning: { start: d.opening_hours.friday[0]?.open ?? '', end: d.opening_hours.friday[0]?.close ?? '' }, afternoon: { start: d.opening_hours.friday[1]?.open ?? '', end: d.opening_hours.friday[1]?.close ?? '' } } }))
+            if (d.opening_hours.saturday)  setWeek((w) => ({ ...w, samedi:   { morning: { start: d.opening_hours.saturday[0]?.open ?? '', end: d.opening_hours.saturday[0]?.close ?? '' }, afternoon: { start: d.opening_hours.saturday[1]?.open ?? '', end: d.opening_hours.saturday[1]?.close ?? '' } } }))
+            if (d.opening_hours.sunday)    setWeek((w) => ({ ...w, dimanche: { morning: { start: d.opening_hours.sunday[0]?.open ?? '', end: d.opening_hours.sunday[0]?.close ?? '' }, afternoon: { start: d.opening_hours.sunday[1]?.open ?? '', end: d.opening_hours.sunday[1]?.close ?? '' } } }))
+          }
+
+          if (d.coin_accepted) {
+            if (d.coin_accepted === true) {
+              setSelectedPayments((prev) => [...prev, 'Pièces'])
+            }
+          }
+          if (d.bill_accepted) {
+            if (d.bill_accepted === true) {
+              setSelectedPayments((prev) => [...prev, 'Billet'])
+            }
+          }
+          if (d.card_accepted) {
+            if (d.card_accepted === true) {
+              setSelectedPayments((prev) => [...prev, 'Carte Bleue'])
+            }
+          }
+          if (d.fidelity_accepted) {
+            if (d.fidelity_accepted === true) {
+              setSelectedPayments((prev) => [...prev, 'Carte Fidélité'])
+            }
+          }
 
           // Machines (WASH, DRY, PRODUCTS) → converties au format Machine[] du formulaire
           const categoryFilter = ['WASH', 'DRY', 'PRODUCTS']
@@ -160,31 +186,41 @@ function AddLaundry() {
           setWilineLoading(false)
       }
   }
-  // Validation Front du formulaire
-  const validateForm = (): boolean => {
-    const newErrors = {
-      name:       !name   ? "Le nom de la laverie est requis": "",
-      rue:        !rue    ? "La rue est requise"   : "",
-      adress:     !adress     ? "L'adresse est requise"     : "",  
-      codePostal: !codePostal ? "Le code postal est requis" : "",
-      city:       !city       ? "La ville est requise"      : "",
-      country:    !country    ? "Le pays est requis"        : "",
-      latitude:   latitude === "" ? "La latitude est requise"      : "",
-      longitude:  longitude === "" ? "La longitude est requise"    : "",
-    };
+  // Ordre de priorité pour le scroll : latitude/longitude pointent vers le champ adresse
+  const fieldScrollOrder: { key: keyof typeof errors; refKey: string }[] = [
+    { key: 'name',       refKey: 'name'      },
+    { key: 'adress',     refKey: 'adress'    },
+    { key: 'codePostal', refKey: 'codePostal'},
+    { key: 'city',       refKey: 'city'      },
+    { key: 'country',    refKey: 'country'   },
+  ]
 
-    setErrors(newErrors);
-    return Object.values(newErrors).every((event) => event === "");
-  };
+  // Validation Front du formulaire
+  const validateForm = () => {
+    const newErrors = {
+      name:       !name       ? "Le nom de la laverie est requis" : "",
+      adress:     !adress     ? "L'adresse est requise"          : "",
+      codePostal: !codePostal ? "Le code postal est requis"      : "",
+      city:       !city       ? "La ville est requise"           : "",
+      country:    !country    ? "Le pays est requis"             : "",
+    }
+    setErrors(newErrors)
+    return { valid: Object.values(newErrors).every(e => e === ""), newErrors }
+  }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    console.log(logo, images); 
-    event.preventDefault();
+    event.preventDefault()
     setApiError("")
+    setGeoErreur("")
     setSuccess("")
-   
-    if (!validateForm()) {
-      return;
+
+    const { valid, newErrors } = validateForm()
+    if (!valid) {
+      const firstError = fieldScrollOrder.find(({ key }) => newErrors[key] !== "")
+      if (firstError) {
+        fieldRefs.current[firstError.refKey]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return
     }
 
     const token = localStorage.getItem("token");
@@ -198,13 +234,10 @@ function AddLaundry() {
     const formData = new FormData();
 
     formData.append("name", name);
-    formData.append("rue", rue);
     formData.append("adress", adress);
     formData.append("codePostal", codePostal);
     formData.append("city", city);
     formData.append("country", country);
-    formData.append("latitude", String(latitude));
-    formData.append("longitude", String(longitude));
     formData.append("description", description);
     formData.append("contact_email", contactEmail);
     formData.append("wilineCode", wilineCode);
@@ -238,10 +271,16 @@ function AddLaundry() {
           navigate('/pro/dashboard')
         } else {
           setApiError(data.message ?? "Une erreur est survenue.")
+          if (data.errors?.geolocation) {
+            setGeoErreur(data.errors.geolocation)                                                                                                                                             
+            // Scroller vers le champ adresse                                                                                                                                                 
+            fieldRefs.current['adress']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          } 
         }
       })
       .catch(() => {
         setApiError("Erreur réseau. Veuillez réessayer.")
+        setGeoErreur("Impossible de géolocaliser l'adresse. Veuillez vérifier l'adresse saisie.")
       })
       .finally(() => {
         setLoading(false)
@@ -263,6 +302,34 @@ function AddLaundry() {
         <h1 className='flex flex-col font-bold mt-10 items-center justify-center text-2xl'>Ajouter une laverie</h1>
         <p className="flex flex-col items-center justify-center text-gray-500">Créer une laverie & ajoutez ses informations</p>
 
+        {/* Wi-Line */}
+        <Field className="w-full max-w-md mx-auto mt-10" id='wiline-field'>
+            <FieldLabel htmlFor="wilineCode">Code Wi-Line</FieldLabel>
+            <FieldDescription>
+                Numéro de série de votre centrale Wi-Line. Cliquez sur "Importer" pour pré-remplir automatiquement l'adresse, les machines et les horaires.
+            </FieldDescription>
+            <div className="flex gap-2 mt-2 w-full">
+                <Input
+                    id="wilineCode"
+                    type="text"
+                    value={wilineCode}
+                    onChange={e => setWilineCode(e.target.value)}
+                    className="h-11 flex-1"
+                    placeholder="ex : 23128C02604C1521"
+                />
+                <Button
+                    type="button"
+                    onClick={handleWilineImport}
+                    disabled={!wilineCode.trim() || wilineLoading}
+                    className="h-11 whitespace-nowrap px-4 py-2"
+                >
+                    {wilineLoading ? 'Chargement…' : 'Importer'}
+                </Button>
+            </div>
+            {wilineError && (
+                <p className="text-red-500 text-xs mt-1">{wilineError}</p>
+            )}
+        </Field>      
         
         {/* Aperçu du logo */}
         {logoPreview && (
@@ -288,7 +355,7 @@ function AddLaundry() {
           </div>
         )}
 
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
+        <Field className='w-85 m-auto items-center justify-center mt-5' id='logo-field'>
           <FieldLabel htmlFor="logo">Logo :<span className='text-orange-600'>*</span></FieldLabel>
           <Input id="logo" ref={logoInputRef} type="file" accept="image/*"
             onChange={(e) => {
@@ -310,106 +377,67 @@ function AddLaundry() {
           {images && <CarouselWithThumbs files={images} />}
         </div>
 
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
+        <Field className='w-85 m-auto items-center justify-center mt-5' id='images-field'>
           <Input id="imagesLaundry" type="file" multiple accept="image/*" onChange={(e) => setImages(e.target.files)} />
           <FieldDescription>Selectionnez des images pour vôtre laverie.</FieldDescription>
         </Field>
 
-        <Field className='w-85 m-auto items-center justify-center mt-10'>
-          <FieldLabel htmlFor="input-field-name">Nom de la laverie<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-name" type="text" placeholder="Nom de vôtre laverie" value={name} onChange={(e) => setName(e.target.value)} className='h-11' aria-label='Nom de la laverie'/>
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-        </Field>
+        <div ref={el => { fieldRefs.current.name = el }}>
+          <Field className='w-85 m-auto items-center justify-center mt-10' id='name-field'>
+            <FieldLabel htmlFor="input-field-name">Nom de la laverie<span className='text-orange-600'>*</span></FieldLabel>
+            <Input id="input-field-name" type="text" placeholder="Nom de vôtre laverie" value={name} onChange={(e) => setName(e.target.value)} className='h-11' aria-label='Nom de la laverie'/>
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          </Field>
+        </div>
 
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
+        <Field className='w-85 m-auto items-center justify-center mt-5' id='email-field'>
           <FieldLabel htmlFor="input-field-email">Email de contact</FieldLabel>
-          <Input id="input-field-email" type="email" placeholder="contact@exemple.fr" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className='h-11' />
+          <Input id="input-field-email" type="email" placeholder="contact@exemple.fr" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className={`h-11`}/>
         </Field>
 
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-rue">Rue<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-rue" type="text" placeholder="Ex : 12" value={rue} onChange={(e) => setRue(e.target.value)} className='h-11'/>
-          {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
-        </Field>
+        
+        <div ref={el => { fieldRefs.current.adress = el }}>
+          <Field className='w-85 m-auto items-center justify-center mt-5' id='adress-field'>
+            {geoErreur && <p className="text-red-500 text-sm mt-1">{geoErreur}</p>}
+            <FieldLabel htmlFor="input-field-adress">Adresse<span className='text-orange-600'>*</span></FieldLabel>
+            <Input id="input-field-adress" type="text" placeholder="Ex : rue de la Paix" value={adress} onChange={(e) => setAdress(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
+            {errors.adress   && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
+          </Field>
+        </div>
 
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-adress">Adresse<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-adress" type="text" placeholder="Ex : rue de la Paix" value={adress} onChange={(e) => setAdress(e.target.value)} className='h-11'/>
-          {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
-        </Field>
+        <div ref={el => { fieldRefs.current.codePostal = el }}>
+          <Field className='w-85 m-auto items-center justify-center mt-5' id='zip-field'>
+            <FieldLabel htmlFor="input-field-codePostal">Code postal<span className='text-orange-600'>*</span></FieldLabel>
+            <Input id="input-field-codePostal" type="text" placeholder="Code postal" value={codePostal} onChange={(e) => setCodePostal(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
+            {errors.codePostal && <p className="text-red-500 text-sm mt-1">{errors.codePostal}</p>}
+          </Field>
+        </div>
 
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-codePostal">Code postal<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-codePostal" type="text" placeholder="Code postal" value={codePostal} onChange={(e) => setCodePostal(e.target.value)} className='h-11'/>
-          {errors.codePostal && <p className="text-red-500 text-sm mt-1">{errors.codePostal}</p>}
-        </Field>
+        <div ref={el => { fieldRefs.current.city = el }}>
+          <Field className='w-85 m-auto items-center justify-center mt-5' id='city-field'>
+            <FieldLabel htmlFor="input-field-city">Ville<span className='text-orange-600'>*</span></FieldLabel>
+            <Input id="input-field-city" type="text" placeholder="Ville" value={city} onChange={(e) => setCity(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
+            {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+          </Field>
+        </div>
 
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-city">Ville<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-city" type="text" placeholder="Ville" value={city} onChange={(e) => setCity(e.target.value)} className='h-11'/>
-          {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-        </Field>
+        <div ref={el => { fieldRefs.current.country = el }}>
+          <Field className='w-85 m-auto items-center justify-center mt-5' id='country-field'>
+            <FieldLabel htmlFor="input-field-country">Pays<span className='text-orange-600'>*</span></FieldLabel>
+            <Input id="input-field-country" type="text" placeholder="Pays" value={country} onChange={(e) => setCountry(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
+            {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+          </Field>
+        </div>
 
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-country">Pays<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-country" type="text" placeholder="Pays" value={country} onChange={(e) => setCountry(e.target.value)} className='h-11'/>
-          {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-latitude">Latitude<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-latitude" type="number" step="any" placeholder="Latitude" value={latitude} 
-          onChange={(e) => setLatitude(e.target.value === "" ? "" : parseFloat(e.target.value)) } className='h-11'/>
-          {errors.latitude && <p className="text-red-500 text-sm mt-1">{errors.latitude}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-longitude">Longitude<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-longitude" type="number" step="any" placeholder="Longitude" value={longitude} 
-          onChange={(e) => setLongitude(e.target.value === "" ? "" : parseFloat(e.target.value)) } className='h-11'/>
-          {errors.longitude && <p className="text-red-500 text-sm mt-1">{errors.longitude}</p>}
-        </Field>
-
-
-        <Field className="w-85 h-64 mt-5">
+        <Field className="w-85 h-64 mt-5" id='description-field'>
           <FieldLabel htmlFor="textarea-description">Description</FieldLabel>
           <FieldDescription>Entrer votre description ci-dessous.</FieldDescription>
           <Textarea id="textarea-description" placeholder="Ecrivez une description pour vôtre laverie." className='h-32' value={description}
           onChange={(e) => setDescription(e.target.value)} />
         </Field>
 
-
-         {/* Wi-Line */}
-            <Field className="w-full max-w-md mx-auto mt-10">
-                <FieldLabel htmlFor="wilineCode">Code Wi-Line</FieldLabel>
-                <FieldDescription>
-                    Numéro de série de votre centrale Wi-Line. Cliquez sur "Importer" pour pré-remplir automatiquement l'adresse, les machines et les horaires.
-                </FieldDescription>
-                <div className="flex gap-2 mt-2 w-full">
-                    <Input
-                        id="wilineCode"
-                        type="text"
-                        value={wilineCode}
-                        onChange={e => setWilineCode(e.target.value)}
-                        className="h-11 flex-1"
-                        placeholder="ex : 23128C02604C1521"
-                    />
-                    <Button
-                        type="button"
-                        onClick={handleWilineImport}
-                        disabled={!wilineCode.trim() || wilineLoading}
-                        className="h-11 whitespace-nowrap px-4 py-2"
-                    >
-                        {wilineLoading ? 'Chargement…' : 'Importer'}
-                    </Button>
-                </div>
-                {wilineError && (
-                    <p className="text-red-500 text-xs mt-1">{wilineError}</p>
-                )}
-            </Field>
-
         {/* Ajout Machines dynamiques pour une laverie  */}
-        <div className="my-5">
+        <div className="my-5" id='machines-field'>
           <h2 className="flex flex-col font-bold mt-6 items-center justify-center text-xl">
             Machines
           </h2>
@@ -444,7 +472,7 @@ function AddLaundry() {
         />
 
 
-        <div className="p-4 max-w-md mx-auto flex flex-col gap-4">
+        <div className="p-4 max-w-md mx-auto flex flex-col gap-4" id='schedule-field'>
           <WeekSchedulePicker value={week} onChange={setWeek} />
         </div>
 

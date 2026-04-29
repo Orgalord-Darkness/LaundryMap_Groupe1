@@ -48,6 +48,15 @@ class GeolocationService
                 return null;
             }
 
+            // Après avoir vérifié que features n'est pas vide :
+            $feature = $data['features'][0];
+
+            // Rejeter les correspondances trop approximatives ()
+            $score = $feature['properties']['score'] ?? 0;
+            if ($score < 0.64) {
+                return null;
+            }
+            
             // Les coordonnées sont dans features[0].geometry.coordinates
             // Attention : l'ordre GeoJSON est [longitude, latitude]
             $coordinates = $data['features'][0]['geometry']['coordinates'];
