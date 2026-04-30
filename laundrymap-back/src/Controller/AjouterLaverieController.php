@@ -74,7 +74,7 @@ class AjouterLaverieController extends AbstractController
         $errors = []; 
         $isGood = true; 
 
-        $coords = $geolocationService->geocodeAdresse("$adress $codePostal $city $country");
+        $coords = $geolocationService->geocodeAdresseStructuree($adress, $codePostal, $city, $country);
         if ($coords !== null && isset($coords['lat'], $coords['lng']) && $coords['lat'] !== null && $coords['lng'] !== null) {
             $latRaw = $coords['lat'];
             $lngRaw = $coords['lng'];

@@ -289,7 +289,12 @@ class LaverieController extends AbstractController
                 (string) $adresse->getCodePostal(),   
                 $adresse->getVille(),
             ]));
-            $coords = $geolocationService->geocodeAdresse("$fullAdresse");
+            $coords = $geolocationService->geocodeAdresseStructuree(
+                $adresse->getAdresse(),
+                (string) $adresse->getCodePostal(),
+                $adresse->getVille(),
+                $adresse->getPays()
+            );
 
             if ($coords !== null && isset($coords['lat'], $coords['lng'])) {
                 $adresse->setLatitude($coords['lat']);
@@ -893,7 +898,7 @@ class LaverieController extends AbstractController
                 return $this->json(['message' => 'Le paramètre "query" doit contenir entre 1 et 255 caractères.'], Response::HTTP_BAD_REQUEST);
             }
 
-            $coords = $geolocationService->geocodeAdresse($query);
+            $coords = $geolocationService->geocodeAdresseStructuree($query, '', '', '');
 
             if ($coords === null) {
                 return $this->json(['message' => 'Adresse introuvable. Vérifiez votre saisie et réessayez.'], Response::HTTP_BAD_REQUEST);
@@ -1082,7 +1087,7 @@ class LaverieController extends AbstractController
                 return $this->json(['message' => 'Le paramètre "query" doit contenir entre 1 et 255 caractères.'], Response::HTTP_BAD_REQUEST);
             }
 
-            $coords = $geolocationService->geocodeAdresse($query);
+            $coords = $geolocationService->geocodeAdresseStructuree($query, '', '', '');
 
             if ($coords === null) {
                 return $this->json(['message' => 'Adresse introuvable. Vérifiez votre saisie et réessayez.'], Response::HTTP_BAD_REQUEST);
