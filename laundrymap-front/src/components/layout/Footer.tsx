@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export function Footer() {
   const socialLinks = [
     {
@@ -106,9 +108,9 @@ export function Footer() {
         {/* Liens légaux — texte blanc foncé sur fond clair = bon contraste */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", minWidth: "150px" }}>
           {legalLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
-              href={link.href}
+              to={link.href}
               style={{
                 color: "#0a3d52",
                 textDecoration: "underline",
@@ -118,7 +120,7 @@ export function Footer() {
               }}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 

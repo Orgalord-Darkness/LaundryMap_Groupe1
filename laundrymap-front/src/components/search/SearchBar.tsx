@@ -37,12 +37,13 @@ interface SearchBarProps {
     loading: boolean
     onFilterClick: () => void
     activeFilterCount: number
+    initialValue?: string
 }
 
-export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount }: SearchBarProps) {
+export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount, initialValue = "" }: SearchBarProps) {
     const { t } = useTranslation()
 
-    const [value, setValue] = useState("")
+    const [value, setValue] = useState(initialValue)
     const [suggestions, setSuggestions] = useState<Suggestion[]>([])
     const [showDropdown, setShowDropdown] = useState(false)
     const [activeIndex, setActiveIndex] = useState(-1)
