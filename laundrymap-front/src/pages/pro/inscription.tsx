@@ -4,13 +4,19 @@ import { useNavigate } from 'react-router-dom'
 import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'; 
+import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field"
+import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
+import { useTranslation } from "react-i18next"
+
+
+ 
 
 function ProInscription() {
 
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/pro/inscription`
+  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/inscription`
   const [googlePrefilled, setGooglePrefilled] = useState(false)
+  const { t } = useTranslation()
   
   // Infos Pro
   const [lastname, setLastname] = useState("");
@@ -28,17 +34,17 @@ function ProInscription() {
 
   const handleGoogleSuccess = (credentialResponse: any) => {
     try {
-        const base64Url = credentialResponse.credential.split('.')[1]
-        const base64    = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-        const payload   = JSON.parse(window.atob(base64))
+      const base64Url = credentialResponse.credential.split('.')[1]
+      const base64    = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const payload   = JSON.parse(window.atob(base64))
 
-        setFirstname(payload.given_name  ?? '')
-        setLastname(payload.family_name  ?? '')
-        setEmail(payload.email           ?? '')
-        setGooglePrefilled(true)
+      setFirstname(payload.given_name  ?? '')
+      setLastname(payload.family_name  ?? '')
+      setEmail(payload.email           ?? '')
+      setGooglePrefilled(true)
 
     } catch (e) {
-        console.error('Erreur décodage token Google', e)
+      console.error('Erreur décodage token Google', e)
     }
   }
 
@@ -60,6 +66,7 @@ function ProInscription() {
   const [redirectOpen, setRedirectOpen] = useState(false)
   const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState("");
+  const [cguAccepted, setCguAccepted] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors = {
@@ -86,138 +93,203 @@ function ProInscription() {
 
     if (!validateForm()) return;
 
-    const response = await axios.post(url, {
-      lastname,
-      firstname,
-      email,
-      password,
-      siren,
-      adress,
-      rue,        
-      codePostal,
-      city,
-      country,
-    })
-    const data = response.data
 
-    if(data.errors) { 
-      setApiError("Une erreur est survenue lors de l'inscription. Veuillez vérifier les informations saisies.")
-      return
+    try {
+
+      const response = await axios.post(url, { 
+        lastname,
+        firstname,
+        email,
+        password,
+        siren,
+        adress,
+        rue,        
+        codePostal,
+        city,
+        country,
+      })
+
+      setSuccess(response.data.message) 
+      setSuccess("Inscription réussie ! Votre compte professionnel est maintenant en attente de validation par un administrateur.")
+      setRedirectOpen(true)
+
+    } catch (error: any) {
+
+      const message = error.response?.data?.message
+      setApiError(message || "Une erreur est survenue lors de l'inscription.")
     }
 
-    setSuccess("Inscription réussie ! Vous pouvez maintenant vous connecter.")
-    setRedirectOpen(true)
+    // setSuccess("Inscription réussie ! Vous pouvez maintenant vous connecter.")
+    // setRedirectOpen(true)
   }
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex flex-col items-center p-4">
 
-        <h1 className='flex flex-col font-bold mt-10 items-center justify-center text-2xl'>Inscription</h1>
-        <p className="flex flex-col items-center justify-center text-gray-500">Créer un compte professionnel</p>
+      <div className="grid min-h-svh lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
 
-        {apiError && <p className="text-red-500 text-sm mt-4 font-semibold">{apiError}</p>}
-        {success  && <p className="text-green-600 text-sm mt-4 font-semibold">{success}</p>}
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-lastname">Nom<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-lastname" type="text" placeholder="Nom" value={lastname} className={`h-11 ${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`} onChange={(e) => setLastname(e.target.value)} />
-          {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-firstname">Prénom<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-firstname" type="text" placeholder="Prénom" className={`h-11 ${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`}  value={firstname} onChange={(e) => setFirstname(e.target.value)} />
-          {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-lastname">Nom<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-lastname" type="text" placeholder="Nom" value={lastname} onChange={(e) => setLastname(e.target.value)} className='h-11'/>
-          {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-email">Email<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-email" type="email" placeholder="Email" className={`h-11 ${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`}  value={email} onChange={(e) => setEmail(e.target.value)}/>
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-password">Mot de passe<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-password" type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className='h-11'/>
-          <FieldDescription>Longueur minimale : 8 caractères</FieldDescription>
-          <FieldDescription>Utiliser au moins : 1 majuscule, 1 chiffre, 1 caractère spécial</FieldDescription>
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-        </Field>
-
-        <p className="flex flex-col items-center justify-center text-gray-500 mt-7">Informations entreprise</p>
-        <div className="flex items-center mx-auto pb-3 w-55 border-b-2 border-gray-300"></div>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-siren">Numéro de SIREN<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-siren" type="text" placeholder="9 chiffres" maxLength={9} value={siren} onChange={(e) => setSiren(e.target.value)} className='h-11'/>
-          {errors.siren && <p className="text-red-500 text-sm mt-1">{errors.siren}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-rue">Numéro de rue<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-rue" type="text" placeholder="Ex : 12" value={rue} onChange={(e) => setRue(e.target.value)} className='h-11'/>
-          {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-adress">Adresse<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-adress" type="text" placeholder="Ex : Rue de la place" value={adress} onChange={(e) => setAdress(e.target.value)} className='h-11'/>
-          {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-codePostal">Code postal<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-codePostal" type="text" placeholder="Code postal" value={codePostal} onChange={(e) => setCodePostal(e.target.value)} className='h-11'/>
-          {errors.codePostal && <p className="text-red-500 text-sm mt-1">{errors.codePostal}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-city">Ville<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-city" type="text" placeholder="Ville" value={city} onChange={(e) => setCity(e.target.value)} className='h-11'/>
-          {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-        </Field>
-
-        <Field className='w-85 m-auto items-center justify-center mt-5'>
-          <FieldLabel htmlFor="input-field-country">Pays<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="input-field-country" type="text" placeholder="Pays" value={country} onChange={(e) => setCountry(e.target.value)} className='h-11'/>
-          {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
-        </Field>
-
-        <div className='flex flex-col items-center justify-center my-12'>
-          <Button type="submit">Inscription</Button>
+        <div className="flex justify-center gap-2">
+          <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
+              <img src="../public/logo_ec2e.png"  alt="Image" className="w-30" />
+            </a>
         </div>
-        <div className="flex flex-col items-center gap-2 mt-4 mb-2">
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-              <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => console.error('Erreur Google')}
-                  text="continue_with"
-                  useOneTap={false}
+
+        {apiError && <p className="m-auto text-red-500 text-sm mt-4 font-semibold">{apiError}</p>}
+        {success  && <p className="m-auto text-green-600 text-sm mt-4 font-semibold">{success}</p>}
+
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+
+
+              <FieldGroup>
+
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <h1 className="text-2xl font-bold">{t("create_your_account")}</h1>
+                  <p className="text-sm text-balance text-muted-foreground">
+                    {t("fill_form")}
+                  </p>
+                </div>
+
+
+                <Field>
+                  <FieldLabel htmlFor="lastname">{t("lastname")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="lastname" type="text" placeholder={t("lastname")} value={lastname} className={`${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`}  onChange={(e) => setLastname(e.target.value)} />
+                  {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="firstname">{t("firstname")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="firstname" type="text" placeholder={t("firstname")} className={`${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`} value={firstname} onChange={(e) => setFirstname(e.target.value)} />
+                  {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname}</p>}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="email">{t("email")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="email" type="email" placeholder="m@example.com" className={`${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`} value={email} onChange={(e) => setEmail(e.target.value)}/>
+                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  <FieldDescription> {t("email_informations")} </FieldDescription>
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="password">{t("mot_de_passe")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="password" type="password" placeholder={t("mot_de_passe")} value={password} onChange={(e) => setPassword(e.target.value)}/>
+                  <FieldDescription>{t("password_infos")}</FieldDescription>
+                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                </Field> 
+                
+                {/* <Field>
+                  <FieldLabel htmlFor="confirm-password">{t("confirm_password")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="confirm-password" type="password" placeholder={t("confirm_password")} required />
+                  <FieldDescription>{t("please_confirm_password")}</FieldDescription>
+                </Field> */}
+
+                <FieldSeparator className="my-5">{t("company_informations")}</FieldSeparator>
+
+                <Field>
+                  <FieldLabel htmlFor="siren">{t("siren_number")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="siren" type="text" placeholder={t("siren_number")} maxLength={9} value={siren} onChange={(e) => setSiren(e.target.value)} />
+                  {errors.siren && <p className="text-red-500 text-sm mt-1">{errors.siren}</p>}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="rue">{t("street_number")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="rue" type="text" placeholder="Ex : 12" value={rue} onChange={(e) => setRue(e.target.value)} />
+                  {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="adress">{t("street_name")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="adress" type="text" placeholder="Ex : Rue de la place" value={adress} onChange={(e) => setAdress(e.target.value)} />
+                  {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="codePostal">{t("postal_code")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="codePostal" type="text" placeholder={t("postal_code")} value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
+                  {errors.codePostal && <p className="text-red-500 text-sm mt-1">{errors.codePostal}</p>}
+                </Field> 
+
+                <Field>
+                  <FieldLabel htmlFor="city">{t("city")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="city" type="text" placeholder={t("city")} value={city} onChange={(e) => setCity(e.target.value)} />
+                  {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="country">{t("country")}<span className='text-orange-600'>*</span></FieldLabel>
+                  <Input id="country" type="text" placeholder={t("country")} value={country} onChange={(e) => setCountry(e.target.value)} />
+                  {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+                </Field>
+
+                
+                <div className='mt-6'>
+                  <CGUAcceptCheckbox checked={cguAccepted} onChange={setCguAccepted} />
+                </div>
+
+                <Field>
+                  <Button type="submit" disabled={!cguAccepted}>{t("create_your_account")}</Button>
+                </Field>
+
+                <FieldSeparator>{t("continuer_avec")}</FieldSeparator>
+
+                <div className="flex flex-col items-center gap-2 my-2">
+                  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+                      <GoogleLogin
+                          onSuccess={handleGoogleSuccess}
+                          onError={() => console.error('Erreur Google')}
+                          text="continue_with"
+                          useOneTap={false}
+                      />
+                  </GoogleOAuthProvider>
+                  {googlePrefilled && (
+                      <p className="text-green-600 text-sm">
+                          ✓ Nom, prénom et email importés depuis Google — complétez les champs restants.
+                      </p>
+                  )}
+                </div> 
+
+
+                
+                <Field>
+                  <FieldDescription className="px-6 text-center">
+                    {t("already_account")} <a href="/pro/login">{t("connexion")}</a>
+                  </FieldDescription>
+                </Field>
+
+              </FieldGroup>
+
+              <RedirectDialog
+                open={redirectOpen}
+                title="Inscription réussie !"
+                message="Votre compte est en attente de validation par un administrateur. Vous recevrez un email de confirmation."
+                destinationLabel="Page de connexion"
+                duration={4000}
+                onNavigate={() => navigate("/pro/login")}
               />
-          </GoogleOAuthProvider>
-          {googlePrefilled && (
-              <p className="text-green-600 text-sm">
-                  ✓ Nom, prénom et email importés depuis Google — complétez les champs restants.
-              </p>
-          )}
+
+            </form>
+
+          </div>
+        </div>
       </div>
 
-      <RedirectDialog
-        open={redirectOpen}
-        title="Inscription réussie !"
-        message="Votre compte professionnel a été créé. Vous allez être redirigé vers votre tableau de bord."
-        destinationLabel="votre tableau de bord"
-        duration={3000}
-        onNavigate={() => navigate("/pro/dashboard")}
-      />
-      </form>
+      <div className="relative hidden bg-muted lg:block">
+        <img
+          src="../public/laverienew.png"
+          alt="Image"
+          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+        />
+      </div>
+
+    </div> 
+
+
+
+
     </>
   );
 }
