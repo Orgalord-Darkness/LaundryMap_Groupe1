@@ -54,6 +54,7 @@ interface MapViewProps {
     autoStart?: boolean
     userPosition?: { lat: number; lng: number } | null
     searchRadius?: number
+    fitBoundsKey?: number
 }
 
 interface LocateControlComponentProps {
@@ -63,11 +64,34 @@ interface LocateControlComponentProps {
 
 // ─── Sous-composant : ajuste le zoom quand les laveries changent ──────────────
 
-function MapAdjuster({ laveries, selectedId }: { laveries: LaverieSearch[]; selectedId: number | null }) {
+function MapAdjuster({ laveries, selectedId, fitBoundsKey }: {
+    laveries: LaverieSearch[]
+    selectedId: number | null
+    fitBoundsKey?: number
+}) {
     const map = useMap()
     const prevSelectedRef = useRef<number | null>(null)
+    const prevFitKeyRef = useRef<number>(0)
+    const pendingFitRef = useRef(false)
 
-    // Zoom sur le marker sélectionné depuis la liste
+    // Quand fitBoundsKey change (nouvelle recherche textuelle), marque un fitBounds en attente
+    useEffect(() => {
+        if (!fitBoundsKey || fitBoundsKey === prevFitKeyRef.current) return
+        prevFitKeyRef.current = fitBoundsKey
+        pendingFitRef.current = true
+    }, [fitBoundsKey])
+
+    // Exécute le fitBounds dès que les laveries résultantes arrivent
+    useEffect(() => {
+        if (!pendingFitRef.current || laveries.length === 0) return
+        pendingFitRef.current = false
+        const bounds = L.latLngBounds(
+            laveries.map((l) => [l.adresse.latitude, l.adresse.longitude] as [number, number])
+        )
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, animate: true })
+    }, [laveries, map])
+
+    // Zoom sur le marker sélectionné depuis la liste ou le carousel
     useEffect(() => {
         if (selectedId === null || selectedId === prevSelectedRef.current) return
         prevSelectedRef.current = selectedId
@@ -143,7 +167,7 @@ function LeafletLocateControl({ onLocationFound, autoStart }: LocateControlCompo
 const PARIS: [number, number] = [48.8566, 2.3522]
 const DEFAULT_ZOOM = 12
 
-export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, autoStart, userPosition, searchRadius }: MapViewProps) {
+export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, autoStart, userPosition, searchRadius, fitBoundsKey }: MapViewProps) {
     return (
         <div
             className="w-full rounded-2xl overflow-hidden shadow-sm border border-gray-100"
@@ -179,7 +203,7 @@ export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound
                 />
 
                 {/* Ajustement automatique du zoom */}
-                <MapAdjuster laveries={laveries} selectedId={selectedId} />
+                <MapAdjuster laveries={laveries} selectedId={selectedId} fitBoundsKey={fitBoundsKey} />
 
                 {/* Markers avec clustering automatique au dézoom */}
                 <MarkerClusterGroup chunkedLoading>
