@@ -30,13 +30,13 @@ export const LaverieSearchCard = forwardRef<HTMLDivElement, LaverieSearchCardPro
         const { t } = useTranslation()
         const navigate = useNavigate()
         return (
-            <div ref={ref} onClick={onClick} className="cursor-pointer">
+            <div ref={ref} onClick={onClick} className="cursor-pointer h-full">
                 <Card
                     className={`
-                        overflow-hidden rounded-2xl p-0 gap-0 shadow-sm
-                        transition-all duration-300
+                        h-full flex flex-col overflow-hidden rounded-2xl p-0 gap-0 shadow-sm
+                        transition-all duration-200
                         ${selected
-                            ? "ring-2 ring-primary shadow-md scale-[1.01]"
+                            ? "ring-2 ring-primary shadow-md"
                             : "hover:shadow-md"
                         }
                     `}
@@ -68,7 +68,7 @@ export const LaverieSearchCard = forwardRef<HTMLDivElement, LaverieSearchCardPro
                     </div>
 
                     {/* Contenu */}
-                    <CardContent className="p-4 flex flex-col gap-2">
+                    <CardContent className="p-4 flex flex-col gap-2 flex-1">
                         <h3 className="font-semibold text-gray-900 text-base leading-tight">
                             {laverie.nomEtablissement}
                         </h3>
@@ -91,14 +91,20 @@ export const LaverieSearchCard = forwardRef<HTMLDivElement, LaverieSearchCardPro
                             </p>
                         )}
                     </CardContent>
-                    <CardFooter>
+                   <CardFooter className="pt-0 pb-4 w-full flex items-center justify-center">
                         <Button
-                        className="w-full"
-                        onClick={() => navigate(`/user/fiche-laverie/${laverie.id}`)}
+                            className="w-full mt-2"
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                navigate(`/user/fiche-laverie/${laverie.id}`) 
+                            }}
                         >
-                        Voir la laverie
+                            Voir la fiche
                         </Button>
                     </CardFooter>
+
+
+
                 </Card>
             </div>
         )

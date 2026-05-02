@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react"
+import { useNavigate } from "react-router-dom"
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet"
 import MarkerClusterGroup from "react-leaflet-cluster"
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css"
@@ -101,7 +102,7 @@ function MapAdjuster({ laveries, selectedId, fitBoundsKey }: {
 
         map.flyTo(
             [laverie.adresse.latitude, laverie.adresse.longitude],
-            15,
+            Math.max(map.getZoom(), 15),
             { animate: true, duration: 0.8 }
         )
     }, [selectedId, laveries, map])
@@ -168,6 +169,7 @@ const PARIS: [number, number] = [48.8566, 2.3522]
 const DEFAULT_ZOOM = 12
 
 export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, autoStart, userPosition, searchRadius, fitBoundsKey }: MapViewProps) {
+    const navigate = useNavigate()
     return (
         <div
             className="w-full rounded-2xl overflow-hidden shadow-sm border border-gray-100"
@@ -222,6 +224,13 @@ export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound
                                 <div className="text-xs text-gray-500 mt-0.5">
                                     {laverie.adresse.rue}, {laverie.adresse.ville}
                                 </div>
+                                <button 
+                                    onClick={() => navigate(`/user/fiche-laverie/${laverie.id}`)}
+                                    className="w-full text-xs bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-white hover:text-primary hover:border hover:border-primary transition-colors cursor-pointer"
+                                >
+
+                                    Voir la fiche
+                                </button>
                             </Popup>
                         </Marker>
                     ))}

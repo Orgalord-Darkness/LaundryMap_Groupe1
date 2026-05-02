@@ -109,9 +109,9 @@ export function LaverieList({
                 opts={{ align: "start", dragFree: true }}
                 aria-label="Liste des laveries trouvées"
             >
-                <CarouselContent className="-ml-3">
+                <CarouselContent className="-ml-3 py-1">
                     {laveries.map((laverie) => (
-                        <CarouselItem key={laverie.id} className="pl-3 basis-[280px] md:basis-[300px]">
+                        <CarouselItem key={laverie.id} className="pl-3 basis-[280px] md:basis-[300px] h-[360px]">
                             <LaverieSearchCard
                                 laverie={laverie}
                                 selected={selectedId === laverie.id}

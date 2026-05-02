@@ -53,16 +53,21 @@ export default function HomePage() {
         if (!navigator.permissions) return
         navigator.permissions.query({ name: "geolocation" }).then((result) => {
             if (result.state === 'granted') {
-                setAutoStartLocate(true); 
-            } else if (result.state === 'prompt') {
+                setAutoStartLocate(true)
+            } else if (result.state === 'prompt' && !localStorage.getItem('geo_modal_answered')) {
                 setGeoModalOpen(true)
             }
         })
     }, [])
 
     const handleAcceptGeo = useCallback(() => {
+        localStorage.setItem('geo_modal_answered', '1')
         setGeoModalOpen(false)
         setAutoStartLocate(true)
+    }, [])
+    const handleRefuseGeo = useCallback(() => {
+        localStorage.setItem('geo_modal_answered', '1')
+        setGeoModalOpen(false)
     }, [])
 
     const handleLocationFound = useCallback(async (pos: { lat: number; lng: number}) => {                                                                                                 
@@ -223,7 +228,8 @@ export default function HomePage() {
                     <DialogTitle>{t("geo_permission_title")}</DialogTitle>
                     <DialogDescription>{t("geo_permission_desc")}</DialogDescription>
                     <Button onClick={handleAcceptGeo}>{t("geo_permission_accept")}</Button>
-                    <DialogClose className="ml-2">{t("geo_permission_decline")}</DialogClose>
+                    {/* <DialogClose className="ml-2">{t("geo_permission_decline")}</DialogClose> */}
+                    <Button variant={'secondary'}onClick={handleRefuseGeo}>{t("geo_permission_decline")}</Button>
                 </DialogContent>
             </Dialog>
         </main>
