@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "leaflet.locatecontrol/dist/L.Control.Locate.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -73,6 +74,25 @@
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
 }
+
+ .leaflet-control-locate {
+     --locate-control-icon-color: #0077B6;   
+     --locate-control-active-color: #005f91;
+     --locate-control-following-color: #0077B6;
+ }
+
+ .leaflet-control-locate a {
+     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+ }
+
+ .leaflet-control-locate a:hover {
+     background-color: #e8f4fb;
+ }
+
+ .leaflet-control-locate a:focus-visible {
+     outline: 2px solid #0077B6;
+     outline-offset: 2px;
+ }
 
 @theme inline {
     --font-sans: 'geist', sans-serif;

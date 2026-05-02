@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 import { SearchBar } from "@/components/search/SearchBar"
@@ -6,8 +6,10 @@ import { MapView } from "@/components/search/MapView"
 import { LaverieList } from "@/components/search/LaverieList"
 import { FilterModal } from "@/components/search/FilterModal"
 import { ActiveFilters } from "@/components/search/ActiveFilters"
-import { searchWithFilters } from "@/components/utils/laverieService"
+import { searchWithFilters, searchByLocation } from "@/components/utils/laverieService"
 import type { LaverieSearch, SearchFilters } from "@/components/utils/type"
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button" 
 
 // ─── HomePage — page d'accueil avec carte, recherche et filtres ───────────────
 // Carte vierge centrée sur Paris au chargement.
@@ -33,11 +35,58 @@ export default function HomePage() {
     const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS)
     const [isFilterOpen, setIsFilterOpen] = useState(false)
     const [lastQuery, setLastQuery] = useState(initialQuery)
+    const [geoModalOpen, setGeoModalOpen] = useState(false)
+    const [autoStartLocate, setAutoStartLocate] = useState(false)
+    const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null)
+
+    const lastSearchPosRef = useRef<{ lat: number; lng: number } | null>(null) 
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     const activeFilterCount =
         (filters.openAt ? 1 : 0) + filters.services.length + filters.payments.length
+
+    // ─── Lancement de l'app ────────────────────────────────────────────
+
+    useEffect(() => {
+        if (!navigator.permissions) return
+        navigator.permissions.query({ name: "geolocation" }).then((result) => {
+            if (result.state === 'granted') {
+                setAutoStartLocate(true); 
+            } else if (result.state === 'prompt') {
+                setGeoModalOpen(true)
+            }
+        })
+    }, [])
+
+    const handleAcceptGeo = useCallback(() => {
+        setGeoModalOpen(false)
+        setAutoStartLocate(true)
+    }, [])
+
+    const handleLocationFound = useCallback(async (pos: { lat: number; lng: number}) => {                                                                                                 
+        // Ne relance la recherche que si la position a changé de plus de ~100m                                                                                                           
+        if (lastSearchPosRef.current) {                                                                                                                                                   
+            const dLat = Math.abs(pos.lat - lastSearchPosRef.current.lat)                                                                                                                 
+            const dLng = Math.abs(pos.lng - lastSearchPosRef.current.lng)                                                                                                                 
+            if (dLat < 0.001 && dLng < 0.001) return                                                                                                                                      
+        }                                                                                                                                                                                 
+        lastSearchPosRef.current = pos                    
+        setUserPosition(pos)                                                                                                                                                              
+        setLoading(true)                                                                                                                                                                  
+        setError(null)  
+        setSelectedId(null)                                                                                                                                                               
+        try {                                             
+            const results = await searchByLocation(pos.lat, pos.lng)
+            setLaveries(results)                                    
+            setHasSearched(true)                                                                                                                                                          
+        } catch {               
+            setError(t("search_error"))                                                                                                                                                   
+            setLaveries([])                               
+        } finally {        
+            setLoading(false)
+        }                                                                                                                                                                                 
+    }, [t])
 
     // ─── Lancement de la recherche ────────────────────────────────────────────
 
@@ -125,6 +174,10 @@ export default function HomePage() {
                         laveries={laveries}
                         selectedId={selectedId}
                         onSelectLaverie={handleSelectLaverie}
+                        onLocationFound={handleLocationFound}
+                        autoStart={autoStartLocate}
+                        userPosition={userPosition}
+                        searchRadius ={1000}
                     />
                 </div>
 
@@ -161,6 +214,14 @@ export default function HomePage() {
                 filters={filters}
                 onFiltersChange={setFilters}
             />
+            <Dialog open={geoModalOpen} onOpenChange={setGeoModalOpen}>
+                <DialogContent>
+                    <DialogTitle>{t("geo_permission_title")}</DialogTitle>
+                    <DialogDescription>{t("geo_permission_desc")}</DialogDescription>
+                    <Button onClick={handleAcceptGeo}>{t("geo_permission_accept")}</Button>
+                    <DialogClose className="ml-2">{t("geo_permission_decline")}</DialogClose>
+                </DialogContent>
+            </Dialog>
         </main>
     )
 }
