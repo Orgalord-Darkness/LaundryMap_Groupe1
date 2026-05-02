@@ -109,7 +109,7 @@ function ProInscription() {
 
       setSuccess(response.data.message) 
       setSuccess("Inscription réussie ! Votre compte professionnel est maintenant en attente de validation par un administrateur.")
-      setRedirectOpen(true)
+      navigate("/pro/login")
 
     } catch (error: any) {
 
@@ -124,7 +124,7 @@ function ProInscription() {
   return (
     <>
 
-      <div className="grid min-h-svh lg:grid-cols-2">
+    <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
 
         <div className="flex justify-center gap-2">
@@ -259,16 +259,7 @@ function ProInscription() {
                 </Field>
 
               </FieldGroup>
-
-              <RedirectDialog
-                open={redirectOpen}
-                title="Inscription réussie !"
-                message="Votre compte est en attente de validation par un administrateur. Vous recevrez un email de confirmation."
-                destinationLabel="Page de connexion"
-                duration={4000}
-                onNavigate={() => navigate("/pro/login")}
-              />
-
+              
             </form>
 
           </div>
@@ -282,7 +273,8 @@ function ProInscription() {
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
-      </form>
+    </div>
+    
     </>
   );
 }
