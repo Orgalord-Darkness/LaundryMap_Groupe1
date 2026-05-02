@@ -26,7 +26,7 @@ api.interceptors.request.use((config) => {
 export async function searchByLocation(
     lat: number,
     lng: number,
-    radius: number = 5000
+    radius: number = 1000
 ): Promise<LaverieSearch[]> {
     const response = await api.get("/laverie/search", {
         params: { lat, lng, radius },
@@ -43,7 +43,7 @@ export async function searchByLocation(
  */
 export async function searchByQuery(
     query: string,
-    radius: number = 5000
+    radius: number = 1000
 ): Promise<LaverieSearch[]> {
     const response = await api.get("/laverie/search", {
         params: { query, radius },
@@ -61,7 +61,7 @@ export async function searchByQuery(
 export async function searchWithFilters(
     query: string,
     filters: SearchFilters,
-    radius: number = 5000
+    radius: number = 1000
 ): Promise<LaverieSearch[]> {
     const params: Record<string, unknown> = { query, radius }
 

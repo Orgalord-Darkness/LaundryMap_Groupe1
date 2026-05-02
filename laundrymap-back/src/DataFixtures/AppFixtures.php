@@ -865,8 +865,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Survilliers',
                 'pays'                   => 'France',
-                'latitude'               => 49.0415,
-                'longitude'              => 2.5283,
+                'latitude'               => 49.10234,
+                'longitude'              => 2.54562,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -875,8 +875,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Survilliers',
                 'pays'                   => 'France',
-                'latitude'               => 49.0530,
-                'longitude'              => 2.5150,
+                'latitude'               => 49.10890,
+                'longitude'              => 2.56140,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -905,8 +905,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95270,
                 'ville'                  => 'Luzarches',
                 'pays'                   => 'France',
-                'latitude'               => 49.1130,
-                'longitude'              => 2.4390,
+                'latitude'               => 49.1170,
+                'longitude'              => 2.4240,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             // Groupe A (suite) — 10 laveries supplémentaires dans les 5km de Survilliers
@@ -916,8 +916,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Survilliers',
                 'pays'                   => 'France',
-                'latitude'               => 49.0450,
-                'longitude'              => 2.5320,
+                'latitude'               => 49.10495,
+                'longitude'              => 2.55040,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -926,8 +926,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Survilliers',
                 'pays'                   => 'France',
-                'latitude'               => 49.0380,
-                'longitude'              => 2.5200,
+                'latitude'               => 49.10190,
+                'longitude'              => 2.54640,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -936,8 +936,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Survilliers',
                 'pays'                   => 'France',
-                'latitude'               => 49.0300,
-                'longitude'              => 2.5350,
+                'latitude'               => 49.10285,
+                'longitude'              => 2.54490,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -946,8 +946,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Survilliers',
                 'pays'                   => 'France',
-                'latitude'               => 49.0470,
-                'longitude'              => 2.5450,
+                'latitude'               => 49.10075,
+                'longitude'              => 2.54810,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -956,8 +956,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Survilliers',
                 'pays'                   => 'France',
-                'latitude'               => 49.0600,
-                'longitude'              => 2.5400,
+                'latitude'               => 49.11010,
+                'longitude'              => 2.56190,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -966,8 +966,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95380,
                 'ville'                  => 'Louvres',
                 'pays'                   => 'France',
-                'latitude'               => 49.0200,
-                'longitude'              => 2.5300,
+                'latitude'               => 49.0385,
+                'longitude'              => 2.5195,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -976,8 +976,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95380,
                 'ville'                  => 'Louvres',
                 'pays'                   => 'France',
-                'latitude'               => 49.0150,
-                'longitude'              => 2.5400,
+                'latitude'               => 49.0360,
+                'longitude'              => 2.5240,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -986,8 +986,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Fosses',
                 'pays'                   => 'France',
-                'latitude'               => 49.0680,
-                'longitude'              => 2.5050,
+                'latitude'               => 49.0935,
+                'longitude'              => 2.4945,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -996,8 +996,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95380,
                 'ville'                  => 'Chennevières-lès-Louvres',
                 'pays'                   => 'France',
-                'latitude'               => 49.0480,
-                'longitude'              => 2.4900,
+                'latitude'               => 49.0635,
+                'longitude'              => 2.4975,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             [
@@ -1006,8 +1006,8 @@ class AppFixtures extends Fixture
                 'code_postal'            => 95470,
                 'ville'                  => 'Survilliers',
                 'pays'                   => 'France',
-                'latitude'               => 49.0350,
-                'longitude'              => 2.5450,
+                'latitude'               => 49.10210,
+                'longitude'              => 2.54510,
                 'statut_geolocalisation' => GeoStatutEnum::GEOLOCALISE,
             ],
             // Groupe B — villes éloignées (ne doivent PAS apparaître dans la zone Survilliers)
@@ -1078,12 +1078,17 @@ class AppFixtures extends Fixture
             $manager->persist($adresse);
             $adressesGeo[] = $adresse;
         }
-        // $adressesGeo[0] = Survilliers Mairie      | $adressesGeo[1] = Survilliers Gare
-        // $adressesGeo[2] = Chantilly Connétable    | $adressesGeo[3] = Senlis République
-        // $adressesGeo[4] = Luzarches Parc
-        // $adressesGeo[5] = Marseille Vieux-Port    | $adressesGeo[6] = Bordeaux Chartrons
-        // $adressesGeo[7] = Lyon République         | $adressesGeo[8] = Lille Paris
-        // $adressesGeo[9] = Strasbourg Bouchers
+        // $adressesGeo[0]  = Survilliers Mairie          | $adressesGeo[1]  = Survilliers Gare
+        // $adressesGeo[2]  = Chantilly Connétable        | $adressesGeo[3]  = Senlis République
+        // $adressesGeo[4]  = Luzarches Parc
+        // $adressesGeo[5]  = Survilliers Château d'eau   | $adressesGeo[6]  = Survilliers Lilas
+        // $adressesGeo[7]  = Survilliers Acacias         | $adressesGeo[8]  = Survilliers Moulin
+        // $adressesGeo[9]  = Survilliers Forêt           | $adressesGeo[10] = Louvres Vignes
+        // $adressesGeo[11] = Louvres Croix               | $adressesGeo[12] = Fosses Église
+        // $adressesGeo[13] = Chennevières Grande Rue      | $adressesGeo[14] = Survilliers Picardie
+        // $adressesGeo[15] = Marseille Vieux-Port        | $adressesGeo[16] = Bordeaux Chartrons
+        // $adressesGeo[17] = Lyon République             | $adressesGeo[18] = Lille Paris
+        // $adressesGeo[19] = Strasbourg Bouchers
 
         $laveriesGeoData = [
             // Groupe A — Survilliers / Chantilly / Senlis

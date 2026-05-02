@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react"
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet"
 import MarkerClusterGroup from "react-leaflet-cluster"
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css"
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css"
+import { LocateControl } from 'leaflet.locatecontrol'
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import type { LaverieSearch } from "@/components/utils/type"
@@ -43,6 +44,23 @@ const iconSelected = new L.Icon({
     shadowSize: [41, 41],
 })
 
+// ─── Interfaces ───────────────────────────────────────────────────────────────
+
+interface MapViewProps {
+    laveries: LaverieSearch[]
+    selectedId: number | null
+    onSelectLaverie: (id: number) => void
+    onLocationFound?: (pos: { lat: number; lng: number }) => void
+    autoStart?: boolean
+    userPosition?: { lat: number; lng: number } | null
+    searchRadius?: number
+}
+
+interface LocateControlComponentProps {
+    onLocationFound: (pos: { lat: number; lng: number }) => void
+    autoStart?: boolean
+}
+
 // ─── Sous-composant : ajuste le zoom quand les laveries changent ──────────────
 
 function MapAdjuster({ laveries, selectedId }: { laveries: LaverieSearch[]; selectedId: number | null }) {
@@ -64,32 +82,68 @@ function MapAdjuster({ laveries, selectedId }: { laveries: LaverieSearch[]; sele
         )
     }, [selectedId, laveries, map])
 
-    // Adapte la vue pour englober tous les markers après une recherche
-    useEffect(() => {
-        if (laveries.length === 0) return
+    return null
+}
 
-        const bounds = L.latLngBounds(
-            laveries.map((l) => [l.adresse.latitude, l.adresse.longitude])
-        )
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
-    }, [laveries, map])
+// ─── Sous-composant : bouton de géolocalisation (leaflet-locatecontrol) ───────
+
+function LeafletLocateControl({ onLocationFound, autoStart }: LocateControlComponentProps) {
+    const map = useMap()
+    const lcRef = useRef<InstanceType<typeof LocateControl> | null>(null)
+    // Ref pour garder le callback à jour sans recréer le contrôle Leaflet
+    const callbackRef = useRef(onLocationFound)
+    useEffect(() => { callbackRef.current = onLocationFound }, [onLocationFound])
+
+    useEffect(() => {
+        const lc = new LocateControl({
+            position: 'topright',
+            setView: 'untilPanOrZoom',
+            flyTo: true,
+            keepCurrentZoomLevel: false,
+            drawMarker: true,
+            drawCircle: false, 
+            strings: {
+                title: 'Ma position',
+                popup: 'Vous êtes ici',
+            },
+            locateOptions: {
+                enableHighAccuracy: true,  // force GPS matériel (évite la localisation WiFi/IP imprécise)
+                timeout: 10000,
+                maximumAge: 0,
+            },
+        })
+
+        lc.addTo(map)
+        lcRef.current = lc
+
+        function handleLocationFound(e: L.LocationEvent) {
+            callbackRef.current({ lat: e.latlng.lat, lng: e.latlng.lng })
+        }
+        map.on('locationfound', handleLocationFound)
+
+        return () => {
+            lc.remove()
+            map.off('locationfound', handleLocationFound)
+        }
+    }, [map])
+
+    // Démarre la géoloc depuis l'extérieur (ex: modal d'accueil)
+    useEffect(() => {
+        if (autoStart && lcRef.current) {
+            lcRef.current.start()
+        }
+    }, [autoStart])
 
     return null
 }
 
 // ─── MapView ──────────────────────────────────────────────────────────────────
 
-interface MapViewProps {
-    laveries: LaverieSearch[]
-    selectedId: number | null
-    onSelectLaverie: (id: number) => void
-}
-
 // Coordonnées de Paris (centre par défaut)
 const PARIS: [number, number] = [48.8566, 2.3522]
 const DEFAULT_ZOOM = 12
 
-export function MapView({ laveries, selectedId, onSelectLaverie }: MapViewProps) {
+export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, autoStart, userPosition, searchRadius }: MapViewProps) {
     return (
         <div
             className="w-full rounded-2xl overflow-hidden shadow-sm border border-gray-100"
@@ -102,7 +156,22 @@ export function MapView({ laveries, selectedId, onSelectLaverie }: MapViewProps)
                 zoom={DEFAULT_ZOOM}
                 style={{ height: "100%", width: "100%" }}
                 zoomControl={true}
+                
             >
+                {/* Bouton de localisation natif Leaflet */}
+                <LeafletLocateControl
+                    onLocationFound={onLocationFound ?? (() => {})}
+                    autoStart={autoStart}
+                    
+                />
+                {userPosition && (
+                    <Circle
+                        center={[userPosition.lat, userPosition.lng]}
+                        radius={searchRadius}
+                        color="blue"
+                        fillOpacity={0.1}
+                    />
+                )}
                 {/* Tuiles OpenStreetMap — gratuites, sans clé API */}
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

@@ -20,6 +20,11 @@ const resources = {
       consigne_co_google: 'Si vous utilisez votre compte google merci de cliquer sur le bouton ci-dessous pour vous connecter',
       lien_inscription: 'Pas de compte ? Cliquer ici pour s\'inscrire',
       pas_de_compte: 'Pas de compte ?',
+      geo_permission_title: 'Trouver des laveries près de vous',
+      geo_permission_desc: 'Pour vous proposer les laveries les plus proches de votre position, LaundryMap aimerait accéder à votre géolocalisation.',
+      geo_permission_accept: 'Accepter',
+      geo_permission_decline: 'Refuser',
+
       // Inscription Pro
       create_your_account: 'Créer mon compte',
       fill_form: 'Remplissez le formulaire ci-dessous pour créer votre compte',
