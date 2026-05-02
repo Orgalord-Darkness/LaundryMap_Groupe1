@@ -31,6 +31,7 @@ function getMenuItems(role: Role): MenuItem[] {
       ];
     case "professionnel":
       return [
+        { label: "Accueil", href: "/", icon: <Icon.Home /> },
         { label: "Tableau de bord", href: "/pro/dashboard", icon: <Icon.Home /> },
         { label: "Mes informations", href: "/pro/informations", icon: <Icon.Info /> },
         { label: "Mes préférences", href: "/pro/preferences", icon: <Icon.Sliders /> },
@@ -38,6 +39,7 @@ function getMenuItems(role: Role): MenuItem[] {
       ];
     case "administrateur":
       return [
+        { label: "Accueil", href: "/", icon: <Icon.Home /> },
         { label: "Tableau de bord", href: "/admin/dashboard", icon: <Icon.Home /> },
         { label: "Laveries", href: "/admin/laveries/list", icon: <Icon.Laundry /> },
         { label: "Comptes", href: "/admin/professional/list", icon: <Icon.People /> },
@@ -159,11 +161,6 @@ export function BurgerMenu() {
           padding: "14px 20px",
           background: "linear-gradient(90deg, #1ab3d8 0%, #4ecfee 100%)",
         }}>
-          <img
-          src="/fichiers/logo/logo.png"
-          alt="LaundryMap"
-          style={{ height: "50px", width: "max-content" }}
-        />
           <button
             onClick={() => setIsOpen(false)}
             aria-label="Fermer le menu"

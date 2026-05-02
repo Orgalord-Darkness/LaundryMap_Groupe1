@@ -7,7 +7,6 @@ import { useAuth } from "@/components/context/AuthContext"
 import GoogleLoginButton from "@/components/utils/google"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field"
 
 
@@ -22,7 +21,6 @@ export default function Connexion() {
     const { t } = useTranslation()
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
-    const [redirectOpen, setRedirectOpen] = useState(false)
     
     useEffect(() => {
         if (successMessage) {
@@ -69,7 +67,7 @@ export default function Connexion() {
             login(data.token_data)
 
             setSuccessMessage("Connexion réussie !")
-            setRedirectOpen(true)
+            navigate('/user/informations')
 
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)
@@ -183,14 +181,6 @@ export default function Connexion() {
                                 </Field>
 
                             </FieldGroup>
-
-                            <RedirectDialog
-                                open={redirectOpen}
-                                title="Connexion réussie !"
-                                message="Vous êtes maintenant connecté."
-                                destinationLabel="l'accueil"
-                                onNavigate={() => navigate("/")}
-                            />
 
                         </form>
 

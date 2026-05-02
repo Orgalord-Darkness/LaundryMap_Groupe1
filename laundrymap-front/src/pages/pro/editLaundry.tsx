@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
-import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -38,26 +38,24 @@ api.interceptors.request.use((config) => {
 export default function FormEditLaverie() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     const [loading, setLoading]               = useState(true)
     const [saving, setSaving]                 = useState(false)
     const [error, setError]                   = useState<string | null>(null)
     const [successMessage, setSuccessMessage] = useState("")
-    const [redirectOpen, setRedirectOpen]     = useState(false)
     const [wilineLoading, setWilineLoading]   = useState(false)
     const [wilineError, setWilineError]       = useState<string | null>(null)
+    const [geoErreur, setGeoErreur]           = useState<string | null>(null)
 
     const [name, setName]                     = useState("")
     const [contactEmail, setContactEmail]     = useState("")
     const [description, setDescription]       = useState("")
     const [wilineCode, setWilineCode]         = useState("")
     const [adresse, setAdresse]               = useState("")
-    const [rue, setRue]                       = useState("")
     const [codePostal, setCodePostal]         = useState("")
     const [city, setCity]                     = useState("")
     const [country, setCountry]               = useState("")
-    const [latitude, setLatitude]             = useState("")
-    const [longitude, setLongitude]           = useState("")
     const [selectedServices, setSelectedServices]   = useState<string[]>([])
     const [selectedPayments, setSelectedPayments]   = useState<string[]>([])
     const [week, setWeek]                     = useState<WeekSchedule>(DEFAULT_WEEK_SCHEDULE)
@@ -65,6 +63,7 @@ export default function FormEditLaverie() {
     const [logoPreview, setLogoPreview]       = useState<string | null>(null)
     const logoInputRef                        = useRef<HTMLInputElement>(null)
     const logoUrlRef                          = useRef<string | null>(null)
+    const fieldsRef = useRef<Record<string,HTMLDivElement | null>>({})
     const [images, setImages]                 = useState<FileList | null>(null)
     const [existingImages, setExistingImages] = useState<string[]>([])
     const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null)
@@ -116,12 +115,9 @@ export default function FormEditLaverie() {
             const res = await api.get(`/wiline-data?serial=${encodeURIComponent(wilineCode.trim())}`)
             const d = res.data
 
-            // Adresse : "4 Boulevard Napoléon Premier" → adresse="4", rue="Boulevard Napoléon Premier"
-            if (d.address) {
-                const parts = d.address.split(' ')
-                setAdresse(parts[0] ?? '')
-                setRue(parts.slice(1).join(' '))
-            }
+            if (d.name)        setName(d.name)
+            if (d.pub)         setDescription(d.pub)
+            if (d.address)     setAdresse(d.address)
             if (d.postal_code) setCodePostal(String(d.postal_code))
             if (d.city)        setCity(d.city)
             if (d.country)     setCountry(d.country)
@@ -170,8 +166,26 @@ export default function FormEditLaverie() {
                 }
                 setWeek(newWeek)
             }
+
+            const paymentNameMap: Record<string, string> = {
+                coin_accepted:     'Pièces',
+                bill_accepted:     'Billet',
+                card_accepted:     'Carte Bleue',
+                fidelity_accepted: 'Carte Fidélité',
+            }
+            const newPaymentIds: string[] = []
+            for (const [key, label] of Object.entries(paymentNameMap)) {
+                if (d[key] === true) {
+                    const found = allPaiements.find(p => p.nom === label)
+                    if (found) newPaymentIds.push(String(found.id))
+                }
+            }
+            if (newPaymentIds.length > 0) {
+                setSelectedPayments(prev => [...new Set([...prev, ...newPaymentIds])])
+            }
+
         } catch (err: any) {
-            setWilineError(err?.response?.data?.message || 'Erreur lors de la récupération des données Wi-Line.')
+            setWilineError(err?.response?.data?.message || t('laundry_form_wiline_fetch_error'))
         } finally {
             setWilineLoading(false)
         }
@@ -206,12 +220,9 @@ export default function FormEditLaverie() {
 
                 if (data.adresse) {
                     setAdresse(data.adresse.adresse ?? "")
-                    setRue(data.adresse.rue ?? "")
                     setCodePostal(String(data.adresse.code_postal ?? ""))
                     setCity(data.adresse.ville ?? "")
                     setCountry(data.adresse.pays ?? "")
-                    setLatitude(String(data.adresse.latitude ?? ""))
-                    setLongitude(String(data.adresse.longitude ?? ""))
                 }
 
                 setSelectedServices(data.services?.map((s: any) => String(s.id)) ?? [])
@@ -244,7 +255,6 @@ export default function FormEditLaverie() {
                 setSelectedMachines(normalizedEq)
 
                 // Horaires : backend et WeekSchedulePicker utilisent tous les deux les clés françaises
-                // On initialise newWeek avec des valeurs vides pour écraser le DEFAULT_WEEK_SCHEDULE
                 const newWeek: WeekSchedule = {
                     lundi:    emptyDay(),
                     mardi:    emptyDay(),
@@ -274,7 +284,7 @@ export default function FormEditLaverie() {
 
             } catch (err) {
                 console.error("Erreur fetch:", err)
-                setError("Impossible de charger la laverie.")
+                setError(t('edit_laundry_load_error'))
             } finally {
                 setLoading(false)
             }
@@ -285,30 +295,41 @@ export default function FormEditLaverie() {
 
     // ─── Validation ───────────────────────────────────────────────────────────
 
-    const validate = (): boolean => {
+    const validate = (): Record<string, string> => {
         const e: Record<string, string> = {}
-        if (!name)       e.name       = "Le nom est requis"
-        if (!adresse)    e.adresse    = "L'adresse est requise"
-        if (!rue)        e.rue        = "La rue est requise"
-        if (!codePostal) e.codePostal = "Le code postal est requis"
-        if (!city)       e.city       = "La ville est requise"
-        if (!country)    e.country    = "Le pays est requis"
+        if (!name)       e.name       = t('validation_name_required')
+        if (!adresse)    e.adresse    = t('validation_address_required')
+        if (!codePostal) e.codePostal = t('validation_postal_required')
+        if (!city)       e.city       = t('validation_city_required')
+        if (!country)    e.country    = t('validation_country_required')
         setErrors(e)
-        return Object.keys(e).length === 0
+        return e
     }
 
     // ─── Soumission du formulaire ─────────────────────────────────────────────
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!validate()) return
-
+        const newErrors = validate()
+        const fieldScrollOrder = [
+            {key:'name',       refKey: 'name'   },
+            {key:'adresse',    refKey: 'adresse' },
+            {key:'codePostal', refKey: 'adresse' },
+            {key:'city',       refKey: 'adresse' },
+            {key:'country',    refKey: 'adresse' },
+        ]
+        const firstError = fieldScrollOrder.find(({key}) => newErrors[key])
+        if (firstError) {
+            fieldsRef.current[firstError.refKey]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            return
+        }
+        setGeoErreur("")
         setSaving(true)
         setError(null)
 
         try {
-            const logoBase64    = logo   instanceof File ? await fileToBase64(logo)                          : undefined
-            const imagesBase64  = images                 ? await Promise.all(Array.from(images).map(fileToBase64)) : undefined
+            const logoBase64   = logo   instanceof File ? await fileToBase64(logo)                               : undefined
+            const imagesBase64 = images                 ? await Promise.all(Array.from(images).map(fileToBase64)) : undefined
 
             const payload: Record<string, any> = {
                 nom_etablissement: name,
@@ -316,31 +337,28 @@ export default function FormEditLaverie() {
                 contact_email:     contactEmail,
                 wi_line_reference: wilineCode.trim() || null,
                 adresse,
-                rue,
                 code_postal:       codePostal,
                 ville:             city,
                 pays:              country,
-                latitude:          latitude  ? parseFloat(latitude)  : undefined,
-                longitude:         longitude ? parseFloat(longitude) : undefined,
                 services:          selectedServices.map(Number),
                 methodes_paiement: selectedPayments.map(Number),
                 equipements:       selectedMachines,
-                // WeekSchedule utilise directement les clés françaises (lundi…) compatibles avec JourEnum
                 weekSchedule:      week,
             }
 
-            // N'envoyer logo/images que si de nouveaux fichiers ont été sélectionnés
-            // (évite d'écraser les données existantes à chaque sauvegarde)
             if (logoBase64)   payload.logo   = logoBase64
             if (imagesBase64) payload.images = imagesBase64
 
             await api.put(`/edit/${id}`, payload)
 
-            setSuccessMessage('Laverie mise à jour avec succès !')
-            setRedirectOpen(true)
+            setSuccessMessage(t('edit_laundry_success'))
+            navigate('/pro/dashboard')
         } catch (err: any) {
-            console.error('Erreur submit:', err)
-            setError(err?.response?.data?.message || 'Une erreur est survenue lors de la mise à jour.')
+            if (err?.response?.data?.errors?.geolocation) {
+                setGeoErreur(err.response.data.errors.geolocation)
+                fieldsRef.current['adresse']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }
+            setError(err?.response?.data?.message || t('edit_laundry_update_error'))
         } finally {
             setSaving(false)
         }
@@ -373,23 +391,52 @@ export default function FormEditLaverie() {
                     onClick={() => navigate(-1)}
                     className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition-colors"
                 >
-                    ← Retour
+                    {t('edit_laundry_back')}
                 </button>
             </div>
 
             <h1 className="font-semibold mt-4 text-2xl text-gray-900 text-center">
-                Modifier la laverie
+                {t('edit_laundry_title')}
             </h1>
             <p className="text-gray-500 text-center mb-6">
-                Mettez à jour les informations de votre établissement
+                {t('edit_laundry_subtitle')}
             </p>
+
+            {/* Wi-Line */}
+            <Field className="w-full max-w-md mx-auto mt-10">
+                <FieldLabel htmlFor="wilineCode">{t('laundry_form_wiline_label')}</FieldLabel>
+                <FieldDescription>
+                    {t('laundry_form_wiline_description')}
+                </FieldDescription>
+                <div className="flex gap-2 mt-2 w-full">
+                    <Input
+                        id="wilineCode"
+                        type="text"
+                        value={wilineCode}
+                        onChange={e => setWilineCode(e.target.value)}
+                        className="h-11 flex-1"
+                        placeholder={t('laundry_form_wiline_placeholder')}
+                    />
+                    <Button
+                        type="button"
+                        onClick={handleWilineImport}
+                        disabled={!wilineCode.trim() || wilineLoading}
+                        className="h-11 whitespace-nowrap px-4 py-2"
+                    >
+                        {wilineLoading ? t('laundry_form_wiline_loading') : t('laundry_form_wiline_import')}
+                    </Button>
+                </div>
+                {wilineError && (
+                    <p className="text-red-500 text-xs mt-1">{wilineError}</p>
+                )}
+            </Field>
 
             {/* Logo — prévisualisation comme dans le formulaire d'ajout */}
             {logoPreview && (
                 <div className="mt-3 flex flex-col items-center gap-2">
                     <img
                         src={logoPreview}
-                        alt="Aperçu du nouveau logo"
+                        alt={t('laundry_form_logo_label')}
                         className="w-24 h-24 object-contain rounded-xl border border-gray-200 shadow-sm"
                     />
                     <button
@@ -403,26 +450,26 @@ export default function FormEditLaverie() {
                         }}
                         className="text-xs text-red-400 hover:text-red-600 transition-colors"
                     >
-                        Annuler la sélection
+                        {t('edit_laundry_logo_cancel')}
                     </button>
                 </div>
             )}
             {!logoPreview && existingLogoUrl && (
                 <div className="mt-3 flex flex-col items-center gap-2">
-                    <img src={existingLogoUrl} alt="Logo actuel" className="w-24 h-24 object-contain rounded-xl border border-gray-200 shadow-sm" />
+                    <img src={existingLogoUrl} alt={t('laundry_form_logo_label')} className="w-24 h-24 object-contain rounded-xl border border-gray-200 shadow-sm" />
                     <button
                         type="button"
                         onClick={() => setExistingLogoUrl(null)}
                         className="text-xs text-red-400 hover:text-red-600 transition-colors"
                     >
-                        Supprimer le logo actuel
+                        {t('edit_laundry_logo_delete_current')}
                     </button>
                 </div>
             )}
 
             <Field className="w-full mt-4">
                 <FieldLabel htmlFor="logo">
-                    Logo <span className="text-orange-500">*</span>
+                    {t('laundry_form_logo_label')} <span className="text-orange-500">*</span>
                 </FieldLabel>
                 <Input
                     id="logo"
@@ -439,15 +486,15 @@ export default function FormEditLaverie() {
                     }}
                 />
                 <FieldDescription>
-                    {existingLogoUrl ? "Sélectionnez un nouveau logo pour remplacer l'actuel." : "Sélectionnez un logo."}
+                    {existingLogoUrl ? t('edit_laundry_logo_replace') : t('edit_laundry_logo_select')}
                 </FieldDescription>
             </Field>
 
             {/* Galerie d'images */}
             <div className="my-5 w-full">
-                <h2 className="font-semibold text-lg text-center">Galerie d'images</h2>
+                <h2 className="font-semibold text-lg text-center">{t('laundry_form_gallery_title')}</h2>
                 <p className="text-gray-500 text-center mb-3">
-                    Vous pouvez ajouter plusieurs images de votre laverie
+                    {t('laundry_form_gallery_description')}
                 </p>
                 {images
                     ? <CarouselFromFiles files={images} />
@@ -457,9 +504,9 @@ export default function FormEditLaverie() {
 
             {/* Upload images */}
             <Field className="w-full">
-                <FieldLabel htmlFor="imagesLaundry">Images de la laverie</FieldLabel>
+                <FieldLabel htmlFor="imagesLaundry">{t('edit_laundry_images_label')}</FieldLabel>
                 <Input id="imagesLaundry" type="file" accept="image/*" multiple onChange={e => setImages(e.target.files)} />
-                <FieldDescription>Sélectionnez de nouvelles images pour remplacer la galerie actuelle.</FieldDescription>
+                <FieldDescription>{t('edit_laundry_images_replace')}</FieldDescription>
             </Field>
 
             {successMessage && (
@@ -475,120 +522,84 @@ export default function FormEditLaverie() {
             )}
 
             {/* Nom */}
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="name">
-                    Nom de la laverie <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="name" type="text" value={name} onChange={e => setName(e.target.value)} className="h-11" />
-                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-            </Field>
+            <div ref={el => {fieldsRef.current.name = el}} className='w-full'>
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="name">
+                        {t('laundry_form_name_label')} <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="name" type="text" value={name} onChange={e => setName(e.target.value)} className="h-11" />
+                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                </Field>
+            </div>
 
             {/* Email de contact */}
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="contactEmail">Email de contact</FieldLabel>
-                <Input id="contactEmail" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="h-11" />
-            </Field>
-
-            {/* Adresse */}
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="adresse">
-                    Numéro <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="adresse" type="text" value={adresse} onChange={e => setAdresse(e.target.value)} className="h-11" />
-                {errors.adresse && <p className="text-red-500 text-xs mt-1">{errors.adresse}</p>}
-            </Field>
-
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="rue">
-                    Rue <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="rue" type="text" value={rue} onChange={e => setRue(e.target.value)} className="h-11" />
-                {errors.rue && <p className="text-red-500 text-xs mt-1">{errors.rue}</p>}
-            </Field>
-
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="codePostal">
-                    Code postal <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="codePostal" type="text" value={codePostal} onChange={e => setCodePostal(e.target.value)} className="h-11" />
-                {errors.codePostal && <p className="text-red-500 text-xs mt-1">{errors.codePostal}</p>}
-            </Field>
-
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="city">
-                    Ville <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="city" type="text" value={city} onChange={e => setCity(e.target.value)} className="h-11" />
-                {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
-            </Field>
-
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="country">
-                    Pays <span className="text-orange-500">*</span>
-                </FieldLabel>
-                <Input id="country" type="text" value={country} onChange={e => setCountry(e.target.value)} className="h-11" />
-                {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
-            </Field>
-
-            <div className="w-full grid grid-cols-2 gap-3 mt-4">
-                <Field>
-                    <FieldLabel htmlFor="latitude">Latitude</FieldLabel>
-                    <Input id="latitude" type="number" value={latitude} onChange={e => setLatitude(e.target.value)} className="h-11" />
+            <div ref={el => {fieldsRef.current.contactEmail = el}} className='w-full'>
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="contactEmail">{t('laundry_form_email_label')}</FieldLabel>
+                    <Input id="contactEmail" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="h-11" />
                 </Field>
-                <Field>
-                    <FieldLabel htmlFor="longitude">Longitude</FieldLabel>
-                    <Input id="longitude" type="number" value={longitude} onChange={e => setLongitude(e.target.value)} className="h-11" />
+            </div>
+
+            <div ref={el => {fieldsRef.current.adresse = el}} className='w-full'>
+                {geoErreur && (
+                    <p className="text-red-500 text-xs mt-1">{geoErreur}</p>
+                )}
+
+                {/* Adresse */}
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="adresse">
+                        {t('laundry_form_address_label')} <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="adresse" type="text" value={adresse} onChange={e => setAdresse(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
+                    {errors.adresse && <p className="text-red-500 text-xs mt-1">{errors.adresse}</p>}
+                </Field>
+
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="codePostal">
+                        {t('laundry_form_postal_label')} <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="codePostal" type="text" value={codePostal} onChange={e => setCodePostal(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
+                    {errors.codePostal && <p className="text-red-500 text-xs mt-1">{errors.codePostal}</p>}
+                </Field>
+
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="city">
+                        {t('laundry_form_city_label')} <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="city" type="text" value={city} onChange={e => setCity(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
+                    {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                </Field>
+
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="country">
+                        {t('laundry_form_country_label')} <span className="text-orange-500">*</span>
+                    </FieldLabel>
+                    <Input id="country" type="text" value={country} onChange={e => setCountry(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
+                    {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
                 </Field>
             </div>
 
             {/* Description */}
-            <Field className="w-full mt-4">
-                <FieldLabel htmlFor="description">Description</FieldLabel>
-                <FieldDescription>Décrivez votre laverie en quelques mots.</FieldDescription>
-                <Textarea
-                    id="description"
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    className="h-32"
-                    placeholder="Écrivez une description pour votre laverie."
-                />
-            </Field>
-
-            {/* Wi-Line */}
-            <Field className="w-full max-w-md mx-auto mt-10">
-                <FieldLabel htmlFor="wilineCode">Code Wi-Line</FieldLabel>
-                <FieldDescription>
-                    Numéro de série de votre centrale Wi-Line. Cliquez sur "Importer" pour pré-remplir automatiquement l'adresse, les machines et les horaires.
-                </FieldDescription>
-                <div className="flex gap-2 mt-2 w-full">
-                    <Input
-                        id="wilineCode"
-                        type="text"
-                        value={wilineCode}
-                        onChange={e => setWilineCode(e.target.value)}
-                        className="h-11 flex-1"
-                        placeholder="ex : 23128C02604C1521"
+            <div ref={el => {fieldsRef.current.description = el}} className='w-full'>
+                <Field className="w-full mt-4">
+                    <FieldLabel htmlFor="description">{t('laundry_form_description_label')}</FieldLabel>
+                    <FieldDescription>{t('edit_laundry_description_hint')}</FieldDescription>
+                    <Textarea
+                        id="description"
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        className="h-32"
+                        placeholder={t('laundry_form_description_placeholder')}
                     />
-                    <Button
-                        type="button"
-                        onClick={handleWilineImport}
-                        disabled={!wilineCode.trim() || wilineLoading}
-                        className="h-11 whitespace-nowrap px-4 py-2"
-                    >
-                        {wilineLoading ? 'Chargement…' : 'Importer'}
-                    </Button>
-                </div>
-                {wilineError && (
-                    <p className="text-red-500 text-xs mt-1">{wilineError}</p>
-                )}
-            </Field>
+                </Field>
+            </div>
 
             {/* Machines */}
             <div className="my-5 w-full">
-                <h2 className="font-semibold text-lg text-center mb-2">Machines & équipements</h2>
+                <h2 className="font-semibold text-lg text-center mb-2">{t('edit_laundry_machines_title')}</h2>
 
                 {selectedMachines.length === 0 && (
-                    <p className="text-gray-400 text-sm text-center mb-3">Aucun équipement ajouté.</p>
+                    <p className="text-gray-400 text-sm text-center mb-3">{t('edit_laundry_no_equipment')}</p>
                 )}
 
                 {selectedMachines.map((machine, index) => (
@@ -604,7 +615,7 @@ export default function FormEditLaverie() {
                             type="button"
                             onClick={() => handleRemoveMachine(index)}
                             className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 text-xs font-bold transition"
-                            aria-label="Supprimer cet équipement"
+                            aria-label={t('edit_laundry_delete_machine')}
                         >
                             ✕
                         </button>
@@ -617,7 +628,7 @@ export default function FormEditLaverie() {
             {/* Services */}
             <div className="w-full mt-4">
                 <CheckboxGroup
-                    title="Équipements"
+                    title={t('edit_laundry_services_title')}
                     options={allServices.map(s => ({ value: String(s.id), label: s.nom }))}
                     disabled={false}
                     value={selectedServices}
@@ -633,7 +644,7 @@ export default function FormEditLaverie() {
             {/* Paiements */}
             <div className="w-full mt-4">
                 <CheckboxGroup
-                    title="Moyens de paiement"
+                    title={t('edit_laundry_payments_title')}
                     options={allPaiements.map(p => ({ value: String(p.id), label: p.nom }))}
                     disabled={false}
                     value={selectedPayments}
@@ -643,18 +654,9 @@ export default function FormEditLaverie() {
 
             <div className="w-full mt-10 mb-12">
                 <Button type="submit" className="w-full h-12" disabled={saving}>
-                    {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
+                    {saving ? t('edit_laundry_submitting') : t('edit_laundry_submit')}
                 </Button>
             </div>
-
-            <RedirectDialog
-                open={redirectOpen}
-                title="Laverie mise à jour !"
-                message="Les modifications ont été enregistrées avec succès."
-                destinationLabel="votre tableau de bord"
-                duration={2000}
-                onNavigate={() => navigate('/pro/dashboard')}
-            />
         </form>
     )
 }
