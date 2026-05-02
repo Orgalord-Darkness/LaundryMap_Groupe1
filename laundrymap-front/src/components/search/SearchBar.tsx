@@ -9,6 +9,13 @@ interface Suggestion {
     label: string      // Adresse complète affichée (ex: "12 Rue de la Paix 75001 Paris")
     city: string
     postcode: string
+    lat: number
+    lng: number
+}
+
+interface GeoFeature {
+    properties: { label: string; city: string; postcode: string }
+    geometry: { coordinates: [number, number] }  // GeoJSON : [lng, lat]
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -23,17 +30,19 @@ async function fetchSuggestions(query: string): Promise<Suggestion[]> {
     if (!response.ok) return []
 
     const data = await response.json()
-    return (data.features ?? []).map((f: Record<string, Record<string, string>>) => ({
+    return (data.features ?? []).map((f: GeoFeature) => ({
         label: f.properties.label,
         city: f.properties.city,
         postcode: f.properties.postcode,
+        lat: f.geometry.coordinates[1],
+        lng: f.geometry.coordinates[0],
     }))
 }
 
 // ─── SearchBar — champ de recherche avec autocomplétion ───────────────────────
 
 interface SearchBarProps {
-    onSearch: (query: string) => void
+    onSearch: (query: string, coords?: { lat: number; lng: number }) => void
     loading: boolean
     onFilterClick: () => void
     activeFilterCount: number
@@ -92,7 +101,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
         setShowDropdown(false)
         setActiveIndex(-1)
         setTouched(false)
-        onSearch(suggestion.label)
+        onSearch(suggestion.label, { lat: suggestion.lat, lng: suggestion.lng })
     }, [onSearch])
 
     // ─── Navigation clavier dans le dropdown ──────────────────────────────────

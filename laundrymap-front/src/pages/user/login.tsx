@@ -67,7 +67,7 @@ export default function Connexion() {
             login(data.token_data)
 
             setSuccessMessage("Connexion réussie !")
-            navigate('/user/informations')
+            navigate('/')
 
         } catch (erreur) {
             console.error("Erreur lors de la connexion :", erreur)

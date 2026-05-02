@@ -1,11 +1,19 @@
-import { useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { LaverieSearchCard } from "./LaverieSearchCard"
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselPrevious,
+    CarouselNext,
+    type CarouselApi,
+} from "@/components/ui/carousel"
 import type { LaverieSearch } from "@/components/utils/type"
 
-// ─── LaverieList — liste des résultats de recherche ───────────────────────────
-// Gère les états : chargement, erreur, vide (après recherche), invitation initiale
-// Scroll automatique vers la card sélectionnée quand selectedId change
+// ─── LaverieList — carousel horizontal des résultats de recherche ─────────────
+// Style Google Maps : défilement horizontal, sync bidirectionnelle avec la carte.
+// Scroll automatique vers la card sélectionnée quand selectedId change.
 
 interface LaverieListProps {
     laveries: LaverieSearch[]
@@ -27,18 +35,25 @@ export function LaverieList({
     hasActiveFilters = false,
 }: LaverieListProps) {
     const { t } = useTranslation()
+    const [api, setApi] = useState<CarouselApi>()
 
-    // ─── Refs pour le scroll vers la card sélectionnée ────────────────────────
-    const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map())
-
-    // Quand selectedId change (depuis un clic marker), scroll vers la card
+    // selectedId → carousel : scroll vers la card sélectionnée (clic sur un marker)
     useEffect(() => {
-        if (selectedId === null) return
-        const el = cardRefs.current.get(selectedId)
-        if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "center" })
+        if (!api || selectedId === null) return
+        const index = laveries.findIndex((l) => l.id === selectedId)
+        if (index !== -1) api.scrollTo(index)
+    }, [selectedId, api, laveries])
+
+    // carousel → selectedId : sélectionne la laverie au snap courant
+    useEffect(() => {
+        if (!api) return
+        const onSelect = () => {
+            const index = api.selectedScrollSnap()
+            if (laveries[index]) onSelectLaverie(laveries[index].id)
         }
-    }, [selectedId])
+        api.on("select", onSelect)
+        return () => { api.off("select", onSelect) }
+    }, [api, laveries, onSelectLaverie])
 
     // ─── États ────────────────────────────────────────────────────────────────
 
@@ -85,25 +100,29 @@ export function LaverieList({
         )
     }
 
-    // ─── Résultats ────────────────────────────────────────────────────────────
+    // ─── Carousel ─────────────────────────────────────────────────────────────
 
     return (
-        <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-            aria-label="Liste des laveries trouvées"
-        >
-            {laveries.map((laverie) => (
-                <LaverieSearchCard
-                    key={laverie.id}
-                    laverie={laverie}
-                    selected={selectedId === laverie.id}
-                    onClick={() => onSelectLaverie(laverie.id)}
-                    ref={(el) => {
-                        if (el) cardRefs.current.set(laverie.id, el)
-                        else cardRefs.current.delete(laverie.id)
-                    }}
-                />
-            ))}
+        <div className="relative px-10">
+            <Carousel
+                setApi={setApi}
+                opts={{ align: "start", dragFree: true }}
+                aria-label="Liste des laveries trouvées"
+            >
+                <CarouselContent className="-ml-3">
+                    {laveries.map((laverie) => (
+                        <CarouselItem key={laverie.id} className="pl-3 basis-[280px] md:basis-[300px]">
+                            <LaverieSearchCard
+                                laverie={laverie}
+                                selected={selectedId === laverie.id}
+                                onClick={() => onSelectLaverie(laverie.id)}
+                            />
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+            </Carousel>
         </div>
     )
 }

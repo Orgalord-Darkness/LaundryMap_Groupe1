@@ -38,8 +38,9 @@ export default function HomePage() {
     const [geoModalOpen, setGeoModalOpen] = useState(false)
     const [autoStartLocate, setAutoStartLocate] = useState(false)
     const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null)
+    const [fitBoundsKey, setFitBoundsKey] = useState(0)
 
-    const lastSearchPosRef = useRef<{ lat: number; lng: number } | null>(null) 
+    const lastSearchPosRef = useRef<{ lat: number; lng: number } | null>(null)
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -108,9 +109,11 @@ export default function HomePage() {
     }, [t])
 
     // Déclenché par la SearchBar quand l'utilisateur valide une adresse
-    const handleSearch = useCallback((query: string) => {
+    const handleSearch = useCallback((query: string, coords?: { lat: number; lng: number }) => {
+        void coords  // coords transmises par SearchBar mais le centrage se fait via fitBounds sur les markers
         setLastQuery(query)
         setSearchParams(prev => { prev.set("q", query); return prev })
+        setFitBoundsKey(k => k + 1)
         runSearch(query, filters)
     }, [filters, runSearch, setSearchParams])
 
@@ -177,7 +180,8 @@ export default function HomePage() {
                         onLocationFound={handleLocationFound}
                         autoStart={autoStartLocate}
                         userPosition={userPosition}
-                        searchRadius ={1000}
+                        searchRadius={1000}
+                        fitBoundsKey={fitBoundsKey}
                     />
                 </div>
 
