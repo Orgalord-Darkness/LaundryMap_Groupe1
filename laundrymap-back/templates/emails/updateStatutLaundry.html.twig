@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Statut de votre laverie</title>
+        <style>
+            body {
+                background: #f0f4ff;
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+
+            .card {
+                background: #ffffff;
+                padding: 40px;
+                border-radius: 20px;
+                text-align: center;
+                max-width: 480px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            }
+
+            h1 {
+                color: #1e3a8a;
+                margin-bottom: 16px;
+            }
+
+            p {
+                color: #4b5563;
+                font-size: 16px;
+                margin-bottom: 24px;
+            }
+
+            .button {
+                display: inline-block;
+                padding: 12px 24px;
+                background: #2563eb;
+                color: #ffffff;
+                text-decoration: none;
+                border-radius: 10px;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="card">
+            {% if statut == 'validée' %}
+                <h1>La laverie {{ name }} est validée</h1>
+            {% elseif statut == 'refusée' %}
+                <h1>La laverie {{ name }} est refusée</h1>
+                <p> Cause : {{ reason }}</p>
+            {% endif %}
+        </div>
+    </body>
+</html>

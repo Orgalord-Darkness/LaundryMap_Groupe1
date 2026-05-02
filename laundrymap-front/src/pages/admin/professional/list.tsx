@@ -89,7 +89,7 @@ function ProfessionnalAccountValidationList() {
                             <button
                                 type="button"
                                 onClick={() => navigate(`/admin/professionnel/${pro.id}`)}
-                                className="mt-5 px-5 py-2 rounded-md text-white text-sm font-medium bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                                className="mt-5 px-5 py-2 rounded-md text-white text-sm font-medium bg-primary hover:bg-secondary hover:text-primary hover:border-1 hover:border-primary cursor-pointer"
                             >
                                 Examiner
                             </button>

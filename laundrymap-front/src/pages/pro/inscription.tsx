@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
-import { RedirectDialog } from "@/components/ui/RedirectDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field"
@@ -63,7 +62,6 @@ function ProInscription() {
   });
 
   const navigate = useNavigate()
-  const [redirectOpen, setRedirectOpen] = useState(false)
   const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState("");
   const [cguAccepted, setCguAccepted] = useState(false);
@@ -119,8 +117,8 @@ function ProInscription() {
       setApiError(message || "Une erreur est survenue lors de l'inscription.")
     }
 
-    // setSuccess("Inscription réussie ! Vous pouvez maintenant vous connecter.")
-    // setRedirectOpen(true)
+    setSuccess("Inscription réussie ! Vous pouvez maintenant vous connecter.")
+    navigate("/pro/login")
   }
 
   return (
@@ -284,12 +282,7 @@ function ProInscription() {
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
-
-    </div> 
-
-
-
-
+      </form>
     </>
   );
 }

@@ -55,13 +55,13 @@ export function Header() {
         </div>
       </div>
 
+      
+
       {/* Language switcher */}
       <div style={{
-        flexShrink: 0,
+        flexShrink: 10,
         background: "#ffffff",
         borderRadius: "8px",
-        padding: "4px 10px",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
       }}>
         <LanguageSwitcher />
       </div>

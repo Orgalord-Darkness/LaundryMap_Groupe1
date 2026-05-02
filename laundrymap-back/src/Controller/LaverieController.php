@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use App\Service\SendEmailService;
 
 
 #[Route('/api/v1/laverie')]
@@ -216,6 +217,7 @@ class LaverieController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         TagAwareCacheInterface $cachePool,
+        GeolocationService $geolocationService, 
     ): JsonResponse {
         $utilisateur = $this->getUser();
 
@@ -245,6 +247,9 @@ class LaverieController extends AbstractController
             $laverie->setDescription(htmlspecialchars($donnees['description']));
         }
         if (isset($donnees['contact_email'])) {
+            if (empty($donnees['contact_email'])) {
+                $laverie->setContactEmail(null);
+            } else
             if (!filter_var($donnees['contact_email'], FILTER_VALIDATE_EMAIL)) {
                 return $this->json(['message' => 'Email de contact invalide.'], Response::HTTP_BAD_REQUEST);
             }
@@ -259,7 +264,7 @@ class LaverieController extends AbstractController
         // ─────────────────────────────────────────────
         $adresse = $laverie->getAdresse();
 
-        foreach (['adresse', 'rue', 'ville', 'pays'] as $champ) {
+        foreach (['ville', 'pays'] as $champ) {
             if (isset($donnees[$champ])) {
                 $setter = 'set' . ucfirst($champ);
                 $adresse->$setter(htmlspecialchars($donnees[$champ]));
@@ -269,11 +274,37 @@ class LaverieController extends AbstractController
         if (isset($donnees['code_postal'])) {
             $adresse->setCodePostal((int)$donnees['code_postal']);
         }
-        if (isset($donnees['latitude'])) {
-            $adresse->setLatitude((float)$donnees['latitude']);
+        
+        if (isset($donnees['adresse'])) {
+            $adresse->setAdresse(htmlspecialchars($donnees['adresse']));
+            $rue = preg_replace('/^\s*\d+\s*/', '', explode(',', $donnees['adresse'])[0]);
+            $adresse->setRue($rue);
         }
-        if (isset($donnees['longitude'])) {
-            $adresse->setLongitude((float)$donnees['longitude']);
+
+        $addressChanged = isset($donnees['adresse']) || isset($donnees['code_postal']) || isset($donnees['ville'])   || isset($donnees['pays']);
+
+        if ($addressChanged) {
+            $fullAdresse = implode(' ', array_filter([
+                $adresse->getAdresse(),
+                (string) $adresse->getCodePostal(),   
+                $adresse->getVille(),
+            ]));
+            $coords = $geolocationService->geocodeAdresseStructuree(
+                $adresse->getAdresse(),
+                (string) $adresse->getCodePostal(),
+                $adresse->getVille(),
+                $adresse->getPays()
+            );
+
+            if ($coords !== null && isset($coords['lat'], $coords['lng'])) {
+                $adresse->setLatitude($coords['lat']);
+                $adresse->setLongitude($coords['lng']);
+            } else {
+                return $this->json(
+                    ['message' => 'Données invalides.', 'errors' => ['geolocation' => 'Impossible de géolocaliser l\'adresse fournie.']],
+                    Response::HTTP_UNPROCESSABLE_ENTITY
+                );
+            }
         }
 
         // ─────────────────────────────────────────────
@@ -494,6 +525,7 @@ class LaverieController extends AbstractController
         AdministrateurRepository $administrateurRepository,
         TagAwareCacheInterface $cachePool,
         Request $request,
+        SendEmailService $sendEmailService, 
         int $id,
     ): JsonResponse 
     {
@@ -505,6 +537,9 @@ class LaverieController extends AbstractController
         }
 
         $laverie = $laverieRepository->find($id);
+
+        $professionnel = $laverieRepository->findProfessionnalByLaverieId($id);
+        $emailPro = $professionnel['email'] ?? null;
 
         if (!$laverie || !$laverie instanceof Laverie) {
             return $this->json(['message' => 'Laverie non trouvée.'], Response::HTTP_NOT_FOUND);
@@ -533,18 +568,20 @@ class LaverieController extends AbstractController
             ], 400);
         }   
         $statutEnum = LaverieStatutEnum::EN_ATTENTE;
+        $statutString = null; 
 
         switch($actionEnum) {
             case ActionEnum::VALIDE:
                 $statutEnum = LaverieStatutEnum::VALIDE;
+                $statutString = 'validée';
                 break;
             case ActionEnum::REFUSE:
                 $statutEnum = LaverieStatutEnum::REFUSE;
+                $statutString = 'refusée';
                 break;
             case ActionEnum::EN_ATTENTE:        
                 $statutEnum = LaverieStatutEnum::EN_ATTENTE;    
         }
-
         $motif = htmlspecialchars($donnees['motif'] ?? 'La laverie a été validée par un administrateur.');
 
         $laverieHistoriqueInteractionRepository->laverieValidation(
@@ -554,8 +591,12 @@ class LaverieController extends AbstractController
             $motif,
         );
 
+        //return $this->json(['message' => "Laverie $statutString avec succès. Historique mis à jour."], Response::HTTP_OK);
+
         $laverieRepository->setStatut($laverie, $statutEnum);
         $cachePool->invalidateTags(['laverieCache']);
+
+        $sendEmail = $sendEmailService->sendEmail($emailPro, 'updateStatutLaundry.html.twig', 'Mise à jour du statut de votre laverie', $statutString, $laverie->getNomEtablissement(), $motif ?? null);
 
         return $this->json(['message' => 'Laverie validée avec succès.'], Response::HTTP_OK);
     }

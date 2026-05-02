@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { RedirectDialog } from '@/components/ui/RedirectDialog'
 import { Button } from "@/components/ui/button"
 import { Textarea } from '@/components/ui/textarea'
 import { FieldLabel } from "@/components/ui/field"
@@ -34,7 +33,6 @@ api.interceptors.request.use((config) => {
 
 export default function LaverieValidation() {
     const { id } = useParams<{ id: string }>()
-    const navigate = useNavigate()
 
     const [laverie, setLaverie] = useState<any>(null)
     const [loading, setLoading] = useState(true)
@@ -43,7 +41,8 @@ export default function LaverieValidation() {
     const [motifError, setMotifError] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null)
-    const [redirectOpen, setRedirectOpen] = useState(false)
+
+    const navigate = useNavigate()
 
     const fetchLaverieData = async () => {
         try {
@@ -89,10 +88,10 @@ console.log("api =", api)
                 message: action === "VALIDE" ? "Laverie validée." : "Laverie refusée.",
             })
             await fetchLaverieData()
-            setRedirectOpen(true)
+            navigate('/admin/laveries/list')
         } catch (err) {
             setFeedback({ type: "error", message: "Une erreur est survenue lors de l'action." })
-            setRedirectOpen(true)
+            navigate
         } finally {
             setSubmitting(false)
         }
@@ -196,21 +195,25 @@ console.log("api =", api)
 
         {/* Services */}
         <div className="w-full mt-4">
-            <CheckboxGroup
-                title="Équipements disponibles"
-                options={laverie.services.map((s:Service) => ({
-                    value: String(s.id),
-                    label: s.nom
-                }))}
-                disabled={true}
-                value={laverie.services.map((s:Service) => String(s.id))}
-            />
-
+            { laverie.services.length > 0 && (
+                <CheckboxGroup
+                    title="Équipements disponibles"
+                    options={laverie.services.map((s:Service) => ({
+                        value: String(s.id),
+                        label: s.nom
+                    }))}
+                    disabled={true}
+                    value={laverie.services.map((s:Service) => String(s.id))}
+                />
+            )}
+            {laverie.services.length === 0 && (
+                <p className="text-gray-500 text-sm">Aucun équipement spécifié</p>
+            )}
         </div>
 
         {/* Paiements */}
         <div className="w-full mt-4">
-            <CheckboxGroup
+            { laverie.methodePaiements.length > 0 && (<CheckboxGroup
                 title="Moyens de paiement acceptés"
                 options={laverie.methodePaiements.map((p:Paiement) => ({
                     value: String(p.id),
@@ -218,7 +221,11 @@ console.log("api =", api)
                 }))}
                 disabled={true}
                 value={laverie.methodePaiements.map((p:Paiement) => String(p.id))}
-            />
+            />)}
+            {laverie.methodePaiements.length === 0 && (
+                <p className="text-gray-500 text-sm">Aucun moyen de paiement spécifié</p>
+            )}
+            
         </div>
 
         {/* Champ motif */}
@@ -253,16 +260,6 @@ console.log("api =", api)
                 Valider
             </Button>
         </div>
-
-        <RedirectDialog
-            open={redirectOpen}
-            title={feedback?.type === 'success' ? "Action effectuée" : "Erreur"}
-            message={feedback?.message ?? ""}
-            destinationLabel="la liste des laveries"
-            variant={feedback?.type === 'error' ? 'error' : 'success'}
-            duration={1500}
-            onNavigate={() => navigate('/admin/laveries/list')}
-        />
     </form>
 
     )
