@@ -244,7 +244,7 @@ function FicheLaverie() {
   // ── URLs de navigation ──
   const mapsUrl = laverie ? `https://www.google.com/maps/search/?api=1&query=${laverie.lat},${laverie.lng}` : "#";
   const wazeUrl = laverie ? `https://waze.com/ul?ll=${laverie.lat},${laverie.lng}&navigate=yes` : "#";
-
+  const itineraireUrl = laverie ? `https://www.google.com/maps/dir/?api=1&destination=${laverie.lat},${laverie.lng}` : "";
 
 
   // ÉTATS DE CHARGEMENT / ERREUR
@@ -380,7 +380,8 @@ function FicheLaverie() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+
+          <div className="grid grid-cols-3 gap-3">
             <a
               href={mapsUrl}
               target="_blank"
@@ -391,6 +392,17 @@ function FicheLaverie() {
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
               </svg>
               Google Maps
+            </a>
+            <a
+              href={itineraireUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold text-sm active:scale-95 transition-transform shadow-md"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21.71 11.29l-9-9a1 1 0 00-1.42 0l-9 9a1 1 0 000 1.42l9 9a1 1 0 001.42 0l9-9a1 1 0 000-1.42zM14 14.5V12h-4v3H8v-4a1 1 0 011-1h5V7.5l3.5 3.5-3.5 3.5z" />
+              </svg>
+              Itinéraire
             </a>
             <a
               href={wazeUrl}
@@ -404,6 +416,8 @@ function FicheLaverie() {
               Waze
             </a>
           </div>
+
+
         </div>
 
         {/* ── SERVICES & HORAIRES ── */}
@@ -478,14 +492,14 @@ function FicheLaverie() {
 
 
         {/* ── LISTE MACHINES ── */}
-        <div className="grid lg:grid-cols-2 sm:grid-cols-1 gap-6 mt-12 max-sm:max-w-sm mx-auto">
+        <div className="grid lg:grid-cols-1 sm:grid-cols-1 gap-6 mt-12 mx-auto w-full">
 
           <div className="border border-gray-100 shadow-sm rounded-md bg-white p-6">
             <h3 className="text-slate-900 text-2xl font-semibold mb-4 text-center">Liste des machines</h3>
 
-            {/* Liste Machines pour une laverie  */}
-            <div className="mx-10">
-              <div className="mt-4">
+            {/* Liste Machines pour une laverie  */} 
+            {/* <div className="mx-10"> */}
+              <div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-2">
                 {laverie.machines.map((machine, index) => (
                   <CardMachine
                     key={index}
@@ -496,14 +510,11 @@ function FicheLaverie() {
                   />
                 ))}
               </div>
-            </div>
+            {/* </div> */}
           </div>
 
-          {/* Machines Wiline */}
-          <div className="border border-gray-100 shadow-sm rounded-md p-6 bg-white">
-            <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Machines Wiline</h3>
+        
 
-          </div>
         </div>
 
 
