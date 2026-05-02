@@ -104,7 +104,7 @@ class Professionnel
         return $this;
     }
 
-    public static function getRole(): string {
+    public static function getRole(): array {
        return [RoleEnum::PRO->value];
     }
 }

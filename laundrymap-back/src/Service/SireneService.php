@@ -14,7 +14,11 @@ class SireneService
             $response = $this->httpClient->request('GET',
                 'https://recherche-entreprises.api.gouv.fr/search',
                 [
-                    'query' => ['q' => $siren, 'page' => 1, 'per_page' => 1],
+                    'query' => [
+                        'q'        => $siren,
+                        'page'     => 1,
+                        'per_page' => 25,  // On élargit pour ne pas rater le bon résultat
+                    ],
                     'timeout' => 5,
                 ]
             );
@@ -25,9 +29,18 @@ class SireneService
 
             $data = $response->toArray();
 
-            return !empty($data['results'])
-                && isset($data['results'][0]['siren'])
-                && $data['results'][0]['siren'] === $siren;
+            if (empty($data['results'])) {
+                return false;
+            }
+
+            // On parcourt tous les résultats pour trouver le SIREN exact
+            foreach ($data['results'] as $result) {
+                if (isset($result['siren']) && $result['siren'] === $siren) {
+                    return true;
+                }
+            }
+
+            return false;
 
         } catch (\Throwable) {
             return false;

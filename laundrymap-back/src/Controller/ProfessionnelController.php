@@ -22,6 +22,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+
+
+
 #[Route('/api/v1/professionnel')]
 class ProfessionnelController extends AbstractController
 {
@@ -134,6 +137,12 @@ class ProfessionnelController extends AbstractController
         }
     }
 
+
+
+
+    // Inscription Professionnel
+    // --------------------------------------------
+
     #[Route('/inscription', name: 'pro_inscription', methods: ['POST'])]
     #[OA\Tag(name: 'Professionnel')]
     #[OA\RequestBody(
@@ -173,12 +182,12 @@ class ProfessionnelController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
-        SireneService $sireneService
+        SireneService $sireneService 
     ): JsonResponse {
 
         $data = json_decode($request->getContent(), true);
 
-        // ── 1. Champs requis ──────────────────────────────────────────────────
+        // ── Champs requis
         $required = [
             'lastname', 'firstname', 'email', 'password',
             'siren', 'adress', 'rue', 'codePostal', 'city', 'country', 
@@ -194,7 +203,7 @@ class ProfessionnelController extends AbstractController
         }
 
         
-        // ── 2. Validation email ───────────────────────────────────────────────
+        // ── Validation email 
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             return $this->json(
                 ['message' => 'Adresse email invalide.'],
@@ -202,7 +211,7 @@ class ProfessionnelController extends AbstractController
             );
         }
 
-        // ── 3. Validation mot de passe ────────────────────────────────────────
+        // ── Validation mot de passe 
         if (strlen($data['password']) < 8) {
             return $this->json(
                 ['message' => 'Le mot de passe doit contenir au moins 8 caractères.'],
@@ -210,7 +219,7 @@ class ProfessionnelController extends AbstractController
             );
         }
 
-        // ── 4. Validation format SIREN (9 chiffres) ───────────────────────────
+        // ── Validation format SIREN (9 chiffres)
         $siren = trim((string) $data['siren']);
         if (!preg_match('/^\d{9}$/', $siren)) {
             return $this->json(
@@ -219,15 +228,15 @@ class ProfessionnelController extends AbstractController
             );
         }
 
-        // ── 5. Vérification SIREN auprès de l'INSEE ───────────────────────────
+        // ── Vérification SIREN auprès de l'INSEE 
         if (!$sireneService->verifySiren($siren)) {
             return $this->json(
-                ['message' => 'Numéro SIREN invalide ou introuvable dans la base SIRENE de l\'INSEE. Votre inscription est invalide.'],
+                ['message' => 'Votre inscription est invalide : Numéro SIREN invalide ou introuvable dans la base SIRENE de l\'INSEE.'],
                 Response::HTTP_UNPROCESSABLE_ENTITY
             );
-        }
+        } 
 
-        // ── 6. Email unique ───────────────────────────────────────────────────
+        // ── Email unique 
         $existingUser = $em->getRepository(Utilisateur::class)
             ->findOneBy(['email' => $data['email']]);
 
@@ -238,7 +247,7 @@ class ProfessionnelController extends AbstractController
             );
         }
 
-        // ── 7. Création Utilisateur ───────────────────────────────────────────
+        // ──  Création Utilisateur 
         $utilisateur = new Utilisateur();
         $utilisateur->setNom($data['lastname']);
         $utilisateur->setPrenom($data['firstname']);
@@ -252,10 +261,10 @@ class ProfessionnelController extends AbstractController
 
         $em->persist($utilisateur);
 
-        // ── 8. Création Adresse ───────────────────────────────────────────────
+        // ── Création Adresse 
         $adresse = new Adresse();
-        $adresse->setAdresse($data['adress']);          //  champ adresse (ex: 12)
-        $adresse->setRue($data['rue']);                 //  champ rue (ex: rue de la Paix)
+        $adresse->setAdresse($data['adress']);          //  champ adresse (Numéro de rue) (ex: 12)
+        $adresse->setRue($data['rue']);                 //  champ nom de rue (ex: rue de la Paix)
         $adresse->setCodePostal((int) $data['codePostal']);
         $adresse->setVille($data['city']);
         $adresse->setPays($data['country']);
@@ -263,7 +272,7 @@ class ProfessionnelController extends AbstractController
         $em->persist($adresse);
 
 
-        // ── 9. Création Professionnel ─────────────────────────────────────────
+        // ── Création Professionnel 
         $professionnel = new Professionnel();
         $professionnel->setSiren((int) $siren);
         $professionnel->setStatut(StatutEnum::EN_ATTENTE);
@@ -272,7 +281,7 @@ class ProfessionnelController extends AbstractController
 
         $em->persist($professionnel);
 
-        // ── 10. Flush ─────────────────────────────────────────────────────────
+        // Flush 
         $em->flush();
 
         return $this->json(
@@ -280,6 +289,9 @@ class ProfessionnelController extends AbstractController
             Response::HTTP_CREATED
         );
     }
+
+
+
 
     // ─────────────────────────────────────────────────────────────────────────
     // Routes d'administration des comptes professionnels
