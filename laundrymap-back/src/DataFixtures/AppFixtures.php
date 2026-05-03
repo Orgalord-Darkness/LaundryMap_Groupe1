@@ -1470,6 +1470,158 @@ class AppFixtures extends Fixture
         $laveries[3]->addFavori($users[2]);
         // ─────────────────────────────────────────────────────────────────────
 
+        // ── SENLIS — 5 laveries supplémentaires (total 6 avec $laveriesGeo[3]) ──
+
+        $senlisAdressesData = [
+            ['adresse' => '2',  'rue' => 'Place du Parvis',      'code_postal' => 60300, 'ville' => 'Senlis', 'pays' => 'France', 'latitude' => 49.2029, 'longitude' => 2.5843],
+            ['adresse' => '15', 'rue' => 'Rue Saint-Hilaire',    'code_postal' => 60300, 'ville' => 'Senlis', 'pays' => 'France', 'latitude' => 49.2055, 'longitude' => 2.5868],
+            ['adresse' => '4',  'rue' => 'Place Henri IV',       'code_postal' => 60300, 'ville' => 'Senlis', 'pays' => 'France', 'latitude' => 49.2048, 'longitude' => 2.5888],
+            ['adresse' => '8',  'rue' => 'Rue du Châtel',        'code_postal' => 60300, 'ville' => 'Senlis', 'pays' => 'France', 'latitude' => 49.2065, 'longitude' => 2.5905],
+            ['adresse' => '22', 'rue' => 'Rue de la Treille',    'code_postal' => 60300, 'ville' => 'Senlis', 'pays' => 'France', 'latitude' => 49.2036, 'longitude' => 2.5924],
+        ];
+
+        $senlisAdresses = [];
+        foreach ($senlisAdressesData as $d) {
+            $a = new Adresse();
+            $a->setAdresse($d['adresse']);
+            $a->setRue($d['rue']);
+            $a->setCodePostal($d['code_postal']);
+            $a->setVille($d['ville']);
+            $a->setPays($d['pays']);
+            $a->setLatitude($d['latitude']);
+            $a->setLongitude($d['longitude']);
+            $a->setStatutGeolocalisation(GeoStatutEnum::GEOLOCALISE);
+            $manager->persist($a);
+            $senlisAdresses[] = $a;
+        }
+
+        $senlisLaveriesData = [
+            ['nom' => 'Laverie du Parvis',      'adresse' => $senlisAdresses[0], 'email' => 'parvis@laverie-senlis.fr',      'desc' => 'Laverie moderne face au parvis de la cathédrale.', 'date' => '2026-03-01 09:00:00'],
+            ['nom' => 'Laverie Saint-Hilaire',  'adresse' => $senlisAdresses[1], 'email' => 'saint-hilaire@laverie-senlis.fr', 'desc' => 'Au cœur du quartier historique de Senlis.', 'date' => '2026-03-02 09:00:00'],
+            ['nom' => 'Laverie du Marché',      'adresse' => $senlisAdresses[2], 'email' => 'marche@laverie-senlis.fr',       'desc' => 'Laverie idéalement placée près du marché.', 'date' => '2026-03-03 09:00:00'],
+            ['nom' => 'Laverie des Remparts',   'adresse' => $senlisAdresses[3], 'email' => 'remparts@laverie-senlis.fr',     'desc' => 'À deux pas des remparts gallo-romains.', 'date' => '2026-03-04 09:00:00'],
+            ['nom' => 'Laverie de la Treille',  'adresse' => $senlisAdresses[4], 'email' => 'treille@laverie-senlis.fr',      'desc' => 'Laverie de quartier conviviale et bien équipée.', 'date' => '2026-03-05 09:00:00'],
+        ];
+
+        $senlisLaveries = [];
+        foreach ($senlisLaveriesData as $d) {
+            $l = new Laverie();
+            $l->setProfessionnel($professionnels[0]);
+            $l->setStatut(LaverieStatutEnum::VALIDE);
+            $l->setWiLineReference(null);
+            $l->setNomEtablissement($d['nom']);
+            $l->setContactEmail($d['email']);
+            $l->setDescription($d['desc']);
+            $l->setAdresse($d['adresse']);
+            $l->setLogo($medias[0]);
+            $l->setDateAjout(new \DateTime($d['date']));
+            $l->setDateModification(new \DateTime($d['date']));
+            $l->setSupprimeLe(null);
+            foreach ($services as $s)         { $l->addService($s); }
+            foreach ($methodePaiements as $m) { $l->addMethodePaiement($m); }
+            $manager->persist($l);
+            $senlisLaveries[] = $l;
+        }
+
+        // Équipements — 3 par laverie (refs 20-34)
+        $refBase = 20;
+        foreach ($senlisLaveries as $i => $lav) {
+            $offset = $i * 3;
+            foreach ([
+                ['ref' => $refBase + $offset,     'nom' => 'Machine à laver',    'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 7,  'tarif' => 3.00, 'duree' => 30],
+                ['ref' => $refBase + $offset + 1, 'nom' => 'Machine à laver XL', 'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 14, 'tarif' => 5.00, 'duree' => 45],
+                ['ref' => $refBase + $offset + 2, 'nom' => 'Sèche-linge',        'type' => EquipementEnum::SECHE_LINGE,     'capacite' => 8,  'tarif' => 1.50, 'duree' => 20],
+            ] as $d) {
+                $eq = new LaverieEquipement();
+                $eq->setLaverie($lav)
+                   ->setEquipementReference($d['ref'])
+                   ->setNom($d['nom'])
+                   ->setType($d['type'])
+                   ->setCapacite($d['capacite'])
+                   ->setTarif($d['tarif'])
+                   ->setDuree($d['duree']);
+                $manager->persist($eq);
+            }
+        }
+
+        // Horaires — même planning que $horairesGeo pour toutes les laveries Senlis
+        foreach ($senlisLaveries as $lav) {
+            foreach ($horairesGeo as [$jour, $debAm, $finAm, $debPm, $finPm]) {
+                $fam = new LaverieFermeture();
+                $fam->setLaverie($lav)
+                    ->setJour($jour)
+                    ->setDateAjout(new \DateTime('2026-03-01 09:00:00'))
+                    ->setDateModification(new \DateTime('2026-03-01 09:00:00'))
+                    ->setHeureDebut(new \DateTime("1970-01-01 {$debAm}:00"))
+                    ->setHeureFin(new \DateTime("1970-01-01 {$finAm}:00"));
+                $manager->persist($fam);
+
+                if ($debPm !== null) {
+                    $fpm = new LaverieFermeture();
+                    $fpm->setLaverie($lav)
+                        ->setJour($jour)
+                        ->setDateAjout(new \DateTime('2026-03-01 09:00:00'))
+                        ->setDateModification(new \DateTime('2026-03-01 09:00:00'))
+                        ->setHeureDebut(new \DateTime("1970-01-01 {$debPm}:00"))
+                        ->setHeureFin(new \DateTime("1970-01-01 {$finPm}:00"));
+                    $manager->persist($fpm);
+                }
+            }
+        }
+
+        // Notes
+        foreach ([
+            [$senlisLaveries[0], $users[0], 5, 'Super laverie, machines neuves et propres !',            '2026-04-01 10:00:00', '2026-04-01 10:05:00', 'Merci pour votre fidélité !', '2026-04-02 08:00:00'],
+            [$senlisLaveries[0], $users[1], 4, 'Très pratique, juste un peu bruyant.',                   '2026-04-03 14:00:00', '2026-04-03 14:10:00', null, null],
+            [$senlisLaveries[1], $users[0], 4, 'Bonne laverie, cadre historique agréable.',              '2026-04-05 11:00:00', '2026-04-05 11:05:00', 'Le quartier est magnifique, merci !', '2026-04-06 09:00:00'],
+            [$senlisLaveries[1], $users[2], 3, 'Correct mais les horaires du dimanche sont courts.',     '2026-04-06 09:30:00', '2026-04-06 09:40:00', null, null],
+            [$senlisLaveries[2], $users[1], 5, 'Idéal pour faire sa lessive le jour du marché !',       '2026-04-08 10:00:00', '2026-04-08 10:05:00', 'On vous attend chaque semaine !', '2026-04-09 08:30:00'],
+            [$senlisLaveries[2], $users[0], 4, 'Machines bien entretenues, personnel aimable.',          '2026-04-09 15:00:00', '2026-04-09 15:05:00', null, null],
+            [$senlisLaveries[3], $users[2], 5, 'Vue sur les remparts, moment de lessive inoubliable.', '2026-04-11 09:00:00', '2026-04-11 09:05:00', 'Merci ! L\'histoire est partout ici !', '2026-04-12 08:00:00'],
+            [$senlisLaveries[3], $users[1], 3, 'Parking difficile à côté, sinon très bien.',            '2026-04-12 11:00:00', '2026-04-12 11:10:00', null, null],
+            [$senlisLaveries[4], $users[0], 4, 'Petite laverie sympa, ambiance de quartier.',           '2026-04-14 10:00:00', '2026-04-14 10:05:00', 'Merci, on essaie de garder cet esprit !', '2026-04-15 08:00:00'],
+            [$senlisLaveries[4], $users[2], 5, 'Propre, calme, bien situé. Je recommande.',             '2026-04-15 14:00:00', '2026-04-15 14:05:00', null, null],
+        ] as [$lav, $user, $note, $comment, $noteLe, $commentLe, $reponse, $repondLe]) {
+            $n = new LaverieNote();
+            $n->setLaverie($lav)
+              ->setUtilisateur($user)
+              ->setNote($note)
+              ->setNoteLe(new \DateTime($noteLe))
+              ->setCommentaire($comment)
+              ->setCommentaireLe(new \DateTime($commentLe))
+              ->setReponse($reponse)
+              ->setRepondLe($repondLe ? new \DateTime($repondLe) : null)
+              ->setCommentaireSupprimeMotif(null)
+              ->setCommentaireSupprimeLe(null);
+            $manager->persist($n);
+        }
+
+        // Médias — 1 par laverie en alternance
+        $mediaDescriptions = ['Façade principale', 'Intérieur machines', 'Entrée de la laverie', 'Vue extérieure', 'Salle principale'];
+        foreach ($senlisLaveries as $i => $lav) {
+            $m = new LaverieMedia();
+            $m->setLaverie($lav)->setMedia($medias[$i % 2])->setDescription($mediaDescriptions[$i]);
+            $manager->persist($m);
+        }
+
+        // Historique — 1 validation par laverie
+        foreach ($senlisLaveries as $i => $lav) {
+            $h = new LaverieHistoriqueInteraction();
+            $h->setAdministrateur($admin);
+            $h->setLaverie($lav);
+            $h->setAction(ActionEnum::VALIDE);
+            $h->setMotifAction(null);
+            $h->setDate(new \DateTime('2026-03-0' . ($i + 1) . ' 10:00:00'));
+            $manager->persist($h);
+        }
+
+        // Favoris Senlis
+        $senlisLaveries[0]->addFavori($users[0]); // Luce → Parvis
+        $senlisLaveries[2]->addFavori($users[0]); // Luce → Marché
+        $senlisLaveries[1]->addFavori($users[1]); // Roussel → Saint-Hilaire
+        $senlisLaveries[4]->addFavori($users[3]); // Lambert → Treille
+        // ─────────────────────────────────────────────────────────────────────
+
         $manager->flush();
     }
 }
