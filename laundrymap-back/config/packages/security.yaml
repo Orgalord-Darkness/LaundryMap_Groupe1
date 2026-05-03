@@ -40,7 +40,7 @@ security:
 
         # Routes admin protégées — provider Administrateur
         admin_api:
-            pattern: ^/api/v1/(admin|laverie/admin)
+            pattern: ^/api/v1/(admin|laverie/admin|professionnel/admin)
             stateless: true
             provider: admin_provider
             jwt: ~

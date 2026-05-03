@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\LaverieHistoriqueInteraction;
+use App\Entity\ProfessionnelHistoriqueInteraction;
+use App\Entity\UtilisateurHistoriqueInteraction;
 use App\Enum\RoleEnum;
 use App\Repository\AdministrateurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -23,6 +26,15 @@ class Administrateur implements UserInterface, PasswordAuthenticatedUserInterfac
 
     #[ORM\Column(length: 255)]
     private ?string $mot_de_passe = null;
+
+    #[ORM\OneToMany(targetEntity: ProfessionnelHistoriqueInteraction::class, mappedBy: 'administrateur')]
+    private Collection $professionnelHistoriqueInteractions;
+
+    #[ORM\OneToMany(targetEntity: UtilisateurHistoriqueInteraction::class, mappedBy: 'administrateur')]
+    private Collection $utilisateurHistoriqueInteractions;
+
+    #[ORM\OneToMany(targetEntity: LaverieHistoriqueInteraction::class, mappedBy: 'administrateur')]
+    private Collection $laverieHistoriqueInteractions;
 
     public function __construct()
     {
@@ -96,6 +108,35 @@ class Administrateur implements UserInterface, PasswordAuthenticatedUserInterfac
 
 
     /**
+     * @return Collection<int, ProfessionnelHistoriqueInteraction>
+     */
+    public function getProfessionnelHistoriqueInteractions(): Collection
+    {
+        return $this->professionnelHistoriqueInteractions;
+    }
+
+    public function addProfessionnelHistoriqueInteraction(ProfessionnelHistoriqueInteraction $interaction): static
+    {
+        if (!$this->professionnelHistoriqueInteractions->contains($interaction)) {
+            $this->professionnelHistoriqueInteractions->add($interaction);
+            $interaction->setAdministrateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProfessionnelHistoriqueInteraction(ProfessionnelHistoriqueInteraction $interaction): static
+    {
+        if ($this->professionnelHistoriqueInteractions->removeElement($interaction)) {
+            if ($interaction->getAdministrateur() === $this) {
+                $interaction->setAdministrateur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * @return Collection<int, UtilisateurHistoriqueInteraction>
      */
     public function getUtilisateurHistoriqueInteractions(): Collection
@@ -107,7 +148,7 @@ class Administrateur implements UserInterface, PasswordAuthenticatedUserInterfac
     {
         if (!$this->utilisateurHistoriqueInteractions->contains($utilisateurHistoriqueInteraction)) {
             $this->utilisateurHistoriqueInteractions->add($utilisateurHistoriqueInteraction);
-            $utilisateurHistoriqueInteraction->addAdministrateurId($this);
+            $utilisateurHistoriqueInteraction->setAdministrateur($this);
         }
 
         return $this;
@@ -134,7 +175,7 @@ class Administrateur implements UserInterface, PasswordAuthenticatedUserInterfac
     {
         if (!$this->laverieHistoriqueInteractions->contains($laverieHistoriqueInteraction)) {
             $this->laverieHistoriqueInteractions->add($laverieHistoriqueInteraction);
-            $laverieHistoriqueInteraction->addAdministrateurId($this);
+            $laverieHistoriqueInteraction->setAdministrateur($this);
         }
 
         return $this;

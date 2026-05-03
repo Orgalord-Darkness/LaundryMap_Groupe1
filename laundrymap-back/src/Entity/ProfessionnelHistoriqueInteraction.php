@@ -23,7 +23,7 @@ class ProfessionnelHistoriqueInteraction
     #[ORM\Column]
     private ?\DateTime $date = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'professionnelHistoriqueInteractions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Administrateur $administrateur = null;
 
