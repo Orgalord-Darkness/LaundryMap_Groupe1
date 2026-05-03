@@ -9,7 +9,7 @@ Permettant l'Inscription des utilisateurs pour fidélisation. Inscription des pr
 - Email : luce@example.net   -   Mdp : Utilisateur1234.
 
 **Pour connexion Professionnel :**
-- Email : lambert@example.net   -   Mdp : Utilisateur1234.
+- Email : lambert@example.net   -   Mdp : Utilisateur1234.   - WI LINE : 23128C02604C1521
 
 **Pour connexion Administrateur :**
 - Email : admin@example.com   -   Mdp : Admin1234.
