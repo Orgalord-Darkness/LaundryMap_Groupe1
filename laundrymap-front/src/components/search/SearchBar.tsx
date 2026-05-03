@@ -47,9 +47,10 @@ interface SearchBarProps {
     onFilterClick: () => void
     activeFilterCount: number
     initialValue?: string
+    clearKey?: number
 }
 
-export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount, initialValue = "" }: SearchBarProps) {
+export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount, initialValue = "", clearKey }: SearchBarProps) {
     const { t } = useTranslation()
 
     const [value, setValue] = useState(initialValue)
@@ -57,6 +58,18 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
     const [showDropdown, setShowDropdown] = useState(false)
     const [activeIndex, setActiveIndex] = useState(-1)
     const [touched, setTouched] = useState(false)
+
+    useEffect(() => {
+        if (!clearKey) {
+            return 
+        }
+
+        setValue('')
+        setSuggestions([])
+        setShowDropdown(false)
+        setTouched(false)
+
+    }, [clearKey])
 
     const containerRef = useRef<HTMLDivElement>(null)
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)

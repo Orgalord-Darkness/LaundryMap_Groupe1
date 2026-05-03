@@ -8,7 +8,7 @@ import { FilterModal } from "@/components/search/FilterModal"
 import { ActiveFilters } from "@/components/search/ActiveFilters"
 import { searchWithFilters, searchByLocation } from "@/components/utils/laverieService"
 import type { LaverieSearch, SearchFilters } from "@/components/utils/type"
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button" 
 
 // ─── HomePage — page d'accueil avec carte, recherche et filtres ───────────────
@@ -39,6 +39,7 @@ export default function HomePage() {
     const [autoStartLocate, setAutoStartLocate] = useState(false)
     const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null)
     const [fitBoundsKey, setFitBoundsKey] = useState(0)
+    const [searchClearKey, setSearchClearKey] = useState(0)
 
     const lastSearchPosRef = useRef<{ lat: number; lng: number } | null>(null)
 
@@ -60,6 +61,11 @@ export default function HomePage() {
         })
     }, [])
 
+    const handleLocationStop = useCallback(() => {
+        setUserPosition(null)
+        lastSearchPosRef.current = null
+    }, [])
+
     const handleAcceptGeo = useCallback(() => {
         localStorage.setItem('geo_modal_answered', '1')
         setGeoModalOpen(false)
@@ -77,14 +83,17 @@ export default function HomePage() {
             const dLng = Math.abs(pos.lng - lastSearchPosRef.current.lng)                                                                                                                 
             if (dLat < 0.001 && dLng < 0.001) return                                                                                                                                      
         }                                                                                                                                                                                 
-        lastSearchPosRef.current = pos                    
-        setUserPosition(pos)                                                                                                                                                              
-        setLoading(true)                                                                                                                                                                  
-        setError(null)  
-        setSelectedId(null)                                                                                                                                                               
-        try {                                             
+        lastSearchPosRef.current = pos
+        setUserPosition(pos)
+        setLoading(true)
+        setError(null)
+        setSelectedId(null)
+        setLastQuery("")
+        setSearchParams(prev => { prev.delete("q"); return prev })
+        setSearchClearKey(k => k + 1)
+        try {
             const results = await searchByLocation(pos.lat, pos.lng)
-            setLaveries(results)                                    
+            setLaveries(results)
             setHasSearched(true)                                                                                                                                                          
         } catch {               
             setError(t("search_error"))                                                                                                                                                   
@@ -116,6 +125,7 @@ export default function HomePage() {
     // Déclenché par la SearchBar quand l'utilisateur valide une adresse
     const handleSearch = useCallback((query: string, coords?: { lat: number; lng: number }) => {
         void coords  // coords transmises par SearchBar mais le centrage se fait via fitBounds sur les markers
+        lastSearchPosRef.current = null  // Permet à la géoloc de relancer même si la position n'a pas changé
         setLastQuery(query)
         setSearchParams(prev => { prev.set("q", query); return prev })
         setFitBoundsKey(k => k + 1)
@@ -170,6 +180,7 @@ export default function HomePage() {
                         onFilterClick={() => setIsFilterOpen(true)}
                         activeFilterCount={activeFilterCount}
                         initialValue={initialQuery}
+                        clearKey={searchClearKey}
                     />
                 </div>
 
@@ -183,6 +194,7 @@ export default function HomePage() {
                         selectedId={selectedId}
                         onSelectLaverie={handleSelectLaverie}
                         onLocationFound={handleLocationFound}
+                        onLocationStop={handleLocationStop}
                         autoStart={autoStartLocate}
                         userPosition={userPosition}
                         searchRadius={1000}

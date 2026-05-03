@@ -21,6 +21,7 @@
     "i18next": "^23.16.8",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
+    "leaflet-gesture-handling": "^1.2.2",
     "leaflet.locatecontrol": "^0.89.1",
     "lucide-react": "^0.577.0",
     "radix-ui": "^1.4.3",

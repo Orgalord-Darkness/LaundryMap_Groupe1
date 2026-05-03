@@ -1,19 +1,10 @@
-import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { LaverieSearchCard } from "./LaverieSearchCard"
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselPrevious,
-    CarouselNext,
-    type CarouselApi,
-} from "@/components/ui/carousel"
 import type { LaverieSearch } from "@/components/utils/type"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
-// ─── LaverieList — carousel horizontal des résultats de recherche ─────────────
-// Style Google Maps : défilement horizontal, sync bidirectionnelle avec la carte.
-// Scroll automatique vers la card sélectionnée quand selectedId change.
+// ─── LaverieList — liste des résultats de recherche ───────────────────────────
+// Gère les états : chargement, erreur, vide (après recherche), invitation initiale
 
 interface LaverieListProps {
     laveries: LaverieSearch[]
@@ -35,25 +26,6 @@ export function LaverieList({
     hasActiveFilters = false,
 }: LaverieListProps) {
     const { t } = useTranslation()
-    const [api, setApi] = useState<CarouselApi>()
-
-    // selectedId → carousel : scroll vers la card sélectionnée (clic sur un marker)
-    useEffect(() => {
-        if (!api || selectedId === null) return
-        const index = laveries.findIndex((l) => l.id === selectedId)
-        if (index !== -1) api.scrollTo(index)
-    }, [selectedId, api, laveries])
-
-    // carousel → selectedId : sélectionne la laverie au snap courant
-    useEffect(() => {
-        if (!api) return
-        const onSelect = () => {
-            const index = api.selectedScrollSnap()
-            if (laveries[index]) onSelectLaverie(laveries[index].id)
-        }
-        api.on("select", onSelect)
-        return () => { api.off("select", onSelect) }
-    }, [api, laveries, onSelectLaverie])
 
     // ─── États ────────────────────────────────────────────────────────────────
 
@@ -100,29 +72,20 @@ export function LaverieList({
         )
     }
 
-    // ─── Carousel ─────────────────────────────────────────────────────────────
+    // ─── Résultats ────────────────────────────────────────────────────────────
 
     return (
-        <div className="relative px-10">
-            <Carousel
-                setApi={setApi}
-                opts={{ align: "start", dragFree: true }}
-                aria-label="Liste des laveries trouvées"
-            >
-                <CarouselContent className="-ml-3 py-1">
-                    {laveries.map((laverie) => (
-                        <CarouselItem key={laverie.id} className="pl-3 basis-[280px] md:basis-[300px] h-[360px]">
-                            <LaverieSearchCard
-                                laverie={laverie}
-                                selected={selectedId === laverie.id}
-                                onClick={() => onSelectLaverie(laverie.id)}
-                            />
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-            </Carousel>
-        </div>
+        <ScrollArea className="h-[400px]" aria-label="Liste des laveries trouvées">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
+                {laveries.map((laverie) => (
+                    <LaverieSearchCard
+                        key={laverie.id}
+                        laverie={laverie}
+                        selected={selectedId === laverie.id}
+                        onClick={() => onSelectLaverie(laverie.id)}
+                    />
+                ))}
+            </div>
+        </ScrollArea>
     )
 }
