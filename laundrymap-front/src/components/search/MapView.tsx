@@ -8,6 +8,8 @@ import { LocateControl } from 'leaflet.locatecontrol'
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import type { LaverieSearch } from "@/components/utils/type"
+import "leaflet-gesture-handling"
+import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css"
 
 // ─── Fix icônes Leaflet (bug connu avec Vite / webpack) ───────────────────────
 // Leaflet cherche ses icônes via _getIconUrl, qui ne fonctionne pas avec les
@@ -52,6 +54,7 @@ interface MapViewProps {
     selectedId: number | null
     onSelectLaverie: (id: number) => void
     onLocationFound?: (pos: { lat: number; lng: number }) => void
+    onLocationStop?: () => void
     autoStart?: boolean
     userPosition?: { lat: number; lng: number } | null
     searchRadius?: number
@@ -60,6 +63,7 @@ interface MapViewProps {
 
 interface LocateControlComponentProps {
     onLocationFound: (pos: { lat: number; lng: number }) => void
+    onLocationStop?: () => void
     autoStart?: boolean
 }
 
@@ -112,12 +116,14 @@ function MapAdjuster({ laveries, selectedId, fitBoundsKey }: {
 
 // ─── Sous-composant : bouton de géolocalisation (leaflet-locatecontrol) ───────
 
-function LeafletLocateControl({ onLocationFound, autoStart }: LocateControlComponentProps) {
+function LeafletLocateControl({ onLocationFound, onLocationStop, autoStart }: LocateControlComponentProps) {
     const map = useMap()
     const lcRef = useRef<InstanceType<typeof LocateControl> | null>(null)
-    // Ref pour garder le callback à jour sans recréer le contrôle Leaflet
+    // Refs pour garder les callbacks à jour sans recréer le contrôle Leaflet
     const callbackRef = useRef(onLocationFound)
+    const stopCallbackRef = useRef(onLocationStop)
     useEffect(() => { callbackRef.current = onLocationFound }, [onLocationFound])
+    useEffect(() => { stopCallbackRef.current = onLocationStop }, [onLocationStop])
 
     useEffect(() => {
         const lc = new LocateControl({
@@ -126,13 +132,13 @@ function LeafletLocateControl({ onLocationFound, autoStart }: LocateControlCompo
             flyTo: true,
             keepCurrentZoomLevel: false,
             drawMarker: true,
-            drawCircle: false, 
+            drawCircle: false,
             strings: {
                 title: 'Ma position',
                 popup: 'Vous êtes ici',
             },
             locateOptions: {
-                enableHighAccuracy: true,  // force GPS matériel (évite la localisation WiFi/IP imprécise)
+                enableHighAccuracy: true,
                 timeout: 10000,
                 maximumAge: 0,
             },
@@ -144,11 +150,18 @@ function LeafletLocateControl({ onLocationFound, autoStart }: LocateControlCompo
         function handleLocationFound(e: L.LocationEvent) {
             callbackRef.current({ lat: e.latlng.lat, lng: e.latlng.lng })
         }
+
+        function handleLocationStop() {
+            stopCallbackRef.current?.()
+        }
+
         map.on('locationfound', handleLocationFound)
+        map.on('locatedeactivate', handleLocationStop)
 
         return () => {
             lc.remove()
             map.off('locationfound', handleLocationFound)
+            map.off('locatedeactivate', handleLocationStop)
         }
     }, [map])
 
@@ -168,7 +181,7 @@ function LeafletLocateControl({ onLocationFound, autoStart }: LocateControlCompo
 const PARIS: [number, number] = [48.8566, 2.3522]
 const DEFAULT_ZOOM = 12
 
-export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, autoStart, userPosition, searchRadius, fitBoundsKey }: MapViewProps) {
+export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, onLocationStop, autoStart, userPosition, searchRadius, fitBoundsKey }: MapViewProps) {
     const navigate = useNavigate()
     return (
         <div
@@ -182,13 +195,24 @@ export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound
                 zoom={DEFAULT_ZOOM}
                 style={{ height: "100%", width: "100%" }}
                 zoomControl={true}
+                {...{gestureHandling:true} as any}
+                {...{
+                    gestureHandlingOptions:{
+                        text:{
+                            touch:"Utilisez deux doigts pour déplacer la carte",
+                            scroll:"Utiliser Ctrl + molette pour zoomer sur la carte", 
+                            scrollMac:"Utilsier ⌘ + molette pour zoomer sur la carte",
+                        },
+                        duration:1000, 
+                    }, 
+                } as any}
                 
             >
                 {/* Bouton de localisation natif Leaflet */}
                 <LeafletLocateControl
                     onLocationFound={onLocationFound ?? (() => {})}
+                    onLocationStop={onLocationStop}
                     autoStart={autoStart}
-                    
                 />
                 {userPosition && (
                     <Circle
