@@ -15,4 +15,4 @@ Permettant l'Inscription des utilisateurs pour fidélisation. Inscription des pr
 - Email : admin@example.com   -   Mdp : Admin1234.
 
 **Pour tester la recherche de laveries, vous pouvez essayer sur les villes suivantes :** 
-- Survilliers (A prioriser), Senlis, Paris.
+- Senlis (A prioriser), Survilliers, Paris.
