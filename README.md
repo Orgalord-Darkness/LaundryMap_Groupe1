@@ -16,4 +16,4 @@ Création une application mobile-first d’annuaire de laveries avec carte inter
 - Email : admin@example.com   -   Mdp : Admin1234.
 
 **Pour tester la recherche de laveries, vous pouvez essayer sur les villes suivantes :** 
-- Survilliers, Senlis, Paris.
+- Survilliers (A prioriser), Senlis, Paris.
