@@ -170,7 +170,7 @@ export default function Router() {
         </ProtectedRoute>
       } />
       <Route
-        path="/admin/professionnal/validation"
+        path="/admin/professionnel/validation"
         element={
           <ProtectedRoute allowedRoles={["administrateur"]}>
             <ProfessionnalAccountValidationList />

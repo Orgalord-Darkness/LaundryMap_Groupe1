@@ -324,12 +324,12 @@ class ProfessionnelController extends AbstractController
         return $this->json(['data' => $data], Response::HTTP_OK);
     }
 
-    #[Route('/admin/{id}', name: 'professionnel_admin_show', methods: ['GET'])]
+    #[Route('/admin/{id}', name: 'professionnel_admin_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     #[OA\Tag(name: 'Professionnel')]
     #[OA\Security(name: 'Bearer')]
     #[OA\Response(response: 200, description: 'Détails d\'un professionnel')]
     public function adminShow(
-        int $id,
+        string $id,
         ProfessionnelRepository $professionnelRepository,
         AdministrateurRepository $administrateurRepository,
     ): JsonResponse {
@@ -348,7 +348,7 @@ class ProfessionnelController extends AbstractController
         return $this->json($pro, Response::HTTP_OK);
     }
 
-    #[Route('/admin/valider/{id}', name: 'professionnel_admin_valider', methods: ['POST'])]
+    #[Route('/admin/valider/{id}', name: 'professionnel_admin_valider', methods: ['POST'], requirements: ['id' => '\d+'])]
     #[OA\Tag(name: 'Professionnel')]
     #[OA\Security(name: 'Bearer')]
     #[OA\RequestBody(
@@ -363,11 +363,12 @@ class ProfessionnelController extends AbstractController
     )]
     #[OA\Response(response: 200, description: 'Compte professionnel mis à jour')]
     public function adminValider(
-        int $id,
+        string $id,
         Request $request,
         ProfessionnelRepository $professionnelRepository,
         ProfessionnelHistoriqueInteractionRepository $historiqueRepo,
         AdministrateurRepository $administrateurRepository,
+        UtilisateurRepository $utilisateurRepository, 
     ): JsonResponse {
         $utilisateur = $this->getUser();
 
@@ -408,6 +409,11 @@ class ProfessionnelController extends AbstractController
 
         $historiqueRepo->professionnelValidation($professionnel, $administrateur, $statutEnum, $motif);
         $professionnelRepository->setStatut($professionnel, $statutEnum);
+        $utilisateurPro = $professionnel->getUtilisateurId(); 
+        if (!$utilisateurPro) {
+            return $this->json(['message' => 'Utilisateur professionnel introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+        $utilisateurRepository->setStatut($utilisateurPro, $statutEnum);
 
         return $this->json(['message' => 'Statut du compte professionnel mis à jour.'], Response::HTTP_OK);
     }

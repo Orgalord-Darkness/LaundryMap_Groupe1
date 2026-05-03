@@ -14,7 +14,7 @@ class UtilisateurHistoriqueInteraction
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'utilisateurHistoriqueInteractions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Administrateur $administrateur = null;
 

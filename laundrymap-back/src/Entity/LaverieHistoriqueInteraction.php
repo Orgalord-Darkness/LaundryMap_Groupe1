@@ -14,7 +14,7 @@ class LaverieHistoriqueInteraction
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'laverieHistoriqueInteractions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Administrateur $administrateur = null;
 

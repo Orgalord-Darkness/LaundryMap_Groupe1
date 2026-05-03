@@ -147,4 +147,13 @@ class UtilisateurRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($utilisateur);
         $this->getEntityManager()->flush();
     }   
+
+    public function setStatut(Utilisateur $utilisateur, StatutEnum $statut): void
+    {
+        $utilisateur->setStatut($statut);
+
+        $em = $this->getEntityManager();
+        $em->persist($utilisateur);
+        $em->flush();
+    }
 }
