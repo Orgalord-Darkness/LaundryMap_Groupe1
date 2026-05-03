@@ -5,8 +5,6 @@ Permettant l'Inscription des utilisateurs pour fidélisation. Inscription des pr
 
 ### Informations utiles :
 
-**URL du site en Production :** https://groupe-1.lycee-stvincent.net
-
 **Pour connexion Utilisateur :**
 - Email : luce@example.net   -   Mdp : Utilisateur1234.
 
