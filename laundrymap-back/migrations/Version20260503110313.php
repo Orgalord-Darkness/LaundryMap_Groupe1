@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260412073935 extends AbstractMigration
+final class Version20260503110313 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -23,7 +23,7 @@ final class Version20260412073935 extends AbstractMigration
         $this->addSql('CREATE TABLE administrateur (id INT AUTO_INCREMENT NOT NULL, email VARCHAR(255) NOT NULL, mot_de_passe VARCHAR(255) NOT NULL, UNIQUE INDEX UNIQ_32EB52E8E7927C74 (email), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`');
         $this->addSql('CREATE TABLE adresse (id INT AUTO_INCREMENT NOT NULL, adresse VARCHAR(255) NOT NULL, rue VARCHAR(255) NOT NULL, code_postal INT NOT NULL, ville VARCHAR(255) NOT NULL, pays VARCHAR(255) NOT NULL, latitude DOUBLE PRECISION DEFAULT NULL, longitude DOUBLE PRECISION DEFAULT NULL, statut_geolocalisation VARCHAR(255) DEFAULT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`');
         $this->addSql('CREATE TABLE langue (id INT AUTO_INCREMENT NOT NULL, nom VARCHAR(255) NOT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`');
-        $this->addSql('CREATE TABLE laverie (id INT AUTO_INCREMENT NOT NULL, statut VARCHAR(255) NOT NULL, wi_line_reference INT DEFAULT NULL, nom_etablissement VARCHAR(255) NOT NULL, contact_email VARCHAR(255) DEFAULT NULL, description LONGTEXT DEFAULT NULL, date_ajout DATETIME NOT NULL, date_modification DATETIME NOT NULL, supprime_le DATETIME DEFAULT NULL, logo_id INT DEFAULT NULL, adresse_id INT NOT NULL, professionnel_id INT NOT NULL, INDEX IDX_B62ACE49F98F144A (logo_id), INDEX IDX_B62ACE494DE7DC5C (adresse_id), INDEX IDX_B62ACE498A49CC82 (professionnel_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`');
+        $this->addSql('CREATE TABLE laverie (id INT AUTO_INCREMENT NOT NULL, statut VARCHAR(255) NOT NULL, wi_line_reference VARCHAR(50) DEFAULT NULL, nom_etablissement VARCHAR(255) NOT NULL, contact_email VARCHAR(255) DEFAULT NULL, description LONGTEXT DEFAULT NULL, date_ajout DATETIME NOT NULL, date_modification DATETIME NOT NULL, supprime_le DATETIME DEFAULT NULL, logo_id INT DEFAULT NULL, adresse_id INT NOT NULL, professionnel_id INT NOT NULL, INDEX IDX_B62ACE49F98F144A (logo_id), INDEX IDX_B62ACE494DE7DC5C (adresse_id), INDEX IDX_B62ACE498A49CC82 (professionnel_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`');
         $this->addSql('CREATE TABLE laverie_service (laverie_id INT NOT NULL, service_id INT NOT NULL, INDEX IDX_6959D5B97C840DF (laverie_id), INDEX IDX_6959D5BED5CA9E6 (service_id), PRIMARY KEY (laverie_id, service_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`');
         $this->addSql('CREATE TABLE laverie_paiement (laverie_id INT NOT NULL, methode_paiement_id INT NOT NULL, INDEX IDX_255F499D97C840DF (laverie_id), INDEX IDX_255F499D474F4E47 (methode_paiement_id), PRIMARY KEY (laverie_id, methode_paiement_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`');
         $this->addSql('CREATE TABLE laverie_favori (laverie_id INT NOT NULL, utilisateur_id INT NOT NULL, INDEX IDX_5FAF2CC297C840DF (laverie_id), INDEX IDX_5FAF2CC2FB88E14F (utilisateur_id), PRIMARY KEY (laverie_id, utilisateur_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`');
