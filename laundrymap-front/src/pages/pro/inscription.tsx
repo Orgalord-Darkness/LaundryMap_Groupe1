@@ -129,7 +129,7 @@ function ProInscription() {
 
         <div className="flex justify-center gap-2">
           <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-              <img src="../public/logo_ec2e.png"  alt="Image" className="w-30" />
+              <img src="/logo_ec2e.png"  alt="Image" className="w-30" />
             </a>
         </div>
 
@@ -268,7 +268,7 @@ function ProInscription() {
 
       <div className="relative hidden bg-muted lg:block">
         <img
-          src="../public/laverienew.png"
+          src="/laverienew.png"
           alt="Image"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />

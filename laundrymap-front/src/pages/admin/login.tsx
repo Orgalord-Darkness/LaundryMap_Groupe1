@@ -84,7 +84,7 @@ function AdminLogin() {
 
           <div className="flex justify-center gap-2">
             <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-              <img src="../public/logo_ec2e.png"  alt="Image" className="w-82" />
+              <img src="/logo_ec2e.png"  alt="Image" className="w-82" />
             </a>
           </div>
 
@@ -127,7 +127,7 @@ function AdminLogin() {
 
      
         <div className="relative hidden bg-muted lg:block">
-          <img src="../public/laundry_cartoon.jpg" alt="Image"
+          <img src="/laundry_cartoon.jpg" alt="Image"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
         </div>
 
