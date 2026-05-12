@@ -358,7 +358,7 @@ final class UtilisateurController extends AbstractController
     public function motDePasseOublie(
         Request $request,
         UtilisateurRepository $utilisateurRepository,
-        TagAwareCacheInterface $cachePool
+        EmailVerificationService $emailVerificationService
     ): JsonResponse {
         $donnees = json_decode($request->getContent(), true);
         $email = $donnees['email'] ?? null;
@@ -367,17 +367,18 @@ final class UtilisateurController extends AbstractController
             return $this->json(['message' => 'Email invalide.'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Message générique pour éviter l'énumération des comptes
+        $genericMessage = 'Si un compte actif existe pour cet email, un lien de réinitialisation a été envoyé.';
+
         $utilisateur = $utilisateurRepository->findOneByEmail($email);
         if (!$utilisateur || $utilisateur->getStatut() !== StatutEnum::VALIDE) {
-            return $this->json(['message' => 'Aucun compte actif trouvé pour cet email.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $genericMessage], Response::HTTP_OK);
         }
 
-        $resetToken = bin2hex(random_bytes(32));
-        $utilisateur->setResetToken($resetToken);
-        $utilisateurRepository->inscription($utilisateur);
-        $cachePool->invalidateTags(['utilisateurCache']);
+        $token = $emailVerificationService->generatePasswordResetToken($utilisateur);
+        $emailVerificationService->sendPasswordResetEmail($utilisateur, $token);
 
-        return $this->json(['message' => 'Token de réinitialisation de mot de passe généré.', 'reset_token' => $resetToken], Response::HTTP_OK);
+        return $this->json(['message' => $genericMessage], Response::HTTP_OK);
     }
 
     #[Route('/mot_de_passe/reinitialisation', name: 'app_motdepasse_reinitialisation', methods: ['POST'])]
@@ -385,7 +386,8 @@ final class UtilisateurController extends AbstractController
         Request $request,
         UtilisateurRepository $utilisateurRepository,
         UserPasswordHasherInterface $passwordHasher,
-        TagAwareCacheInterface $cachePool
+        TagAwareCacheInterface $cachePool,
+        JWTTokenManagerInterface $jwtManager
     ): JsonResponse {
         $donnees = json_decode($request->getContent(), true);
         $resetToken = $donnees['reset_token'] ?? null;
@@ -400,13 +402,45 @@ final class UtilisateurController extends AbstractController
             return $this->json(['message' => 'La confirmation du mot de passe ne correspond pas.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $utilisateur = $utilisateurRepository->findOneByResetToken($resetToken);
+        // Validation de la solidité du mot de passe
+        $erreurs = [];
+        if (strlen($motDePasse) < 8) {
+            $erreurs[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+        }
+        if (!preg_match('/[A-Z]/', $motDePasse)) {
+            $erreurs[] = 'Le mot de passe doit contenir au moins 1 majuscule.';
+        }
+        if (!preg_match('/[a-z]/', $motDePasse)) {
+            $erreurs[] = 'Le mot de passe doit contenir au moins 1 minuscule.';
+        }
+        if (!preg_match('/[^a-zA-Z0-9]/', $motDePasse)) {
+            $erreurs[] = 'Le mot de passe doit contenir au moins 1 caractère spécial.';
+        }
+        if (!empty($erreurs)) {
+            return $this->json(['message' => implode(' ', $erreurs)], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Vérification du JWT
+        try {
+            $payload = $jwtManager->parse($resetToken);
+        } catch (\Exception $e) {
+            return $this->json(['message' => 'Token de réinitialisation invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (($payload['purpose'] ?? null) !== 'password_reset') {
+            return $this->json(['message' => 'Token non valide pour la réinitialisation.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (($payload['exp'] ?? 0) < time()) {
+            return $this->json(['message' => 'Le lien de réinitialisation a expiré. Veuillez en demander un nouveau.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $utilisateur = $utilisateurRepository->find($payload['user_id'] ?? 0);
         if (!$utilisateur) {
             return $this->json(['message' => 'Token de réinitialisation invalide.'], Response::HTTP_BAD_REQUEST);
         }
 
         $utilisateur->setMotDePasse($passwordHasher->hashPassword($utilisateur, $motDePasse));
-        $utilisateur->setResetToken(null);
         $utilisateurRepository->inscription($utilisateur);
         $cachePool->invalidateTags(['utilisateurCache']);
 
