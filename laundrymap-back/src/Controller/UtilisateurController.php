@@ -754,4 +754,32 @@ final class UtilisateurController extends AbstractController
             ]
         ], Response::HTTP_OK);
     }
+
+    #[Route('/suppression', name: 'app_suppression', methods: ['DELETE'])]
+    #[OA\Tag(name: 'Utilisateur')]
+    #[OA\Security(name: 'Bearer')]
+    #[OA\Response(response: 200, description: 'Compte supprimé avec succès')]
+    #[OA\Response(response: 401, description: 'Non authentifié')]
+    #[OA\Response(response: 404, description: 'Utilisateur non trouvé')]
+    public function supprimerCompte(
+        UtilisateurRepository $utilisateurRepository,
+        TagAwareCacheInterface $cachePool
+    ): JsonResponse {
+        $utilisateurActuel = $this->getUser();
+
+        if (!$utilisateurActuel) {
+            return $this->json(['message' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $utilisateur = $utilisateurRepository->findOneBy(['email' => $utilisateurActuel->getUserIdentifier()]);
+
+        if (!$utilisateur) {
+            return $this->json(['message' => 'Utilisateur non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        $utilisateurRepository->supprimerCompte($utilisateur);
+        $cachePool->invalidateTags(['utilisateurCache']);
+
+        return $this->json(['message' => 'Votre compte a été supprimé avec succès.'], Response::HTTP_OK);
+    }
 }

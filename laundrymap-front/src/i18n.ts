@@ -109,6 +109,16 @@ const resources = {
       edit_laundry_logo_replace: 'Sélectionnez un nouveau logo pour remplacer l\'actuel.',
       edit_laundry_logo_select: 'Sélectionnez un logo.',
       edit_laundry_description_hint: 'Décrivez votre laverie en quelques mots.',
+      // Suppression de compte
+      zone_danger: 'Zone de danger',
+      supprimer_compte: 'Supprimer mon compte',
+      supprimer_compte_description: 'La suppression de votre compte est définitive. Vos avis et favoris seront conservés.',
+      supprimer_compte_titre_modal: 'Supprimer mon compte',
+      supprimer_compte_confirmation_texte: 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.',
+      supprimer_compte_confirmer: 'Confirmer la suppression',
+      supprimer_compte_en_cours: 'Suppression...',
+      supprimer_compte_erreur: 'La suppression a échoué. Veuillez réessayer.',
+      annuler: 'Annuler',
       // Validation
       validation_name_required: 'Le nom de la laverie est requis',
       validation_address_required: 'L\'adresse est requise',
@@ -219,6 +229,16 @@ const resources = {
       edit_laundry_logo_replace: 'Select a new logo to replace the current one.',
       edit_laundry_logo_select: 'Select a logo.',
       edit_laundry_description_hint: 'Describe your laundry in a few words.',
+      // Account deletion
+      zone_danger: 'Danger zone',
+      supprimer_compte: 'Delete my account',
+      supprimer_compte_description: 'Account deletion is permanent. Your reviews and favorites will be kept.',
+      supprimer_compte_titre_modal: 'Delete my account',
+      supprimer_compte_confirmation_texte: 'Are you sure you want to delete your account? This action is irreversible.',
+      supprimer_compte_confirmer: 'Confirm deletion',
+      supprimer_compte_en_cours: 'Deleting...',
+      supprimer_compte_erreur: 'Deletion failed. Please try again.',
+      annuler: 'Cancel',
       // Validation
       validation_name_required: 'Laundry name is required',
       validation_address_required: 'Address is required',
