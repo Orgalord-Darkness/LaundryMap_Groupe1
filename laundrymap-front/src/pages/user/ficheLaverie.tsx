@@ -49,6 +49,7 @@ interface Laverie {
   isOpen: boolean;
   isFavorite: boolean;
   address: string;
+  rue: string;
   city: string;
   postalCode: string;
   email: string;
@@ -134,6 +135,153 @@ const ReviewCard = ({ review }: { review: Review }) => (
 
 
 
+// ------- Pour Note & Avis ---
+
+
+/** Sélecteur d'étoiles interactif pour le formulaire d'avis */
+const StarPicker = ({ value, onChange }: { value: number; onChange: (n: number) => void }) => {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+          className="focus:outline-none"
+          aria-label={`${star} étoile${star > 1 ? "s" : ""}`}
+        >
+          <svg
+            className={`w-8 h-8 transition-colors ${
+              star <= (hovered || value) ? "text-amber-400" : "text-slate-200"
+            }`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        </button>
+      ))}
+      {value > 0 && (
+        <span className="ml-2 text-sm font-semibold text-amber-500">
+          {["", "Mauvais", "Passable", "Bien", "Très bien", "Excellent"][value]}
+        </span>
+      )}
+    </div>
+  );
+};
+
+/** Modal d'ajout / modification d'un avis */
+const ModalAvis = ({
+  onClose,
+  onSubmit,
+  isSubmitting,
+  existingRating = 0,
+  existingComment = "",
+}: {
+  onClose: () => void;
+  onSubmit: (note: number, commentaire: string) => void;
+  isSubmitting: boolean;
+  existingRating?: number;
+  existingComment?: string;
+}) => {
+  const [note, setNote]           = useState(existingRating);
+  const [commentaire, setCommentaire] = useState(existingComment);
+  const [formError, setFormError] = useState<string | null>(null);
+ 
+  const handleSubmit = () => {
+    if (note === 0) {
+      setFormError("Veuillez sélectionner une note.");
+      return;
+    }
+    if (commentaire.trim().length < 10) {
+      setFormError("Le commentaire doit faire au moins 10 caractères.");
+      return;
+    }
+    setFormError(null);
+    onSubmit(note, commentaire.trim());
+  };
+ 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+ 
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-5">
+ 
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-slate-900">
+            {existingRating > 0 ? "Modifier mon avis" : "Laisser un avis"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-slate-100 transition-colors"
+            aria-label="Fermer"
+          >
+            <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+ 
+        {/* Sélecteur d'étoiles */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-slate-700">Votre note *</label>
+          <StarPicker value={note} onChange={setNote} />
+        </div>
+ 
+        {/* Commentaire */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-slate-700">Votre commentaire *</label>
+          <textarea
+            value={commentaire}
+            onChange={(e) => setCommentaire(e.target.value)}
+            placeholder="Partagez votre expérience avec cette laverie…"
+            rows={4}
+            maxLength={255}
+            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          />
+          <div className="flex justify-between items-center">
+            {formError
+              ? <p className="text-xs text-rose-500">{formError}</p>
+              : <span />
+            }
+            <p className="text-xs text-slate-400 ml-auto">{commentaire.length}/255</p>
+          </div>
+        </div>
+ 
+        {/* Actions */}
+        <div className="flex gap-3 pt-1">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="flex-1 py-3 rounded-xl bg-primary hover:bg-blue-900 text-white font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {isSubmitting ? "Envoi…" : "Publier"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// -- Fin ajout - note & avis ----
+
+
+
 
 // COMPOSANT PRINCIPAL
 
@@ -143,13 +291,19 @@ function FicheLaverie() {
 
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/fiche-laverie/${id}`;
   const favoriUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/user/fiche-laverie/${id}/favori`;
-
+  const commentaireUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/user/fiche-laverie/${id}/commentaire`;
 
   const [laverie, setLaverie] = useState<Laverie | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [isFavLoading, setIsFavLoading] = useState<boolean>(false);
+
+  const [showModal,      setShowModal]      = useState<boolean>(false);
+  const [isSubmitting,   setIsSubmitting]   = useState<boolean>(false);
+  const [submitSuccess,  setSubmitSuccess]  = useState<boolean>(false);
+
+  const [userReview,     setUserReview]     = useState<{ note: number; commentaire: string } | null>(null);
 
   
   const token = localStorage.getItem("token");
@@ -241,8 +395,66 @@ function FicheLaverie() {
 
 
 
-  // ── URLs de navigation ──
-  const mapsUrl = laverie ? `https://www.google.com/maps/search/?api=1&query=${laverie.lat},${laverie.lng}` : "#";
+  // Pour ajout note & Commentaire
+
+  // Soumission d'un avis 
+  const handleSubmitAvis = (note: number, commentaire: string) => {
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) return;
+ 
+    setIsSubmitting(true);
+    fetch(commentaireUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${currentToken}` },
+      body: JSON.stringify({ note, commentaire }),
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Erreur ${response.status}`);
+        const data = await response.json();
+ 
+        // Ajout du nouvel avis en tête de liste sans recharger la page
+        setLaverie((prev) => {
+          if (!prev) return prev;
+          const newReview: Review = {
+            id:      data.id,
+            author:  data.author,
+            avatar:  data.avatar,
+            rating:  note,
+            date:    new Date().toLocaleDateString("fr-FR"),
+            comment: commentaire,
+          };
+          // Mise à jour : retirer l'ancien avis de cet utilisateur s'il existait
+          const filteredReviews = userReview
+            ? prev.reviews.filter((r) => r.author !== data.author)
+            : prev.reviews;
+ 
+          return {
+            ...prev,
+            reviews:     [newReview, ...filteredReviews],
+            reviewCount: prev.reviewCount + (userReview ? 0 : 1),
+          };
+        });
+ 
+        setUserReview({ note, commentaire });
+        setSubmitSuccess(true);
+        setShowModal(false);
+        // Réinitialiser le message de succès après 3s
+        setTimeout(() => setSubmitSuccess(false), 3000);
+      })
+      .catch((err) => console.error("[Avis] Erreur :", err))
+      .finally(() => setIsSubmitting(false));
+  };
+
+  // fin
+
+
+
+
+
+
+
+
+  // URL de navigation
   const wazeUrl = laverie ? `https://waze.com/ul?ll=${laverie.lat},${laverie.lng}&navigate=yes` : "#";
   const itineraireUrl = laverie ? `https://www.google.com/maps/dir/?api=1&destination=${laverie.lat},${laverie.lng}` : "";
 
@@ -264,7 +476,7 @@ function FicheLaverie() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center shadow-xl">
-          <p className="text-4xl mb-3">⚠️</p>
+          {/* <p className="text-4xl mb-3">⚠️</p> */}
           <h2 className="text-slate-800 font-bold text-lg mb-2">Une erreur est survenue</h2>
           <p className="text-slate-500 text-sm">{error}</p>
         </div>
@@ -300,7 +512,7 @@ function FicheLaverie() {
                 <button
                   onClick={handleToggleFavori}
                   aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-                  className="flex-shrink-0 p-2 rounded-full bg-slate-50 hover:bg-rose-50 transition-colors mt-0.5"
+                  className="flex-shrink-0 p-2 rounded-full bg-slate-50 hover:bg-rose-50 transition-colors mt-0.5 cursor-pointer"
                 > 
                   <svg
                     className={`w-5 h-5 transition-colors ${
@@ -337,7 +549,7 @@ function FicheLaverie() {
           </p>
         </div>
 
-        {/* ── CAROUSEL IMAGES ── */}
+        {/* CAROUSEL IMAGES  */}
         <div className="w-full">
           <Carousel setApi={setApi}>
             <CarouselContent>
@@ -365,7 +577,7 @@ function FicheLaverie() {
 
         {/* ── ADRESSE & NAVIGATION ── */}
         <div className="bg-white rounded-lg border border-slate-100 shadow-sm p-4 w-full space-y-4">
-          <h3 className="text-slate-900 text-lg font-semibold">📍 Adresse & Itinéraire</h3>
+          <h3 className="text-slate-900 text-lg font-semibold"> Adresse & Itinéraire </h3>
 
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -375,17 +587,14 @@ function FicheLaverie() {
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-slate-800">{laverie.address}</p>
+              <p className="font-semibold text-slate-800">{laverie.address} {laverie.rue}</p>
               <p className="text-slate-500 text-sm">{laverie.postalCode} {laverie.city}</p>
             </div>
           </div>
 
 
-          <div className="grid grid-cols-3 gap-3">
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+          <div className="grid grid-cols-2 gap-3">
+            <a href={itineraireUrl} target="_blank" rel=""
               className="flex items-center justify-center gap-2 bg-slate-900 text-white py-3 px-4 rounded-lg font-semibold text-sm active:scale-95 transition-transform shadow-md"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -393,21 +602,7 @@ function FicheLaverie() {
               </svg>
               Google Maps
             </a>
-            <a
-              href={itineraireUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold text-sm active:scale-95 transition-transform shadow-md"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21.71 11.29l-9-9a1 1 0 00-1.42 0l-9 9a1 1 0 000 1.42l9 9a1 1 0 001.42 0l9-9a1 1 0 000-1.42zM14 14.5V12h-4v3H8v-4a1 1 0 011-1h5V7.5l3.5 3.5-3.5 3.5z" />
-              </svg>
-              Itinéraire
-            </a>
-            <a
-              href={wazeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <a href={wazeUrl} target="_blank" rel=""
               className="flex items-center justify-center gap-2 bg-sky-400 text-white py-3 px-4 rounded-lg font-semibold text-sm active:scale-95 transition-transform shadow-md"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -420,7 +615,7 @@ function FicheLaverie() {
 
         </div>
 
-        {/* ── SERVICES & HORAIRES ── */}
+        {/* SERVICES & HORAIRES  */}
         <div className="grid lg:grid-cols-2 grid-cols-1 gap-6">
 
           {/* Services */}
@@ -428,13 +623,11 @@ function FicheLaverie() {
             <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Services</h3>
 
             <div className="mt-4">
-              <h4 className="text-slate-900 text-lg font-semibold mb-3">Équipements disponibles</h4>
-              <div className="grid grid-cols-2 gap-3">
+              <h4 className="text-slate-900 text-md font-semibold mb-3">Équipements disponibles</h4>
+
+              <div className="flex flex-wrap gap-3">
                 {laverie.services.map((service) => (
-                  <div key={service} className="flex items-center text-[15px] text-slate-600 font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" className="mr-3 fill-green-500 flex-shrink-0" viewBox="0 0 24 24">
-                      <path d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121z" />
-                    </svg>
+                  <div key={service} className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium">
                     {service}
                   </div>
                 ))}
@@ -442,13 +635,10 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h4 className="text-slate-900 text-lg font-semibold mb-3">Moyens de paiement</h4>
-              <div className="grid grid-cols-2 gap-3">
+              <h4 className="text-slate-900 text-md font-semibold mb-3">Moyens de paiement</h4>
+              <div className="flex flex-wrap gap-3">
                 {laverie.paymentMethods.map((method) => (
-                  <div key={method} className="flex items-center text-[15px] text-slate-600 font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" className="mr-3 fill-green-500 flex-shrink-0" viewBox="0 0 24 24">
-                      <path d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121z" />
-                    </svg>
+                  <div key={method} className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium">
                     {method}
                   </div>
                 ))}
@@ -456,12 +646,9 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h4 className="text-slate-900 text-lg font-semibold mb-3">Informations</h4>
+              <h4 className="text-slate-900 text-md font-semibold mb-3">Informations</h4>
               {laverie.email && (
               <div className="flex items-center text-[15px] text-slate-600 font-medium">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" className="mr-3 fill-green-500 flex-shrink-0" viewBox="0 0 24 24">
-                  <path d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121z" />
-                </svg>
                 Email : <a href={`mailto:${laverie.email}`} className="ml-1 text-blue-600 hover:underline">{laverie.email}</a>
               </div>
               )}
@@ -491,38 +678,61 @@ function FicheLaverie() {
         </div>
 
 
-        {/* ── LISTE MACHINES ── */}
+        {/* LISTE MACHINES */}
         <div className="grid lg:grid-cols-1 sm:grid-cols-1 gap-6 mt-12 mx-auto w-full">
 
           <div className="border border-gray-100 shadow-sm rounded-md bg-white p-6">
             <h3 className="text-slate-900 text-2xl font-semibold mb-4 text-center">Liste des machines</h3>
 
             {/* Liste Machines pour une laverie  */} 
-            {/* <div className="mx-10"> */}
-              <div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-2">
-                {laverie.machines.map((machine, index) => (
-                  <CardMachine
-                    key={index}
-                    name={machine.type}
-                    capacity={machine.capacity}
-                    duration={machine.duration}
-                    price={machine.price}
-                  />
-                ))}
-              </div>
-            {/* </div> */}
+            <div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-2">
+              {laverie.machines.map((machine, index) => (
+                <CardMachine
+                  key={index}
+                  name={machine.type}
+                  capacity={machine.capacity}
+                  duration={machine.duration}
+                  price={machine.price}
+                />
+              ))}
+            </div>
+
           </div>
-
-        
-
         </div>
 
 
-        {/* ── COMMENTAIRES ── */}
+
+        {/* COMMENTAIRES */}
         <div className="border border-gray-100 shadow-sm rounded-md p-6 bg-white">
-          <h3 className="text-slate-900 text-2xl font-semibold mb-4 text-center">
-            Commentaires
-          </h3>
+ 
+          
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-slate-900 text-2xl font-semibold">Commentaires</h3>
+
+            {isConnected && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="flex items-center gap-2 bg-primary hover:bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                {userReview ? "Modifier mon avis" : "Laisser un avis"}
+              </button>
+            )}
+          </div>
+ 
+          {/* Message de succès */}
+          {submitSuccess && (
+            <div className="mb-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm font-medium">
+              <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Votre avis a bien été publié, merci !
+            </div>
+          )}
+ 
+          {/* Liste des avis */}
           {laverie.reviews.length > 0 ? (
             <div className="space-y-3">
               {laverie.reviews.map((review) => (
@@ -530,13 +740,32 @@ function FicheLaverie() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-slate-400 text-sm py-6">
-              Aucun commentaire pour le moment.
-            </p>
+            <div className="text-center py-8">
+              <p className="text-slate-400 text-sm mb-3">Aucun commentaire pour le moment.</p>
+              {isConnected && (
+                <button onClick={() => setShowModal(true)} className="text-blue-600 text-sm font-medium hover:underline">
+                  Soyez le premier à laisser un avis →
+                </button>
+              )}
+            </div>
           )}
-        </div>
+        </div> 
 
       </div>
+
+      {/* MODAL AVIS */}
+      {showModal && (
+        <ModalAvis
+          onClose={() => setShowModal(false)}
+          onSubmit={handleSubmitAvis}
+          isSubmitting={isSubmitting}
+          existingRating={userReview?.note ?? 0}
+          existingComment={userReview?.commentaire ?? ""}
+        />
+      )}
+
+
+
     </div>
   );
 }

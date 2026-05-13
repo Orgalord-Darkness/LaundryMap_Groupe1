@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\LaverieNote;
 
 
 #[Route('/api/v1')]
@@ -33,7 +34,7 @@ class FicheLaverieController extends AbstractController
     #[Route('/fiche-laverie/{id}', name: 'api_fiche_laverie', methods: ['GET'])]
     public function ficheLaverie(int $id, Request $request): JsonResponse
     {
-        // Récupération de la laverie ──────────────────────────────────
+        // Récupération de la laverie
         $laverie = $this->laverieRepository->find($id);
 
         if (!$laverie || $laverie->getSupprimeLe() !== null) {
@@ -43,14 +44,14 @@ class FicheLaverieController extends AbstractController
         $baseUrl = $request->getSchemeAndHttpHost();
 
 
-        //  Logo ────────────────────────────────────────────────────────
+        //  Logo
         $logoUrl = null;
         if ($laverie->getLogo() !== null) {
             $logoUrl = $baseUrl . '/' . ltrim($laverie->getLogo()->getEmplacement(), '/');
         }
 
 
-        //  Images du carousel (LaverieMedia → Media) ───────────────────
+        //  Images du carousel (LaverieMedia → Media)
         $laverieMedias = $this->laverieMediaRepository->findBy(['laverie' => $laverie]);
         $images = array_values(array_map(
             fn($lm) => $baseUrl . '/' . ltrim($lm->getMedia()->getEmplacement(), '/'),
@@ -58,23 +59,19 @@ class FicheLaverieController extends AbstractController
         ));
 
 
-        //  Adresse ─────────────────────────────────────────────────────
         $adresse = $laverie->getAdresse();
 
-
-        //  Services ────────────────────────────────────────────────────
         $services = $laverie->getServices()
             ->map(fn($service) => $service->getNom())
             ->toArray();
 
 
-        //  Méthodes de paiement ────────────────────────────────────────
         $paymentMethods = $laverie->getMethodePaiements()
             ->map(fn($methode) => $methode->getNom())
             ->toArray();
 
 
-        //  Horaires (LaverieFermeture) ─────────────────────────────────
+        //  Horaires (LaverieFermeture) 
         //   Deux entrées possibles par jour (matin / après-midi)
         //   On groupe par jour puis on trie par heure_debut pour identifier AM/PM
         $fermetures = $this->laverieFermetureRepository->findBy(
@@ -106,11 +103,11 @@ class FicheLaverieController extends AbstractController
             ];
         }
 
-        // Statut ouvert / fermé (calculé dynamiquement) ──────────────
+        // Statut ouvert / fermé (calculé dynamiquement)
         $isOpen = $this->calculateIsOpen($fermetures);
 
 
-        //  Machines (LaverieEquipement) ───────────────────────────────
+        //  Machines (LaverieEquipement) 
         //   EquipementEnum : 'machine_a_laver' | 'seche_linge' | 'autre'
         $equipementLabels = [
             'machine_a_laver' => 'Machine à laver',
@@ -130,7 +127,7 @@ class FicheLaverieController extends AbstractController
         ));
 
 
-        // Notes & commentaires (LaverieNote) ─────────────────────────
+        // Notes & commentaires (LaverieNote) 
         //   Toutes les notes non supprimées pour calculer la moyenne
         $notes = $this->laverieNoteRepository->findBy(
             ['laverie' => $laverie],
@@ -165,11 +162,28 @@ class FicheLaverieController extends AbstractController
             ];
         }
 
-        //  Favori pour l'utilisateur connecté (null si visiteur non connecté) ──
+        //  Favori si utilisateur connecté 
         $currentUser = $this->getUser();
         $isFavorite  = $currentUser !== null && $laverie->getFavoris()->contains($currentUser);
 
-        //  Réponse JSON ───────────────────────────────────────────────
+
+        // Si l'utilisateur connecté, retourne son avis existant pour pré-remplir le formulaire
+        $userReview = null;
+        if ($currentUser !== null) {
+            $existingNote = $this->laverieNoteRepository->findOneBy([
+                'laverie'    => $laverie,
+                'utilisateur' => $currentUser,
+            ]);
+            if ($existingNote !== null) {
+                $userReview = [
+                    'note'        => $existingNote->getNote(),
+                    'commentaire' => $existingNote->getCommentaire(),
+                ];
+            }
+        }
+
+
+        //  Réponse JSON
         return $this->json([
             'id'             => $laverie->getId(),
             'name'           => $laverie->getNomEtablissement(),
@@ -179,9 +193,11 @@ class FicheLaverieController extends AbstractController
             'reviewCount'    => $totalNotes,
             'isOpen'         => $isOpen,
             'isFavorite'     => $isFavorite,
+            'userReview'     => $userReview,
             'description'    => $laverie->getDescription(),
             'email'          => $laverie->getContactEmail(),
             'address'        => $adresse?->getAdresse(),
+            'rue'            => $adresse?->getRue(),
             'city'           => $adresse?->getVille(),
             'postalCode'     => (string) ($adresse?->getCodePostal() ?? ''),
             'lat'            => $adresse?->getLatitude(),
@@ -196,8 +212,8 @@ class FicheLaverieController extends AbstractController
 
 
     
-    // POST /api/v1/user/fiche-laverie/{id}/favori  (connecté uniquement)
-    // Toggle : ajoute ou retire la laverie des favoris de l'utilisateur
+    
+    // Toggle : ajoute ou retire la laverie des favoris de l'utilisateur (connecté uniquement)
 
     #[Route('/user/fiche-laverie/{id}/favori', name: 'api_user_fiche_laverie_favori', methods: ['POST'])]
     public function toggleFavori(int $id): JsonResponse
@@ -228,7 +244,6 @@ class FicheLaverieController extends AbstractController
             'message'    => $isFavorite ? 'Laverie ajoutée aux favoris.' : 'Laverie retirée des favoris.',
         ]);
     }
-
 
 
 
@@ -265,4 +280,84 @@ class FicheLaverieController extends AbstractController
 
         return false;
     }
+
+
+    
+    // Crée ou met à jour la note et le commentaire de l'utilisateur connecté
+    
+    #[Route('/user/fiche-laverie/{id}/commentaire', name: 'api_user_fiche_laverie_commentaire', methods: ['POST'])]
+    public function ajouterCommentaire(int $id, Request $request): JsonResponse
+    {
+        $laverie = $this->laverieRepository->find($id);
+ 
+        if (!$laverie || $laverie->getSupprimeLe() !== null) {
+            return $this->json(['message' => 'Laverie introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+ 
+        /** @var \App\Entity\Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+ 
+        // Validation du corps JSON 
+        $body = json_decode($request->getContent(), true);
+ 
+        $note        = $body['note']        ?? null;
+        $commentaire = $body['commentaire'] ?? null;
+ 
+        if (!is_int($note) || $note < 1 || $note > 5) {
+            return $this->json(
+                ['message' => 'La note doit être un entier entre 1 et 5.'],
+                JsonResponse::HTTP_BAD_REQUEST
+            );
+        }
+ 
+        if (!is_string($commentaire) || mb_strlen(trim($commentaire)) < 10) {
+            return $this->json(
+                ['message' => 'Le commentaire doit faire au moins 10 caractères.'],
+                JsonResponse::HTTP_BAD_REQUEST
+            );
+        }
+ 
+        $commentaire = mb_substr(trim($commentaire), 0, 255);
+ 
+        // Création ou mise à jour 
+        // Un seul avis par utilisateur par laverie / cherche un avis existant
+        $laverieNote = $this->laverieNoteRepository->findOneBy([
+            'laverie'    => $laverie,
+            'utilisateur' => $currentUser,
+        ]);
+ 
+        $isNew = $laverieNote === null;
+ 
+        if ($isNew) {
+            $laverieNote = new LaverieNote();
+            $laverieNote->setLaverie($laverie);
+            $laverieNote->setUtilisateur($currentUser);
+            $laverieNote->setNoteLe(new \DateTime());
+        }
+ 
+        $laverieNote->setNote($note);
+        $laverieNote->setCommentaire($commentaire);
+        $laverieNote->setCommentaireLe(new \DateTime());
+ 
+        if ($isNew) {
+            $this->entityManager->persist($laverieNote);
+        }
+ 
+        $this->entityManager->flush();
+ 
+        // Réponse 
+        $initiales = urlencode($currentUser->getPrenom() . '+' . $currentUser->getNom());
+ 
+        return $this->json([
+            'id'      => $laverieNote->getId(),
+            'author'  => $currentUser->getPrenom() . ' ' . $currentUser->getNom(),
+            'avatar'  => "https://ui-avatars.com/api/?name={$initiales}&background=e2e8f0&color=475569&size=64",
+            'rating'  => $laverieNote->getNote(),
+            'date'    => $laverieNote->getCommentaireLe()->format('d/m/Y'),
+            'comment' => $laverieNote->getCommentaire(),
+            'message' => $isNew ? 'Avis publié avec succès.' : 'Avis mis à jour avec succès.',
+        ], $isNew ? JsonResponse::HTTP_CREATED : JsonResponse::HTTP_OK);
+    }
+
+
 }
