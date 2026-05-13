@@ -56,9 +56,10 @@ function AdminLogin() {
       }, {
         headers: {
           "Content-Type": "application/json",
-        }
+        },
+        withCredentials: true,
       })
-      const data = response.data 
+      const data = response.data
 
       if (data.errors) {
         Object.keys(data.errors).forEach((champ) => {
@@ -70,7 +71,9 @@ function AdminLogin() {
         return;
       }
 
-      login(data.token);
+      const meUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/me`;
+      const meResponse = await axios.get(meUrl, { withCredentials: true });
+      login({ email: meResponse.data.email, role: meResponse.data.roles[0] });
       navigate("/admin/dashboard");
     }
   };

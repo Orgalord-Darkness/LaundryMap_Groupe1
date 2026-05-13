@@ -49,7 +49,7 @@ export default function Inscription() {
                 prenom: donnees.prenom,
                 nom: donnees.nom,
                 confirmation_mot_de_passe: donnees.confirmation_mot_de_passe
-            });
+            }, { withCredentials: true });
 
             console.log(reponse.status); 
 

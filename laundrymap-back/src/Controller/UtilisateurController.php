@@ -21,6 +21,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Service\EmailVerificationService;
+use Symfony\Component\HttpFoundation\Cookie;
 
 #[Route('/api/v1/utilisateur')]
 final class UtilisateurController extends AbstractController
@@ -123,10 +124,21 @@ final class UtilisateurController extends AbstractController
 
         try {
             $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRole()[0]]);
-            return $this->json([
+            $cookie = Cookie::create('BEARER')
+                ->withValue($token)
+                ->withExpires(time() + 3600)
+                ->withPath('/')
+                ->withDomain(null)
+                ->withSecure(false)
+                ->withHttpOnly(true)
+                ->withSameSite('strict');
+            $response = $this->json([
                 'message' => 'Connexion réussie',
-                'token_data' => $token,
+                'email'   => $utilisateur->getEmail(),
+                'role'    => $utilisateur->getRole()[0],
             ], Response::HTTP_OK);
+            $response->headers->setCookie($cookie);
+            return $response;
         } catch (\Throwable $e) {
             return new JsonResponse(['error' => $e->getMessage()], 401);
         }
@@ -548,12 +560,21 @@ final class UtilisateurController extends AbstractController
 
         try {
             $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRole()[0]]);
-
-            return $this->json([
-                'message'    => $isNewUser ? 'Compte créé avec succès' : 'Connexion réussie',
-                'token_data' => $token,
+            $cookie = Cookie::create('BEARER')
+                ->withValue($token)
+                ->withExpires(time() + 3600)
+                ->withPath('/')
+                ->withDomain(null)
+                ->withSecure(false)
+                ->withHttpOnly(true)
+                ->withSameSite('strict');
+            $response = $this->json([
+                'message' => $isNewUser ? 'Compte créé avec succès' : 'Connexion réussie',
+                'email'   => $utilisateur->getEmail(),
+                'role'    => $utilisateur->getRole()[0],
             ], Response::HTTP_OK);
-
+            $response->headers->setCookie($cookie);
+            return $response;
         } catch (\Throwable $e) {
             return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
         }

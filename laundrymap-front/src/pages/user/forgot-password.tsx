@@ -24,7 +24,8 @@ export default function ForgotPassword() {
         try {
             await axios.post(
                 `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/mot_de_passe/oublie`,
-                { email: donnees.email }
+                { email: donnees.email },
+                { withCredentials: true }
             )
             setSuccessMessage("Si un compte actif existe pour cet email, un lien de réinitialisation a été envoyé. Vérifiez votre boîte mail.")
         } catch (err: unknown) {

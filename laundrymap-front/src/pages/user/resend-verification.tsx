@@ -12,7 +12,7 @@ export default function ResendVerification() {
     event.preventDefault();
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/resend-validation`, { email });
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/resend-validation`, { email }, { withCredentials: true });
       setMessage(response.data.message || "E-mail de validation renvoyé.");
       setError("");
 

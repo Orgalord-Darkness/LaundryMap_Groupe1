@@ -23,7 +23,7 @@ security:
             security: false
 
         public_api:
-            pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/doc|^/api/v1/laverie/search|^/api/v1/laverie/filter-search
+            pattern: ^/api/v1/utilisateur/(login_check|inscription)|^/api/v1/professionnel/inscription|^/api/v1/auth/logout|^/api/doc|^/api/v1/laverie/search|^/api/v1/laverie/filter-search
             stateless: true
             security: false
 

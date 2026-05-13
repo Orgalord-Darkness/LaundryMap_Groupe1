@@ -33,7 +33,7 @@ export function LaverieActions({ id, onDeleted, onEdit, name }: Props) {
     console.log(loading); 
     try {
       setLoading(true)
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/v1/laverie/suppression/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/v1/laverie/suppression/${id}`, { withCredentials: true });
       onDeleted?.()
       setOpenDelete(false)
     } finally {

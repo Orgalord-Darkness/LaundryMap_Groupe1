@@ -35,7 +35,8 @@ export default function ResetPassword() {
                     reset_token: token,
                     mot_de_passe: donnees.mot_de_passe,
                     confirmation_mot_de_passe: donnees.confirmation_mot_de_passe,
-                }
+                },
+                { withCredentials: true }
             )
             navigate("/user/login")
         } catch (err: unknown) {

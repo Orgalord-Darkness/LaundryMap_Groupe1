@@ -23,13 +23,6 @@ export const api = axios.create({
     console.log("API_BASE =", API_BASE)
     console.log("api =", api)
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token")
-    if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-})
 
 export default function LaverieValidation() {
     const { id } = useParams<{ id: string }>()

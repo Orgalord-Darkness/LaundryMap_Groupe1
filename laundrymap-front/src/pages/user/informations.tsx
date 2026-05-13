@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from "@/components/ui/drawer"
 import { PersonalSpaceNavbar, TAB_ROUTES, type PersonalSpaceTab } from "@/components/ui/PersonalSpaceNavbar"
 import axios from "axios"
+import { useAuth } from "@/components/context/AuthContext"
 
 type Inputs = {
     prenom: string
@@ -23,6 +24,7 @@ const urlInfo = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/mes_inf
 export default function MonProfi() {
     const { t } = useTranslation()
     const navigate = useNavigate()
+    const { logout } = useAuth()
 
     const handleTabChange = (tab: PersonalSpaceTab) => {
         const route = TAB_ROUTES[tab]
@@ -44,14 +46,7 @@ export default function MonProfi() {
     
     const infos = async () => {
         try {
-            const token = localStorage.getItem("token")
-            const reponse = await axios.get(
-                urlInfo, {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                }
-            )
+            const reponse = await axios.get(urlInfo, { withCredentials: true })
             const data = await reponse.data
 
             setValue("nom", data.nom)
@@ -82,13 +77,12 @@ export default function MonProfi() {
         setDeleteLoading(true)
         setDeleteError("")
         try {
-            const token = localStorage.getItem("token")
             await axios.delete(
                 `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/suppression`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                { withCredentials: true }
             )
-            localStorage.removeItem("token")
             setConfirmOpen(false)
+            await logout()
             navigate("/user/login")
         } catch {
             setDeleteError(t("supprimer_compte_erreur", "La suppression a échoué. Veuillez réessayer."))
@@ -98,8 +92,6 @@ export default function MonProfi() {
 
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
-            const token = localStorage.getItem("token")
-
             if ((donnees.mot_de_passe || "").trim()) {
                 if (!(donnees.mot_de_passe_actuel || "").trim()) {
                     setError("mot_de_passe_actuel", {
@@ -134,10 +126,8 @@ export default function MonProfi() {
             }
 
             const reponse = await axios.put(url, payload, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                }
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
             })
 
             const data = reponse.data

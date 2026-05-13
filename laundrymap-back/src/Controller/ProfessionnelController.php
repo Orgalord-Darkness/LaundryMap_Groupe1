@@ -20,6 +20,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -128,10 +129,21 @@ class ProfessionnelController extends AbstractController
 
         try {
             $token = $jwtManager->create($utilisateur, ['role' => $utilisateur->getRolePro()[0]]);
-            return $this->json([
-                'message'    => 'Connexion réussie',
-                'token_data' => $token,
+            $cookie = Cookie::create('BEARER')
+                ->withValue($token)
+                ->withExpires(time() + 3600)
+                ->withPath('/')
+                ->withDomain(null)
+                ->withSecure(false)
+                ->withHttpOnly(true)
+                ->withSameSite('strict');
+            $response = $this->json([
+                'message' => 'Connexion réussie',
+                'email'   => $utilisateur->getEmail(),
+                'role'    => $utilisateur->getRolePro()[0],
             ], Response::HTTP_OK);
+            $response->headers->setCookie($cookie);
+            return $response;
         } catch (\Throwable $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
         }
