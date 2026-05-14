@@ -92,15 +92,16 @@ function ProDashboard() {
                 const config = statutConfig[laundry.statut] ?? statutConfig['EN_ATTENTE'];
 
                 return (
-                  <Card className="relative mx-auto w-full max-w-sm pt-0" key={laundry.id}>
+                  <Card className="relative mx-auto w-full max-w-sm pt-0 overflow-hidden" key={laundry.id}>
 
-                    <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
-                    <img
-                      src={laundry.logoUrl ?? '/placeholder.png'}
-                      alt={laundry.nom}
-                      className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
-                    />
-                      {/* 🔵 bouton 3 points */}
+                    <div className="relative h-40 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-xl">
+                      <img
+                        src={laundry.logoUrl ? `${import.meta.env.VITE_API_BASE_URL}${laundry.logoUrl}` : '/placeholder.png'}
+                        alt={laundry.nom}
+                        className="w-full h-full object-contain p-4"
+                      />
+                    </div>
+                      {/* bouton 3 points */}
                     <div className="absolute top-2 right-2 z-40">
                       <div className="bg-white/90 backdrop-blur rounded-lg shadow-sm">
                         <LaverieActions

@@ -5,6 +5,7 @@ import type { LaverieSearch } from "@/components/utils/type"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -43,13 +44,21 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
             aria-label={`Laverie ${laverie.nomEtablissement}`}
         >
             {/* Image / Placeholder */}
-            <div className="relative h-24 bg-gray-100 overflow-hidden shrink-0">
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-                    <svg className="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                            d="M4 4h16v2H4V4zm0 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm4 4v4m4-4v4" />
-                    </svg>
-                </div>
+            <div className="relative bg-white overflow-hidden shrink-0 w-full">
+                {laverie.logoUrl ? (
+                    <img
+                        src={`${API_BASE}${laverie.logoUrl}`}
+                        alt={laverie.nomEtablissement}
+                        className="w-full h-auto max-h-24 object-contain"
+                    />
+                ) : (
+                    <div className="h-24 w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+                        <svg className="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                                d="M4 4h16v2H4V4zm0 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm4 4v4m4-4v4" />
+                        </svg>
+                    </div>
+                )}
 
                 {/* Badge statut */}
                 <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200 leading-tight">

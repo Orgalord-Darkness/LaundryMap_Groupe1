@@ -6,30 +6,11 @@ import { FieldLabel } from "@/components/ui/field"
 import { Field} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { CheckboxGroup } from '@/components/ui/checkboxGroupEdit'
-import axios from 'axios'
 import type {Service} from '@/components/utils/type.ts'
 import type {Paiement} from '@/components/utils/type.ts'
-
+import apiClient from '@/lib/apiClient'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
-
-
-export const api = axios.create({
-    baseURL: `${API_BASE}/api/v1`,
-    withCredentials: true,
-    headers: { "Content-Type": "application/json" },
-})
-
-    console.log("API_BASE =", API_BASE)
-    console.log("api =", api)
-
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token")
-    if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-})
 
 export default function LaverieValidation() {
     const { id } = useParams<{ id: string }>()
@@ -46,7 +27,7 @@ export default function LaverieValidation() {
 
     const fetchLaverieData = async () => {
         try {
-            const res = await api.get(`/laverie/${id}`)
+            const res = await apiClient.get(`/laverie/${id}`)
             const data = res.data.laverie ?? res.data
             if (!data) throw new Error("Laverie introuvable.")
             setLaverie(data)
@@ -61,13 +42,6 @@ export default function LaverieValidation() {
         if (id) fetchLaverieData()
     }, [id])
 
-    useEffect(() => {
-        console.log("ID =", id)
-        console.log("API_BASE =", API_BASE)
-console.log("api =", api)
-
-    }, [])
-
     const handleAction = async (action: "VALIDE" | "REFUSE") => {
         if (action === "REFUSE" && !motif.trim()) {
             setMotifError("Le motif est obligatoire pour un refus.")
@@ -78,7 +52,7 @@ console.log("api =", api)
         setFeedback(null)
 
         try {
-            await api.post(`/laverie/admin/valider/${id}`, {
+            await apiClient.post(`/laverie/admin/valider/${id}`, {
                 action,
                 motif: motif.trim() || (action === "VALIDE" ? "Validation effectuée" : undefined),
             })
@@ -100,7 +74,7 @@ console.log("api =", api)
     if (loading) return <div className="p-10 text-center">Chargement...</div>
     if (error || !laverie) return <div className="p-10 text-red-500">{error}</div>
 
-    const imageUrl = laverie.logo ? `${API_BASE}/${laverie.logo.emplacement.replace(/^\//, '')}` : null
+    const imageUrl = laverie.logo ? `${API_BASE}${laverie.logo.emplacement}` : null
 
     return (
         <form className="flex flex-col items-center p-4 max-w-md mx-auto">

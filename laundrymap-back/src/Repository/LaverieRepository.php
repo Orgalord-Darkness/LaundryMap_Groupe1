@@ -196,6 +196,7 @@ class LaverieRepository extends ServiceEntityRepository
                     a.pays,
                     a.latitude,
                     a.longitude,
+                    m.emplacement        AS logoUrl,
                     ROUND(
                         6371000 * acos(LEAST(1.0,
                             cos(radians(:lat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:lng))
@@ -204,6 +205,7 @@ class LaverieRepository extends ServiceEntityRepository
                     , 1) AS distanceMetres
                 FROM laverie l
                 INNER JOIN adresse a ON l.adresse_id = a.id
+                LEFT  JOIN media   m ON l.logo_id    = m.id
                 WHERE l.statut = :statut
                   AND l.supprime_le IS NULL
                   AND a.latitude IS NOT NULL
@@ -304,6 +306,7 @@ class LaverieRepository extends ServiceEntityRepository
                 a.pays,
                 a.latitude,
                 a.longitude,
+                m.emplacement        AS logoUrl,
                 ROUND(
                     6371000 * acos(LEAST(1.0,
                         cos(radians(:lat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:lng))
@@ -312,6 +315,7 @@ class LaverieRepository extends ServiceEntityRepository
                 , 1) AS distanceMetres
             FROM laverie l
             INNER JOIN adresse a ON l.adresse_id = a.id
+            LEFT  JOIN media   m ON l.logo_id    = m.id
             {$joins}
             WHERE l.statut = :statut
               AND l.supprime_le IS NULL

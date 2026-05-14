@@ -71,7 +71,13 @@ function ProtectedRoute({
 }) {
   const { role, isLoading } = useAuth();
 
-  if (isLoading) return null;
+  if (isLoading) return (
+    <div className="flex flex-col gap-4 p-8 max-w-md mx-auto mt-20">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+      ))}
+    </div>
+  )
 
   if (!allowedRoles.includes(role)) {
     if (role === "guest")          return <Navigate to="/" replace />;

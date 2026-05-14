@@ -1,15 +1,5 @@
-import axios from "axios"
 import { useState } from "react"
-
-const api = axios.create({
-    baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
-    withCredentials: true,
-})
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token")
-    if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
-    return config
-})
+import apiClient from "@/lib/apiClient"
 
 interface FavoriteButtonProps {
     laverieId: number
@@ -24,7 +14,7 @@ export function DeleteFavoriteButton({ laverieId, onRemoved, className = "" }: F
         if (loading) return
         setLoading(true)
         try {
-            await api.delete(`/favori/remove/${laverieId}`)
+            await apiClient.delete(`/favori/remove/${laverieId}`)
             onRemoved()
         } catch (err) {
             console.error("Erreur suppression favori", err)

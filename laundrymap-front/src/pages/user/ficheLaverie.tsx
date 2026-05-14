@@ -345,7 +345,12 @@ function FicheLaverie() {
           throw new Error(`Erreur ${response.status} : ${response.statusText}`);
         }
         const data: Laverie = await response.json();
-        setLaverie(data);
+        const apiBase = import.meta.env.VITE_API_BASE_URL
+        setLaverie({
+          ...data,
+          logo:   data.logo   ? `${apiBase}${data.logo}`                : data.logo,
+          images: data.images ? data.images.map(img => `${apiBase}${img}`) : [],
+        });
         setIsFavorite(data.isFavorite);
       })
       .catch((err: Error) => {

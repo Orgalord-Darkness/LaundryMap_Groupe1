@@ -32,7 +32,7 @@ class FicheLaverieController extends AbstractController
     // GET /api/v1/fiche-laverie/{id}  (accès public)
     
     #[Route('/fiche-laverie/{id}', name: 'api_fiche_laverie', methods: ['GET'])]
-    public function ficheLaverie(int $id, Request $request): JsonResponse
+    public function ficheLaverie(int $id): JsonResponse
     {
         // Récupération de la laverie
         $laverie = $this->laverieRepository->find($id);
@@ -41,20 +41,13 @@ class FicheLaverieController extends AbstractController
             return $this->json(['message' => 'Laverie introuvable.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $baseUrl = $request->getSchemeAndHttpHost();
-
-
-        //  Logo
-        $logoUrl = null;
-        if ($laverie->getLogo() !== null) {
-            $logoUrl = $baseUrl . '/' . ltrim($laverie->getLogo()->getEmplacement(), '/');
-        }
-
+        //  Logo — chemin relatif /fichiers/logo/... directement utilisable par le frontend
+        $logoUrl = $laverie->getLogo()?->getEmplacement();
 
         //  Images du carousel (LaverieMedia → Media)
         $laverieMedias = $this->laverieMediaRepository->findBy(['laverie' => $laverie]);
         $images = array_values(array_map(
-            fn($lm) => $baseUrl . '/' . ltrim($lm->getMedia()->getEmplacement(), '/'),
+            fn($lm) => $lm->getMedia()->getEmplacement(),
             $laverieMedias
         ));
 
