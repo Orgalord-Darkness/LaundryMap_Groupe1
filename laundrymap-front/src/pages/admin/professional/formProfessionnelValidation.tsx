@@ -4,16 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Field, FieldLabel } from '@/components/ui/field'
-import axios from 'axios'
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL
-
-const api = axios.create({
-    baseURL: `${API_BASE}/api/v1/professionnel`,
-    withCredentials: true,
-    headers: { 'Content-Type': 'application/json' },
-})
-
+import apiClient from '@/lib/apiClient'
 
 interface ProDetail {
     id: number
@@ -44,7 +35,7 @@ export default function FormProfessionnelValidation() {
 
     useEffect(() => {
         if (!id) return
-        api.get(`/admin/${id}`)
+        apiClient.get(`/professionnel/admin/${id}`)
             .then(res => setPro(res.data))
             .catch(() => setError('Impossible de charger les données du professionnel.'))
             .finally(() => setLoading(false))
@@ -60,7 +51,7 @@ export default function FormProfessionnelValidation() {
         setFeedback(null)
 
         try {
-            await api.post(`/admin/valider/${id}`, {
+            await apiClient.post(`/professionnel/admin/valider/${id}`, {
                 action,
                 motif: motif.trim() || 'Décision prise par un administrateur.',
             })

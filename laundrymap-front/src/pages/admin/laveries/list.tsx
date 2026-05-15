@@ -3,7 +3,9 @@ import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilterTabs } from "@/components/layout/Filter"
-import axios from "axios"
+import apiClient from "@/lib/apiClient"
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,13 +59,6 @@ const BADGE_LABELS: Record<StatutOnglet, string> = {
     REFUSE:     "Refusé",
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL
-
-export const api = axios.create({
-    baseURL: `${API_BASE}/api/v1`,
-    withCredentials: true,
-    headers: { "Content-Type": "application/json" },
-})
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string): string {
@@ -89,7 +84,7 @@ function normaliser(raw: LaverieAPI): Laverie {
         id:                raw.id,
         nom_etablissement: raw.nom_etablissement,
         statut:            raw.statut,
-        image_url:         raw.logo ? `${API_BASE}/${raw.logo.emplacement}` : null,
+        image_url:         raw.logo ? `${API_BASE}${raw.logo.emplacement}` : null,
         proprietaire_nom:  u ? `${u.prenom} ${u.nom}` : "—",
         date_creation:     formatDate(raw.date_ajout),
         soumis_il_y_a:     tempsEcoule(raw.date_ajout),
@@ -254,15 +249,15 @@ function LaverieCard({
     return (
         <Card className="overflow-hidden rounded-2xl p-0 gap-0 shadow-sm hover:shadow-md transition-shadow duration-200">
             {/* Image */}
-            <div className="relative h-44 bg-gray-100 overflow-hidden">
+            <div className="relative bg-white overflow-hidden w-full">
                 {laverie.image_url ? (
                     <img
                         src={laverie.image_url}
                         alt={`Photo de ${laverie.nom_etablissement}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto max-h-44 object-contain"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+                    <div className="h-44 w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
                         <svg className="w-14 h-14 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                                 d="M4 4h16v2H4V4zm0 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm4 4v4m4-4v4" />
@@ -341,12 +336,9 @@ export default function LaveriesValidation() {
         setLoading(true)
         setError(null)
         try {
-            const res = await fetch(
-                `${API_BASE}/api/v1/laverie/list?statut=${statut}&page=${page}&limit=4`,
-                { credentials: "include" }
-            )
-            if (!res.ok) throw new Error()
-            const json = await res.json()
+            const { data: json } = await apiClient.get('/laverie/list', {
+                params: { statut, page, limit: 4 },
+            })
             setLaveries((json.data ?? []).map(normaliser))
             setPagination({
                 page:        json.page        ?? page,

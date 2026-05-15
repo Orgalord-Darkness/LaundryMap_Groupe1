@@ -1,16 +1,9 @@
-import axios from "axios"
 import type { LaverieSearch, SearchFilters } from "@/components/utils/type"
+import apiClient from "@/lib/apiClient"
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
-
-const api = axios.create({
-    baseURL: `${API_BASE}/api/v1`,
-    withCredentials: true,
-    headers: { "Content-Type": "application/json" },
-})
-
 // ─── Service laveries ─────────────────────────────────────────────────────────
 
 /**
@@ -22,7 +15,7 @@ export async function searchByLocation(
     lng: number,
     radius: number = 1000
 ): Promise<LaverieSearch[]> {
-    const response = await api.get("/laverie/search", {
+    const response = await apiClient.get("/laverie/search", {
         params: { lat, lng, radius },
         validateStatus: (status) => status === 200 || status === 404,
     })
@@ -39,7 +32,7 @@ export async function searchByQuery(
     query: string,
     radius: number = 1000
 ): Promise<LaverieSearch[]> {
-    const response = await api.get("/laverie/search", {
+    const response = await apiClient.get("/laverie/search", {
         params: { query, radius },
         validateStatus: (status) => status === 200 || status === 400 || status === 404,
     })
@@ -66,7 +59,7 @@ export async function searchWithFilters(
         params.hourly_end = filters.openAt
     }
 
-    const response = await api.get("/laverie/filter-search", {
+    const response = await apiClient.get("/laverie/filter-search", {
         params,
         validateStatus: (status) => status === 200 || status === 400 || status === 404,
     })

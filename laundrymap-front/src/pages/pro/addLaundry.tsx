@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,30 +7,19 @@ import { Textarea } from '@/components/ui/textarea'
 import CardMachine from '@/components/ui/cardMachine'
 import AddMachineModal from '@/components/ui/addMachineModal'
 import { CheckboxGroup } from '@/components/ui/checkboxGroupEdit'
-import CarouselWithThumbs from '@/components/ui/carouselImage'
+import UppyImageUploader from '@/components/ui/UppyImageUploader'
 import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE, type DayKey } from '@/components/ui/timePicker'
 import type { Machine } from '@/components/utils/laundry'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import apiClient from '@/lib/apiClient'
 
 function AddLaundry() {
 
   const { t } = useTranslation()
 
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/addLaundry`
-
-  const API_BASE = import.meta.env.VITE_API_BASE_URL
-
-  const api = axios.create({
-      baseURL: `${API_BASE}/api/v1/laverie`,
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-  })
-
-
   // Infos Laverie
-  const [logo, setLogo] = useState<File | null>(null);
-  const [images, setImages] = useState<FileList | null>(null);
+  const [logoFiles,    setLogoFiles   ] = useState<File[]>([])
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([])
   const [name, setName] = useState("");
   const [adress, setAdress] = useState("");
   const [codePostal, setCodePostal] = useState("");
@@ -57,11 +46,7 @@ function AddLaundry() {
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // Aperçu du logo
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
-  const logoInputRef = useRef<HTMLInputElement>(null)
-  const logoUrlRef   = useRef<string | null>(null)
-  const fieldRefs    = useRef<Record<string, HTMLDivElement | null>>({})
+  const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const navigate = useNavigate()
 
@@ -93,7 +78,7 @@ function AddLaundry() {
       setWilineLoading(true)
       setWilineError(null)
       try {
-          const res = await api.get(`/wiline-data?serial=${encodeURIComponent(wilineCode.trim())}`)
+          const res = await apiClient.get(`/laverie/wiline-data?serial=${encodeURIComponent(wilineCode.trim())}`)
           const d = res.data
 
           if (d.name)        setName(d.name)
@@ -220,45 +205,34 @@ function AddLaundry() {
     formData.append("weekSchedule", JSON.stringify(week))
     formData.append("machines", JSON.stringify(machines))
 
-    if (logo) {
-      formData.append("logo", logo);
+    if (logoFiles.length > 0) {
+      formData.append("logo", logoFiles[0])
     }
-
-    if (images) {
-      Array.from(images).forEach((img) => formData.append("images[]", img));
-    }
+    galleryFiles.forEach(file => formData.append("images[]", file))
 
     setLoading(true);
 
-    axios.post(url, formData, { withCredentials: true })
+    apiClient.post('/professionnel/addLaundry', formData)
       .then((response) => {
         const data = response.data
         setSuccess(t('add_laundry_success'))
+        void data
         navigate('/pro/dashboard')
-        if (data.errors?.geolocation) {
-          setGeoErreur(data.errors.geolocation)
-          fieldRefs.current['adress']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
       })
       .catch((err) => {
-        const data = err.response?.data
-        setApiError(data?.message ?? t('add_laundry_network_error'))
+        const data = err?.response?.data
+        setApiError(data?.message ?? t('search_error'))
         if (data?.errors?.geolocation) {
           setGeoErreur(data.errors.geolocation)
           fieldRefs.current['adress']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         } else {
-          setGeoErreur(t('add_laundry_geo_error'))
+          setApiError(t('add_laundry_network_error'))
         }
       })
       .finally(() => {
         setLoading(false)
       })
   };
-
-  // Cleanup uniquement au démontage — évite la révocation prématurée en React Strict Mode
-  useEffect(() => {
-    return () => { if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current) }
-  }, [])
 
   return (
     <>
@@ -296,54 +270,15 @@ function AddLaundry() {
             )}
         </Field>
 
-        {/* Aperçu du logo */}
-        {logoPreview && (
-          <div className="mt-3 flex flex-col items-center gap-2">
-            <img
-              src={logoPreview}
-              alt={t('laundry_form_logo_label')}
-              className="w-24 h-24 object-contain rounded-xl border border-gray-200 shadow-sm"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current)
-                logoUrlRef.current = null
-                setLogoPreview(null)
-                setLogo(null)
-                if (logoInputRef.current) logoInputRef.current.value = ""
-              }}
-              className="text-xs text-red-400 hover:text-red-600 transition-colors"
-            >
-              {t('laundry_form_logo_delete')}
-            </button>
-          </div>
-        )}
-
         <Field className='w-85 m-auto items-center justify-center mt-5' id='logo-field'>
-          <FieldLabel htmlFor="logo">{t('laundry_form_logo_label')} :<span className='text-orange-600'>*</span></FieldLabel>
-          <Input id="logo" ref={logoInputRef} type="file" accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0] ?? null
-              setLogo(file)
-              if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current)
-              const newUrl = file ? URL.createObjectURL(file) : null
-              logoUrlRef.current = newUrl
-              setLogoPreview(newUrl)
-            }}
-          />
-          <FieldDescription>{t('laundry_form_logo_select')}</FieldDescription>
+          <FieldLabel>{t('laundry_form_logo_label')}<span className='text-orange-600'>*</span></FieldLabel>
+          <UppyImageUploader mode="logo" onFilesChange={setLogoFiles} />
         </Field>
 
-        <div className='my-5'>
-          <h1 className='flex flex-col font-bold mt-10 items-center justify-center text-2xl'>{t('laundry_form_gallery_title')}</h1>
-          <p className="flex flex-col items-center justify-center text-gray-500 mb-3">{t('laundry_form_gallery_description')}</p>
-          {images && <CarouselWithThumbs files={images} />}
-        </div>
-
         <Field className='w-85 m-auto items-center justify-center mt-5' id='images-field'>
-          <Input id="imagesLaundry" type="file" multiple accept="image/*" onChange={(e) => setImages(e.target.files)} />
-          <FieldDescription>{t('laundry_form_images_select')}</FieldDescription>
+          <FieldLabel>{t('laundry_form_gallery_title')}</FieldLabel>
+          <p className="text-sm text-gray-500 mb-2">{t('laundry_form_gallery_description')}</p>
+          <UppyImageUploader mode="gallery" onFilesChange={setGalleryFiles} />
         </Field>
 
         <div ref={el => { fieldRefs.current.name = el }}>

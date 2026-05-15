@@ -1,16 +1,12 @@
-import axios from "axios"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DeleteFavoriteButton } from "@/components/ui/deleteFavoriButton"
 import { PersonalSpaceNavbar, TAB_ROUTES, type PersonalSpaceTab } from "@/components/ui/PersonalSpaceNavbar"
+import apiClient from "@/lib/apiClient"
 
-const api = axios.create({
-    baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
-    withCredentials: true,
-    headers: { "Content-Type": "application/json" },
-})
+const API_BASE = import.meta.env.VITE_API_BASE_URL
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -34,7 +30,7 @@ function mapLaverie(b: BackendLaverie): FavoriLaverie {
         adresse: b.adresse?.adresse ?? b.adresse?.rue ?? "",
         ville: b.adresse?.ville ?? "",
         code_postal: b.adresse?.code_postal ?? "",
-        image_url: b.logo ?? undefined,
+        image_url: b.logo ? `${API_BASE}${b.logo}` : undefined,
         statut: (b.statut as FavoriLaverie["statut"]) ?? "INCONNU",
     }
 }
@@ -77,15 +73,15 @@ function FavoriCard({
     return (
         <Card className="overflow-hidden rounded-2xl p-0 gap-0 shadow-sm hover:shadow-md transition-shadow duration-200">
             {/* Image */}
-            <div className="relative h-44 bg-gray-100 overflow-hidden">
+            <div className="relative bg-white overflow-hidden w-full">
                 {laverie.image_url ? (
                     <img
                         src={laverie.image_url}
                         alt={`Photo de ${laverie.nom_etablissement}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto max-h-44 object-contain"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+                    <div className="h-44 w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
                         <svg className="w-14 h-14 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                                 d="M4 4h16v2H4V4zm0 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm4 4v4m4-4v4" />
@@ -184,7 +180,7 @@ export function FavorisList() {
         setLoading(true)
         setError(null)
         try {
-            const { data } = await api.get<{ data: BackendLaverie[] }>("/favori/list")
+            const { data } = await apiClient.get<{ data: BackendLaverie[] }>("/favori/list")
             setFavoris(data.data.map(mapLaverie))
         } catch {
             setError("Impossible de charger vos favoris. Veuillez réessayer.")

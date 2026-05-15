@@ -94,13 +94,13 @@ export interface AdresseSearch {
 }
 
 export interface LaverieSearch {
-
     id: number
     nomEtablissement: string
     contactEmail: string | null
     description: string | null
     adresse: AdresseSearch
     distanceMetres: number
+    logoUrl?: string | null
 }
 
 export interface Coordinates {

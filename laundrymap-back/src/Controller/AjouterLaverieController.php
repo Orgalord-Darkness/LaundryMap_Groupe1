@@ -172,7 +172,7 @@ class AjouterLaverieController extends AbstractController
         // ── Logo ----
         $logoFile = $request->files->get('logo');
         if ($logoFile !== null) {
-            $logoMedia = $this->fileUploader->upload($logoFile);
+            $logoMedia = $this->fileUploader->upload($logoFile, 'logo');
             if ($logoMedia !== null) {
                 $laverie->setLogo($logoMedia);
             }
@@ -184,7 +184,7 @@ class AjouterLaverieController extends AbstractController
         /** @var array<\Symfony\Component\HttpFoundation\File\UploadedFile> $imageFiles */
         $imageFiles = $request->files->get('images', []);
         foreach ($imageFiles as $imageFile) {
-            $media = $this->fileUploader->upload($imageFile);
+            $media = $this->fileUploader->upload($imageFile, 'images');
             if ($media === null) {
                 continue;
             }

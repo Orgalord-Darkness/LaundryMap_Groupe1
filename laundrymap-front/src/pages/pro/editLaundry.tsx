@@ -8,20 +8,12 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Textarea } from '@/components/ui/textarea'
 import { CheckboxGroup } from '@/components/ui/checkboxGroupEdit'
 import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE, type DayKey } from '@/components/ui/timePicker'
-import axios from 'axios'
-import CarouselFromUrls from '@/components/ui/carouselImageEdit'
-import CarouselFromFiles from '@/components/ui/carouselImage'
+import apiClient from '@/lib/apiClient'
+import UppyImageUploader from '@/components/ui/UppyImageUploader'
 import CardMachine from '@/components/ui/cardMachine'
 import MachineModal, { type EquipementFormData } from '@/components/ui/MachineModal'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
-
-const api = axios.create({
-    baseURL: `${API_BASE}/api/v1/laverie`,
-    withCredentials: true,
-    headers: { "Content-Type": "application/json" },
-})
-
 
 // WeekSchedulePicker et JourEnum Symfony utilisent tous les deux les clés françaises
 // (lundi, mardi…) — aucun mapping de jours nécessaire
@@ -52,12 +44,9 @@ export default function FormEditLaverie() {
     const [selectedServices, setSelectedServices]   = useState<string[]>([])
     const [selectedPayments, setSelectedPayments]   = useState<string[]>([])
     const [week, setWeek]                     = useState<WeekSchedule>(DEFAULT_WEEK_SCHEDULE)
-    const [logo, setLogo]                     = useState<File | null>(null)
-    const [logoPreview, setLogoPreview]       = useState<string | null>(null)
-    const logoInputRef                        = useRef<HTMLInputElement>(null)
-    const logoUrlRef                          = useRef<string | null>(null)
+    const [logoFiles,    setLogoFiles   ]     = useState<File[]>([])
+    const [galleryFiles, setGalleryFiles]     = useState<File[]>([])
     const fieldsRef = useRef<Record<string,HTMLDivElement | null>>({})
-    const [images, setImages]                 = useState<FileList | null>(null)
     const [existingImages, setExistingImages] = useState<string[]>([])
     const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null)
 
@@ -79,15 +68,6 @@ export default function FormEditLaverie() {
         return match ? parseInt(match[1]) : null
     }
 
-    function fileToBase64(file: File): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload  = () => resolve(reader.result as string)
-            reader.onerror = reject
-            reader.readAsDataURL(file)
-        })
-    }
-
     // ─── Handlers machines ────────────────────────────────────────────────────
 
     const handleAddMachine = (data: EquipementFormData) => {
@@ -105,7 +85,7 @@ export default function FormEditLaverie() {
         setWilineLoading(true)
         setWilineError(null)
         try {
-            const res = await api.get(`/wiline-data?serial=${encodeURIComponent(wilineCode.trim())}`)
+            const res = await apiClient.get(`/laverie/wiline-data?serial=${encodeURIComponent(wilineCode.trim())}`)
             const d = res.data
 
             if (d.name)        setName(d.name)
@@ -189,11 +169,11 @@ export default function FormEditLaverie() {
     useEffect(() => {
         async function fetchOptions() {
             const [servicesRes, paiementsRes] = await Promise.all([
-                fetch(`${API_BASE}/api/v1/services/list`),
-                fetch(`${API_BASE}/api/v1/paiements/list`)
+                apiClient.get('/services/list'),
+                apiClient.get('/paiements/list'),
             ])
-            setAllServices(await servicesRes.json())
-            setAllPaiements(await paiementsRes.json())
+            setAllServices(servicesRes.data)
+            setAllPaiements(paiementsRes.data)
         }
         fetchOptions()
     }, [])
@@ -203,7 +183,7 @@ export default function FormEditLaverie() {
     useEffect(() => {
         const fetchLaverie = async () => {
             try {
-                const response = await api.get(`/${id}`)
+                const response = await apiClient.get(`/laverie/${id}`)
                 const data = response.data
 
                 setName(data.nom_etablissement ?? "")
@@ -221,7 +201,7 @@ export default function FormEditLaverie() {
                 setSelectedServices(data.services?.map((s: any) => String(s.id)) ?? [])
                 setSelectedPayments(data.methodePaiements?.map((p: any) => String(p.id)) ?? [])
 
-                // Logo actuel
+                // Logo actuel — chemin relatif servi par le frontend
                 if (data.logo?.emplacement) {
                     setExistingLogoUrl(`${API_BASE}${data.logo.emplacement}`)
                 }
@@ -321,28 +301,23 @@ export default function FormEditLaverie() {
         setError(null)
 
         try {
-            const logoBase64   = logo   instanceof File ? await fileToBase64(logo)                               : undefined
-            const imagesBase64 = images                 ? await Promise.all(Array.from(images).map(fileToBase64)) : undefined
+            const formData = new FormData()
+            formData.append('nom_etablissement', name)
+            formData.append('description', description)
+            formData.append('contact_email', contactEmail)
+            formData.append('wi_line_reference', wilineCode.trim() || '')
+            formData.append('adresse', adresse)
+            formData.append('code_postal', codePostal)
+            formData.append('ville', city)
+            formData.append('pays', country)
+            formData.append('services', JSON.stringify(selectedServices.map(Number)))
+            formData.append('methodes_paiement', JSON.stringify(selectedPayments.map(Number)))
+            formData.append('equipements', JSON.stringify(selectedMachines))
+            formData.append('weekSchedule', JSON.stringify(week))
+            if (logoFiles.length > 0) formData.append('logo', logoFiles[0])
+            galleryFiles.forEach(file => formData.append('images[]', file))
 
-            const payload: Record<string, any> = {
-                nom_etablissement: name,
-                description,
-                contact_email:     contactEmail,
-                wi_line_reference: wilineCode.trim() || null,
-                adresse,
-                code_postal:       codePostal,
-                ville:             city,
-                pays:              country,
-                services:          selectedServices.map(Number),
-                methodes_paiement: selectedPayments.map(Number),
-                equipements:       selectedMachines,
-                weekSchedule:      week,
-            }
-
-            if (logoBase64)   payload.logo   = logoBase64
-            if (imagesBase64) payload.images = imagesBase64
-
-            await api.put(`/edit/${id}`, payload)
+            await apiClient.put(`/laverie/edit/${id}`, formData)
 
             setSuccessMessage(t('edit_laundry_success'))
             navigate('/pro/dashboard')
@@ -356,11 +331,6 @@ export default function FormEditLaverie() {
             setSaving(false)
         }
     }
-
-    // Cleanup uniquement au démontage — évite la révocation prématurée en React Strict Mode
-    useEffect(() => {
-        return () => { if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current) }
-    }, [])
 
     // ─── Rendu ────────────────────────────────────────────────────────────────
 
@@ -424,82 +394,27 @@ export default function FormEditLaverie() {
                 )}
             </Field>
 
-            {/* Logo — prévisualisation comme dans le formulaire d'ajout */}
-            {logoPreview && (
-                <div className="mt-3 flex flex-col items-center gap-2">
-                    <img
-                        src={logoPreview}
-                        alt={t('laundry_form_logo_label')}
-                        className="w-24 h-24 object-contain rounded-xl border border-gray-200 shadow-sm"
-                    />
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current)
-                            logoUrlRef.current = null
-                            setLogoPreview(null)
-                            setLogo(null)
-                            if (logoInputRef.current) logoInputRef.current.value = ""
-                        }}
-                        className="text-xs text-red-400 hover:text-red-600 transition-colors"
-                    >
-                        {t('edit_laundry_logo_cancel')}
-                    </button>
-                </div>
-            )}
-            {!logoPreview && existingLogoUrl && (
-                <div className="mt-3 flex flex-col items-center gap-2">
-                    <img src={existingLogoUrl} alt={t('laundry_form_logo_label')} className="w-24 h-24 object-contain rounded-xl border border-gray-200 shadow-sm" />
-                    <button
-                        type="button"
-                        onClick={() => setExistingLogoUrl(null)}
-                        className="text-xs text-red-400 hover:text-red-600 transition-colors"
-                    >
-                        {t('edit_laundry_logo_delete_current')}
-                    </button>
-                </div>
-            )}
-
+            {/* Logo */}
             <Field className="w-full mt-4">
-                <FieldLabel htmlFor="logo">
+                <FieldLabel>
                     {t('laundry_form_logo_label')} <span className="text-orange-500">*</span>
                 </FieldLabel>
-                <Input
-                    id="logo"
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={e => {
-                        const file = e.target.files?.[0] ?? null
-                        setLogo(file)
-                        if (logoUrlRef.current) URL.revokeObjectURL(logoUrlRef.current)
-                        const newUrl = file ? URL.createObjectURL(file) : null
-                        logoUrlRef.current = newUrl
-                        setLogoPreview(newUrl)
-                    }}
+                <UppyImageUploader
+                    mode="logo"
+                    onFilesChange={setLogoFiles}
+                    existingUrls={existingLogoUrl ? [existingLogoUrl] : []}
                 />
-                <FieldDescription>
-                    {existingLogoUrl ? t('edit_laundry_logo_replace') : t('edit_laundry_logo_select')}
-                </FieldDescription>
             </Field>
 
             {/* Galerie d'images */}
-            <div className="my-5 w-full">
-                <h2 className="font-semibold text-lg text-center">{t('laundry_form_gallery_title')}</h2>
-                <p className="text-gray-500 text-center mb-3">
-                    {t('laundry_form_gallery_description')}
-                </p>
-                {images
-                    ? <CarouselFromFiles files={images} />
-                    : <CarouselFromUrls images={existingImages} />
-                }
-            </div>
-
-            {/* Upload images */}
-            <Field className="w-full">
-                <FieldLabel htmlFor="imagesLaundry">{t('edit_laundry_images_label')}</FieldLabel>
-                <Input id="imagesLaundry" type="file" accept="image/*" multiple onChange={e => setImages(e.target.files)} />
-                <FieldDescription>{t('edit_laundry_images_replace')}</FieldDescription>
+            <Field className="w-full mt-4">
+                <FieldLabel>{t('laundry_form_gallery_title')}</FieldLabel>
+                <p className="text-gray-500 text-sm mb-2">{t('laundry_form_gallery_description')}</p>
+                <UppyImageUploader
+                    mode="gallery"
+                    onFilesChange={setGalleryFiles}
+                    existingUrls={existingImages}
+                />
             </Field>
 
             {successMessage && (

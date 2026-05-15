@@ -20,6 +20,7 @@ use App\Repository\AdresseRepository;
 use App\Repository\ServiceRepository;
 use App\Repository\AdministrateurRepository;
 use App\Repository\MethodePaiementRepository;
+use App\Service\FileUploader;
 use App\Service\LaverieService;
 use App\Service\AdresseService;
 use App\Service\UtilisateurService;
@@ -32,6 +33,7 @@ use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -217,7 +219,8 @@ class LaverieController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         TagAwareCacheInterface $cachePool,
-        GeolocationService $geolocationService, 
+        GeolocationService $geolocationService,
+        FileUploader $fileUploader,
     ): JsonResponse {
         $utilisateur = $this->getUser();
 
@@ -231,11 +234,11 @@ class LaverieController extends AbstractController
             return $this->json(['message' => 'Laverie non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
-        $donnees = json_decode($request->getContent(), true);
-
-        if (!is_array($donnees)) {
-            return $this->json(['message' => 'Corps de la requête invalide ou vide'], Response::HTTP_BAD_REQUEST);
-        }
+        $donnees      = $request->request->all();
+        $services     = json_decode($donnees['services']          ?? '[]', true) ?? [];
+        $methodes     = json_decode($donnees['methodes_paiement'] ?? '[]', true) ?? [];
+        $equipements  = json_decode($donnees['equipements']       ?? '[]', true) ?? [];
+        $weekSchedule = json_decode($donnees['weekSchedule']      ?? '{}', true) ?? [];
 
         // ─────────────────────────────────────────────
         // 1. Champs simples
@@ -310,12 +313,12 @@ class LaverieController extends AbstractController
         // ─────────────────────────────────────────────
         // 3. Services (ManyToMany)
         // ─────────────────────────────────────────────
-        if (isset($donnees['services']) && is_array($donnees['services'])) {
+        if (!empty($services)) {
             foreach ($laverie->getServices() as $service) {
                 $laverie->removeService($service);
             }
 
-            foreach ($donnees['services'] as $serviceId) {
+            foreach ($services as $serviceId) {
                 $service = $em->getRepository(Service::class)->find((int)$serviceId);
                 if (!$service) {
                     return $this->json(['message' => "Service ID $serviceId introuvable"], Response::HTTP_BAD_REQUEST);
@@ -327,12 +330,12 @@ class LaverieController extends AbstractController
         // ─────────────────────────────────────────────
         // 4. Méthodes de paiement (ManyToMany)
         // ─────────────────────────────────────────────
-        if (isset($donnees['methodes_paiement']) && is_array($donnees['methodes_paiement'])) {
+        if (!empty($methodes)) {
             foreach ($laverie->getMethodePaiements() as $m) {
                 $laverie->removeMethodePaiement($m);
             }
 
-            foreach ($donnees['methodes_paiement'] as $methodeId) {
+            foreach ($methodes as $methodeId) {
                 $methode = $em->getRepository(MethodePaiement::class)->find((int)$methodeId);
                 if (!$methode) {
                     return $this->json(['message' => "Méthode ID $methodeId introuvable"], Response::HTTP_BAD_REQUEST);
@@ -344,22 +347,24 @@ class LaverieController extends AbstractController
         // ─────────────────────────────────────────────
         // 5. Gestion du LOGO (Unique)
         // ─────────────────────────────────────────────
-        if (isset($donnees['logo']) && str_starts_with($donnees['logo'], 'data:image')) {
+        $logoFile = $request->files->get('logo');
+        if ($logoFile instanceof UploadedFile) {
             $oldLogo = $laverie->getLogo();
             if ($oldLogo) {
                 $laverie->setLogo(null);
                 $em->remove($oldLogo);
             }
-            $mediaLogo = $this->saveBase64Image($donnees['logo'], 'logo_', $em);
-            $em->persist($mediaLogo);
-            $laverie->setLogo($mediaLogo);
+            $mediaLogo = $fileUploader->upload($logoFile, 'logo');
+            if ($mediaLogo) {
+                $laverie->setLogo($mediaLogo);
+            }
         }
 
         // ─────────────────────────────────────────────
         // 6. Gestion des IMAGES MULTIPLES (Galerie)
         // ─────────────────────────────────────────────
-        if (isset($donnees['images']) && is_array($donnees['images'])) {
-            // ✅ CORRECTION : On récupère via le repository car la relation inverse n'est pas dans Laverie.php
+        $imageFiles = $request->files->all('images') ?: [];
+        if (!empty($imageFiles)) {
             $laverieMediaRepo = $em->getRepository(LaverieMedia::class);
             $oldRelations = $laverieMediaRepo->findBy(['laverie' => $laverie]);
 
@@ -368,17 +373,17 @@ class LaverieController extends AbstractController
                 $em->remove($relation);
                 if ($media) $em->remove($media);
             }
-            $em->flush(); 
+            $em->flush();
 
-            foreach ($donnees['images'] as $imgBase64) {
-                if (str_contains($imgBase64, 'data:image')) {
-                    $media = $this->saveBase64Image($imgBase64, 'galerie_', $em);
-                    $em->persist($media);
-                    
-                    $laverieMedia = new LaverieMedia();
-                    $laverieMedia->setLaverie($laverie);
-                    $laverieMedia->setMedia($media);
-                    $em->persist($laverieMedia);
+            foreach ($imageFiles as $file) {
+                if ($file instanceof UploadedFile) {
+                    $media = $fileUploader->upload($file, 'images');
+                    if ($media) {
+                        $laverieMedia = new LaverieMedia();
+                        $laverieMedia->setLaverie($laverie);
+                        $laverieMedia->setMedia($media);
+                        $em->persist($laverieMedia);
+                    }
                 }
             }
         }
@@ -386,15 +391,14 @@ class LaverieController extends AbstractController
         // ─────────────────────────────────────────────
         // 7. Gestion des MACHINES (LaverieEquipement)
         // ─────────────────────────────────────────────
-        if (isset($donnees['equipements']) && is_array($donnees['equipements'])) {
-            // ✅ CORRECTION : Utilisation du repository pour nettoyer
+        if (!empty($equipements)) {
             $eqRepo = $em->getRepository(LaverieEquipement::class);
             $oldEqs = $eqRepo->findBy(['laverie' => $laverie]);
             foreach ($oldEqs as $eq) {
                 $em->remove($eq);
             }
 
-            foreach ($donnees['equipements'] as $eqData) {
+            foreach ($equipements as $eqData) {
                 $equipement = new LaverieEquipement();
                 $equipement->setLaverie($laverie);
                 $equipement->setNom($eqData['nom']);
@@ -413,15 +417,14 @@ class LaverieController extends AbstractController
         // ─────────────────────────────────────────────
         // 8. Gestion des HORAIRES (LaverieFermeture)
         // ─────────────────────────────────────────────
-        if (isset($donnees['weekSchedule']) && is_array($donnees['weekSchedule'])) {
-            // ✅ CORRECTION : Utilisation du repository pour nettoyer
+        if (!empty($weekSchedule)) {
             $fermetureRepo = $em->getRepository(LaverieFermeture::class);
             $oldFermetures = $fermetureRepo->findBy(['laverie' => $laverie]);
             foreach ($oldFermetures as $f) {
                 $em->remove($f);
             }
-            
-            foreach ($donnees['weekSchedule'] as $dayEn => $slots) {
+
+            foreach ($weekSchedule as $dayEn => $slots) {
                 $dayFr = $this->mapDayEnToFr($dayEn);
                 $jourEnum = JourEnum::tryFrom($dayFr);
                 if (!$jourEnum) continue;
@@ -462,26 +465,24 @@ class LaverieController extends AbstractController
 
     // --- MÉTHODES UTILITAIRES À METTRE À LA FIN DE LA CLASSE ---
 
-    private function saveBase64Image(string $base64, string $prefix, EntityManagerInterface $em): Media
+    private function saveBase64Image(string $base64, string $subfolder, EntityManagerInterface $em): Media
     {
         if (preg_match('/^data:(.*?);base64,(.*)$/', $base64, $matches)) {
-            $mimeType = $matches[1];
-            $base64Data = $matches[2];
-            $binaryData = base64_decode($base64Data);
-            $extension = explode('/', $mimeType)[1] ?? 'png';
-            $filename = uniqid($prefix) . '.' . $extension;
+            $mimeType   = $matches[1];
+            $binaryData = base64_decode($matches[2]);
+            $extension  = explode('/', $mimeType)[1] ?? 'png';
+            $filename   = uniqid('media_', true) . '.' . $extension;
 
-            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/laveries/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/fichiers/' . $subfolder . '/';
 
             file_put_contents($uploadDir . $filename, $binaryData);
 
             $media = new Media();
-            $media->setEmplacement('/uploads/laveries/' . $filename);
+            $media->setEmplacement('/fichiers/' . $subfolder . '/' . $filename);
             $media->setNomOriginal($filename);
             $media->setMimeType($mimeType);
             $media->setPoids(strlen($binaryData));
-            
+
             return $media;
         }
         throw new \Exception("Format d'image invalide");
@@ -936,6 +937,7 @@ class LaverieController extends AbstractController
                     'longitude'  => (float) $laverie['longitude'],
                 ],
                 'distanceMetres'   => (float) $laverie['distanceMetres'],
+                'logoUrl'          => $laverie['logoUrl'] ?? null,
             ];
         }, $laveries);
 
@@ -1142,6 +1144,7 @@ class LaverieController extends AbstractController
                     'longitude'  => (float) $laverie['longitude'],
                 ],
                 'distanceMetres'   => (float) $laverie['distanceMetres'],
+                'logoUrl'          => $laverie['logoUrl'] ?? null,
             ];
         }, $laveries);
 

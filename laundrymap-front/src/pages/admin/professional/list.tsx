@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL
-
-const api = axios.create({
-    baseURL: `${API_BASE}/api/v1/professionnel`,
-    withCredentials: true,
-    headers: { 'Content-Type': 'application/json' },
-})
-
+import apiClient from '@/lib/apiClient'
 
 interface ProItem {
     id: number
@@ -26,7 +17,7 @@ function ProfessionnalAccountValidationList() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        api.get('/admin/list?statut=en+attente')
+        apiClient.get('/professionnel/admin/list', { params: { statut: 'en attente' } })
             .then(res => setPros(res.data.data ?? []))
             .catch(() => setError('Impossible de charger la liste des professionnels.'))
             .finally(() => setLoading(false))

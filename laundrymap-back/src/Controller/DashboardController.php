@@ -30,7 +30,7 @@ class DashboardController extends AbstractController
     #[Route('/dashboard', name: 'dashboard', methods: ['GET'])]
     #[OA\Tag(name: 'Professionnel')]
     #[OA\Security(name: 'bearer')]
-    public function dashboard(Request $request): JsonResponse
+    public function dashboard(): JsonResponse
     {
         
         $utilisateur = $this->getUser();
@@ -48,20 +48,16 @@ class DashboardController extends AbstractController
             return $this->json(['error' => 'Aucun compte professionnel trouvé'], 403);
         }
 
-        $baseUrl  = $request->getSchemeAndHttpHost();
         $laveries = $this->laverieRepository->findActivesByProfessionnel($professionnel);
 
-        $data = array_map(function (Laverie $laverie) use ($baseUrl) {
-            $logo    = $laverie->getLogo();
-            $logoUrl = $logo
-                ? $baseUrl . str_replace('/app/public', '', $logo->getEmplacement())
-                : null;
+        $data = array_map(function (Laverie $laverie) {
+            $logo = $laverie->getLogo();
 
             return [
                 'id'      => $laverie->getId(),
                 'nom'     => $laverie->getNomEtablissement(),
                 'statut'  => $laverie->getStatut()->value,
-                'logoUrl' => $logoUrl,
+                'logoUrl' => $logo?->getEmplacement(),
                 'rating'  => $this->laverieNoteRepository->findAverageRatingByLaverie($laverie),
                 'avis'    => $this->laverieNoteRepository->countAvisByLaverie($laverie),
             ];

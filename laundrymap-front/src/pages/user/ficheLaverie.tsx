@@ -337,10 +337,23 @@ function FicheLaverie() {
     setIsLoading(true);
     setError(null);
  
-    axios.get<Laverie>(url, { withCredentials: true })
-      .then((response) => {
-        setLaverie(response.data);
-        setIsFavorite(response.data.isFavorite);
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+ 
+    fetch(url, { method: "GET", headers })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status} : ${response.statusText}`);
+        }
+        const data: Laverie = await response.json();
+        const apiBase = import.meta.env.VITE_API_BASE_URL
+        setLaverie({
+          ...data,
+          logo:   data.logo   ? `${apiBase}${data.logo}`                : data.logo,
+          images: data.images ? data.images.map(img => `${apiBase}${img}`) : [],
+        });
+        setIsFavorite(data.isFavorite);
       })
       .catch((err: Error) => {
         setError(err.message);
