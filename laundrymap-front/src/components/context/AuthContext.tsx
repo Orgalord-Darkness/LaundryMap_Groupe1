@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { getRoleFromToken, type Role } from "../utils/auth";
-import { jwtDecode } from "jwt-decode";
+import { getRoleFromSymfonyRoles, type Role } from "../utils/auth";
+import axios from "axios";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 interface AuthUser {
   email: string;
@@ -11,8 +13,8 @@ interface AuthContextType {
   user: AuthUser | null;
   role: Role;
   isLoading: boolean;
-  login: (token: string) => void;
-  logout: () => void;
+  login: (userInfo: { email: string; role: string }) => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -21,58 +23,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token")
-    setUser(null)
-  }, [])
-
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    const role = getRoleFromToken(token)
-
-    if (role !== "guest" && token) {
-      try {
-        const decoded = jwtDecode<{ email: string; exp: number }>(token);
-        if (decoded.exp * 1000 < Date.now()) {
-          localStorage.removeItem("token");
-        } else {
-          setUser({ email: decoded.email, role });
-        }
-      } catch {
-        localStorage.removeItem("token");
-      }
-    }
-
+    // TODO(human): Restauration de session — appelle GET /api/v1/auth/me avec
+    // withCredentials: true pour vérifier si un cookie BEARER valide existe.
+    // Si 200 → utilise getRoleFromSymfonyRoles(data.roles) et setUser({ email, role })
+    // Si 401 → setUser(null)
+    // Dans le finally → setIsLoading(false)
     setIsLoading(false);
-  }, [])
+  }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      try {
-        const decoded = jwtDecode<{ exp: number }>(token);
-        if (decoded.exp * 1000 < Date.now()) logout();
-      } catch {
-        logout();
-      }
-    }, 30_000);
-    return () => clearInterval(interval);
-  }, [logout]);
-
-  const login = (token: string) => {
-    const role = getRoleFromToken(token)
-    if (role === "guest") return
-
+  const logout = useCallback(async () => {
     try {
-      const decoded = jwtDecode<{ email: string; exp: number }>(token);
-      if (decoded.exp * 1000 < Date.now()) return;
-      localStorage.setItem("token", token);
-      setUser({ email: decoded.email, role });
-    } catch {
-      return;
+      await axios.post(`${API_BASE}/api/v1/auth/logout`, {}, { withCredentials: true });
+    } finally {
+      setUser(null);
     }
-  }
+  }, []);
+
+  const login = ({ email, role }: { email: string; role: string }) => {
+    const mappedRole = getRoleFromSymfonyRoles([role]);
+    if (mappedRole === "guest") return;
+    setUser({ email, role: mappedRole });
+  };
 
   return (
     <AuthContext.Provider value={{

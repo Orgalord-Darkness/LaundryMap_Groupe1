@@ -47,7 +47,8 @@ export default function Connexion() {
                     mot_de_passe: donnees.mot_de_passe
                 },
                 {
-                    headers: { "Content-Type": "application/json" }
+                    headers: { "Content-Type": "application/json" },
+                    withCredentials: true,
                 }
             )
 
@@ -63,8 +64,7 @@ export default function Connexion() {
                 return
             }
 
-            localStorage.setItem("token", data.token_data)
-            login(data.token_data)
+            login({ email: data.email, role: data.role })
 
             setSuccessMessage("Connexion réussie !")
             navigate('/')

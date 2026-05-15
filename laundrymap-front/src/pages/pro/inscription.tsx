@@ -94,18 +94,18 @@ function ProInscription() {
 
     try {
 
-      const response = await axios.post(url, { 
+      const response = await axios.post(url, {
         lastname,
         firstname,
         email,
         password,
         siren,
         adress,
-        rue,        
+        rue,
         codePostal,
         city,
         country,
-      })
+      }, { withCredentials: true })
 
       setSuccess(response.data.message) 
       setSuccess("Inscription réussie ! Votre compte professionnel est maintenant en attente de validation par un administrateur.")

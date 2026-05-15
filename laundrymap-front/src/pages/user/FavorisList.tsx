@@ -11,11 +11,6 @@ const api = axios.create({
     withCredentials: true,
     headers: { "Content-Type": "application/json" },
 })
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token")
-    if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
-    return config
-})
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -129,7 +124,7 @@ function FavoriCard({
                     <Button
                         variant="default"
                         size="sm"
-                        onClick={() => navigate(`/laveries/${laverie.id}`)}
+                        onClick={() => navigate(`/user/fiche-laverie/${laverie.id}`)}
                         aria-label={`Voir la fiche de ${laverie.nom_etablissement}`}
                     >
                         Fiche de laverie

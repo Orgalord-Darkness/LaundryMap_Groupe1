@@ -22,13 +22,6 @@ const api = axios.create({
     headers: { "Content-Type": "application/json" },
 })
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token")
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-})
 
 // WeekSchedulePicker et JourEnum Symfony utilisent tous les deux les clés françaises
 // (lundi, mardi…) — aucun mapping de jours nécessaire

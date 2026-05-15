@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
@@ -41,20 +42,12 @@ function ProDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/dashboard`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json',
-      },
+    axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/dashboard`, {
+      withCredentials: true,
     })
       .then((response) => {
-        if (!response.ok) throw new Error('Erreur serveur');
-        return response.json();
-      })
-      .then((data) => {
-        setLaundries(data.laveries);
-        setTotal(data.total);
+        setLaundries(response.data.laveries);
+        setTotal(response.data.total);
       })
       .catch(() => setError('Impossible de charger vos laveries.'))
       .finally(() => setLoading(false));

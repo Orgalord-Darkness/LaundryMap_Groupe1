@@ -5,11 +5,6 @@ const api = axios.create({
     baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
     withCredentials: true,
 })
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token")
-    if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
-    return config
-})
 
 interface FavoriteButtonProps {
     laverieId: number

@@ -14,13 +14,6 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' },
 })
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token')
-    if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-})
 
 interface ProDetail {
     id: number

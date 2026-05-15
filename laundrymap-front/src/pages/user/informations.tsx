@@ -4,8 +4,10 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from "@/components/ui/drawer"
 import { PersonalSpaceNavbar, TAB_ROUTES, type PersonalSpaceTab } from "@/components/ui/PersonalSpaceNavbar"
 import axios from "axios"
+import { useAuth } from "@/components/context/AuthContext"
 
 type Inputs = {
     prenom: string
@@ -22,6 +24,7 @@ const urlInfo = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/mes_inf
 export default function MonProfi() {
     const { t } = useTranslation()
     const navigate = useNavigate()
+    const { logout } = useAuth()
 
     const handleTabChange = (tab: PersonalSpaceTab) => {
         const route = TAB_ROUTES[tab]
@@ -36,18 +39,14 @@ export default function MonProfi() {
         setError,
     } = useForm<Inputs>()
 
-    const [successMessage, setSuccessMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("")
+    const [confirmOpen, setConfirmOpen] = useState(false)
+    const [deleteLoading, setDeleteLoading] = useState(false)
+    const [deleteError, setDeleteError] = useState("")
     
     const infos = async () => {
         try {
-            const token = localStorage.getItem("token")
-            const reponse = await axios.get(
-                urlInfo, {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                }
-            )
+            const reponse = await axios.get(urlInfo, { withCredentials: true })
             const data = await reponse.data
 
             setValue("nom", data.nom)
@@ -74,10 +73,25 @@ export default function MonProfi() {
         }
     }, [successMessage])
 
+    const handleSupprimerCompte = async () => {
+        setDeleteLoading(true)
+        setDeleteError("")
+        try {
+            await axios.delete(
+                `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/suppression`,
+                { withCredentials: true }
+            )
+            setConfirmOpen(false)
+            await logout()
+            navigate("/user/login")
+        } catch {
+            setDeleteError(t("supprimer_compte_erreur", "La suppression a échoué. Veuillez réessayer."))
+            setDeleteLoading(false)
+        }
+    }
+
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
-            const token = localStorage.getItem("token")
-
             if ((donnees.mot_de_passe || "").trim()) {
                 if (!(donnees.mot_de_passe_actuel || "").trim()) {
                     setError("mot_de_passe_actuel", {
@@ -112,10 +126,8 @@ export default function MonProfi() {
             }
 
             const reponse = await axios.put(url, payload, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                }
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
             })
 
             const data = reponse.data
@@ -258,6 +270,69 @@ export default function MonProfi() {
                         S'inscrire en tant que professionnel ?
                     </p> */}
                 </form>
+                <section
+                    aria-labelledby="zone-danger-titre"
+                    className="w-full max-w-md mx-auto mt-4 p-6 bg-white rounded-2xl shadow-lg border border-red-100"
+                >
+                    <h3
+                        id="zone-danger-titre"
+                        className="text-base font-semibold text-red-600 mb-1 text-center"
+                    >
+                        {t("zone_danger", "Zone de danger")}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-4 text-center">
+                        {t("supprimer_compte_description", "La suppression de votre compte est définitive. Vos avis et favoris seront conservés.")}
+                    </p>
+                    <Button
+                        variant="danger"
+                        className="w-full"
+                        onClick={() => setConfirmOpen(true)}
+                        aria-haspopup="dialog"
+                    >
+                        {t("supprimer_compte", "Supprimer mon compte")}
+                    </Button>
+                </section>
+
+                <Drawer open={confirmOpen} onOpenChange={setConfirmOpen}>
+                    <DrawerContent>
+                        <DrawerHeader className="text-center">
+                            <DrawerTitle>
+                                {t("supprimer_compte_titre_modal", "Supprimer mon compte")}
+                            </DrawerTitle>
+                            <DrawerDescription>
+                                {t("supprimer_compte_confirmation_texte", "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")}
+                            </DrawerDescription>
+                        </DrawerHeader>
+
+                        {deleteError && (
+                            <p role="alert" className="px-4 text-red-500 text-sm text-center">
+                                {deleteError}
+                            </p>
+                        )}
+
+                        <DrawerFooter>
+                            <Button
+                                variant="danger"
+                                onClick={handleSupprimerCompte}
+                                disabled={deleteLoading}
+                                aria-busy={deleteLoading}
+                                className="w-full"
+                            >
+                                {deleteLoading
+                                    ? t("supprimer_compte_en_cours", "Suppression...")
+                                    : t("supprimer_compte_confirmer", "Confirmer la suppression")}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => setConfirmOpen(false)}
+                                disabled={deleteLoading}
+                                className="w-full"
+                            >
+                                {t("annuler", "Annuler")}
+                            </Button>
+                        </DrawerFooter>
+                    </DrawerContent>
+                </Drawer>
             </main>
         </div>
     )

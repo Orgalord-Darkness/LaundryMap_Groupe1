@@ -27,13 +27,6 @@ function AddLaundry() {
       headers: { "Content-Type": "application/json" },
   })
 
-  api.interceptors.request.use((config) => {
-      const token = localStorage.getItem("token")
-      if (token) {
-          config.headers.Authorization = `Bearer ${token}`
-      }
-      return config
-  })
 
   // Infos Laverie
   const [logo, setLogo] = useState<File | null>(null);
@@ -212,12 +205,6 @@ function AddLaundry() {
       return
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setApiError(t('add_laundry_auth_error'))
-      return
-    }
-
     const formData = new FormData();
 
     formData.append("name", name);
@@ -243,27 +230,25 @@ function AddLaundry() {
 
     setLoading(true);
 
-    fetch(url, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    })
-    .then(async (response) => {
-        const data = await response.json()
-        if (response.ok) {
-          setSuccess(t('add_laundry_success'))
-          navigate('/pro/dashboard')
-        } else {
-          setApiError(data.message ?? t('search_error'))
-          if (data.errors?.geolocation) {
-            setGeoErreur(data.errors.geolocation)
-            fieldRefs.current['adress']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          }
+    axios.post(url, formData, { withCredentials: true })
+      .then((response) => {
+        const data = response.data
+        setSuccess(t('add_laundry_success'))
+        navigate('/pro/dashboard')
+        if (data.errors?.geolocation) {
+          setGeoErreur(data.errors.geolocation)
+          fieldRefs.current['adress']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }
       })
-      .catch(() => {
-        setApiError(t('add_laundry_network_error'))
-        setGeoErreur(t('add_laundry_geo_error'))
+      .catch((err) => {
+        const data = err.response?.data
+        setApiError(data?.message ?? t('add_laundry_network_error'))
+        if (data?.errors?.geolocation) {
+          setGeoErreur(data.errors.geolocation)
+          fieldRefs.current['adress']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        } else {
+          setGeoErreur(t('add_laundry_geo_error'))
+        }
       })
       .finally(() => {
         setLoading(false)

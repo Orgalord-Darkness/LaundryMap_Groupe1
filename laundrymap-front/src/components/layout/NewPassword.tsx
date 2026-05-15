@@ -30,7 +30,8 @@ export default function NouveauMotDePasse() {
                     reset_token:                resetToken,
                     mot_de_passe:               donnees.mot_de_passe,
                     confirmation_mot_de_passe:  donnees.confirmation_mot_de_passe,
-                }
+                },
+                { withCredentials: true }
             )
 
             navigate('/login', {
