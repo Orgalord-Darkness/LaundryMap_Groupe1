@@ -46,4 +46,43 @@ class SireneService
             return false;
         }
     }
+
+    public function lookupSiren(string $siren): ?array
+    {
+        try {
+            $response = $this->httpClient->request('GET',
+                'https://recherche-entreprises.api.gouv.fr/search',
+                [
+                    'query'   => ['q' => $siren, 'page' => 1, 'per_page' => 25],
+                    'timeout' => 5,
+                ]
+            );
+
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+
+            $data = $response->toArray();
+
+            foreach ($data['results'] ?? [] as $result) {
+                if (($result['siren'] ?? '') !== $siren) {
+                    continue;
+                }
+
+                $siege = $result['siege'] ?? [];
+                return [
+                    'nom_complet' => $result['nom_complet'] ?? '',
+                    'numero_voie' => $siege['numero_voie'] ?? '',
+                    'voie'        => trim(($siege['type_voie'] ?? '') . ' ' . ($siege['libelle_voie'] ?? '')),
+                    'code_postal' => $siege['code_postal'] ?? '',
+                    'commune'     => $siege['libelle_commune'] ?? '',
+                ];
+            }
+
+            return null;
+
+        } catch (\Throwable) {
+            return null;
+        }
+    }
 }
