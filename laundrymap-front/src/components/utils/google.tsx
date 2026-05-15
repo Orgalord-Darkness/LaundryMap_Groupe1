@@ -19,6 +19,7 @@ export default function GoogleLoginButton({
                 const r = await fetch(route, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify({ token: tokenResponse.code })
                 })
 
@@ -35,7 +36,7 @@ export default function GoogleLoginButton({
                 }
 
                 const data = await r.json()
-                login(data.token_data)
+                login({ email: data.email, role: data.role })
                 onSuccess?.()
 
             } catch (error) {

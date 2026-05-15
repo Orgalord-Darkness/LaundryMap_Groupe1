@@ -148,6 +148,14 @@ class UtilisateurRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
     }   
 
+    public function supprimerCompte(Utilisateur $utilisateur): void
+    {
+        $utilisateur->setStatut(StatutEnum::SUPPRIME);
+        $utilisateur->setDateModification(new \DateTime());
+        $this->getEntityManager()->persist($utilisateur);
+        $this->getEntityManager()->flush();
+    }
+
     public function setStatut(Utilisateur $utilisateur, StatutEnum $statut): void
     {
         $utilisateur->setStatut($statut);

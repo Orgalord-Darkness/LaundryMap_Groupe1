@@ -120,7 +120,7 @@ function FavoriCard({
                     <Button
                         variant="default"
                         size="sm"
-                        onClick={() => navigate(`/laveries/${laverie.id}`)}
+                        onClick={() => navigate(`/user/fiche-laverie/${laverie.id}`)}
                         aria-label={`Voir la fiche de ${laverie.nom_etablissement}`}
                     >
                         Fiche de laverie

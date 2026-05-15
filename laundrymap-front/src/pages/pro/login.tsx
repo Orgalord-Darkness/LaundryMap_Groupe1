@@ -49,7 +49,8 @@ function ProLogin() {
                     mot_de_passe: donnees.mot_de_passe
                 },
                 {
-                    headers: { "Content-Type": "application/json" } 
+                    headers: { "Content-Type": "application/json" },
+                    withCredentials: true,
             })
 
             const data = reponse.data
@@ -64,8 +65,7 @@ function ProLogin() {
                 return
             }
 
-            localStorage.setItem("token", data.token_data)
-            login(data.token_data)
+            login({ email: data.email, role: data.role })
             setSuccessMessage("Connexion réussie !")
             navigate("/pro/dashboard")
 

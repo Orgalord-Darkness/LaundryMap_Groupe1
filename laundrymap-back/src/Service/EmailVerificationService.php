@@ -29,6 +29,36 @@ class EmailVerificationService
         return $this->jwtManager->createFromPayload($user, $payload);
     }
 
+    public function generatePasswordResetToken(Utilisateur $user): string
+    {
+        $payload = [
+            'user_id' => $user->getId(),
+            'purpose' => 'password_reset',
+            'exp'     => time() + 900, // 15 minutes
+        ];
+
+        return $this->jwtManager->createFromPayload($user, $payload);
+    }
+
+    public function sendPasswordResetEmail(Utilisateur $user, string $token): void
+    {
+        $frontendUrl = rtrim($_ENV['CORS_ALLOW_ORIGIN'], '/');
+        $resetUrl    = $frontendUrl . '/user/mot-de-passe/reinitialisation/' . $token;
+
+        $html = $this->twig->render('emails/resetPasswordEmail.html.twig', [
+            'prenom'             => $user->getPrenom(),
+            'url_reinitialisation' => $resetUrl,
+        ]);
+
+        $email = (new Email())
+            ->from('no-reply@laundrymap.com')
+            ->to($user->getEmail())
+            ->subject('Réinitialisation de votre mot de passe - LaundryMap')
+            ->html($html);
+
+        $this->mailer->send($email);
+    }
+
     public function sendVerificationEmail(Utilisateur $user): void
     {
         $token = $this->generateVerificationToken($user);

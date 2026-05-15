@@ -1,6 +1,8 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useAuth } from "@/components/context/AuthContext";
+import axios from "axios";
 import CardMachine from "@/components/ui/cardMachine";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -306,8 +308,8 @@ function FicheLaverie() {
   const [userReview,     setUserReview]     = useState<{ note: number; commentaire: string } | null>(null);
 
   
-  const token = localStorage.getItem("token");
-  const isConnected = token !== null;
+  const { user } = useAuth();
+  const isConnected = user !== null;
 
 
   // Carousel
@@ -364,31 +366,12 @@ function FicheLaverie() {
 
    // ── Toggle favori ──
   const handleToggleFavori = () => {
-    
-    const currentToken = localStorage.getItem("token");
- 
-    if (!currentToken) {
-      console.warn("[Favori] Aucun token dans localStorage.");
-      return;
-    }
-    if (isFavLoading) {
-      console.warn("[Favori] Requête déjà en cours.");
-      return;
-    }
- 
+    if (isFavLoading) return;
     setIsFavLoading(true);
 
-    fetch(favoriUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${currentToken}`,
-      },
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`Erreur ${response.status}`);
-        const data = await response.json();
-        setIsFavorite(data.isFavorite);
+    axios.post(favoriUrl, {}, { withCredentials: true })
+      .then((response) => {
+        setIsFavorite(response.data.isFavorite);
       })
       .catch((err) => {
         console.error("[Favori] Erreur :", err);

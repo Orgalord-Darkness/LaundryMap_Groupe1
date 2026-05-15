@@ -1,6 +1,9 @@
 import type { LaverieSearch, SearchFilters } from "@/components/utils/type"
 import apiClient from "@/lib/apiClient"
 
+// ─── Config ───────────────────────────────────────────────────────────────────
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL
 // ─── Service laveries ─────────────────────────────────────────────────────────
 
 /**
