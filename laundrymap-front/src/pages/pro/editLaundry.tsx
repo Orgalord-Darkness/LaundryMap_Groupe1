@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { CheckboxGroup } from '@/components/ui/checkboxGroupEdit'
 import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE, type DayKey } from '@/components/ui/timePicker'
 import apiClient from '@/lib/apiClient'
+import { CountrySelect } from '@/components/ui/CountrySelect'
+import { normalizeCountry } from '@/components/utils/countries'
 import UppyImageUploader from '@/components/ui/UppyImageUploader'
 import CardMachine from '@/components/ui/cardMachine'
 import MachineModal, { type EquipementFormData } from '@/components/ui/MachineModal'
@@ -93,7 +95,7 @@ export default function FormEditLaverie() {
             if (d.address)     setAdresse(d.address)
             if (d.postal_code) setCodePostal(String(d.postal_code))
             if (d.city)        setCity(d.city)
-            if (d.country)     setCountry(d.country)
+            if (d.country)     setCountry(normalizeCountry(d.country))
 
             // Machines (WASH → machine_a_laver, DRY → seche_linge, PRODUCTS → distributeur_de_lessive)
             const categoryMap: Record<string, EquipementFormData["type"]> = {
@@ -195,7 +197,7 @@ export default function FormEditLaverie() {
                     setAdresse(data.adresse.adresse ?? "")
                     setCodePostal(String(data.adresse.code_postal ?? ""))
                     setCity(data.adresse.ville ?? "")
-                    setCountry(data.adresse.pays ?? "")
+                    setCountry(normalizeCountry(data.adresse.pays ?? ""))
                 }
 
                 setSelectedServices(data.services?.map((s: any) => String(s.id)) ?? [])
@@ -482,7 +484,12 @@ export default function FormEditLaverie() {
                     <FieldLabel htmlFor="country">
                         {t('laundry_form_country_label')} <span className="text-orange-500">*</span>
                     </FieldLabel>
-                    <Input id="country" type="text" value={country} onChange={e => setCountry(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
+                    <CountrySelect
+                        id="country"
+                        value={country}
+                        onChange={setCountry}
+                        className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}
+                    />
                     {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
                 </Field>
             </div>

@@ -8,7 +8,7 @@ import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import { useTranslation } from "react-i18next"
 import PasswordChecklist from "react-password-checklist"
-
+import { CountrySelect } from "@/components/ui/CountrySelect"
 
  
 
@@ -290,7 +290,12 @@ function ProInscription() {
 
                 <Field>
                   <FieldLabel htmlFor="country">{t("country")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="country" type="text" placeholder={t("country")} value={country} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setCountry(e.target.value)} />
+                 <CountrySelect
+                    id="country"
+                    value={country}
+                    onChange={setCountry}
+                    className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''}
+                  />
                   {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
                 </Field>
 
