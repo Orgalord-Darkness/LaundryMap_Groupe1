@@ -54,7 +54,7 @@ security:
 
     access_control:
         - { path: ^/api/v1/utilisateur/(login_check|inscription), roles: PUBLIC_ACCESS }
-        - { path: ^/api/v1/professionnel/(login_check|inscription), roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/professionnel/(login_check|inscription|siren-lookup), roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/admin/login_check, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/laverie/search, roles: PUBLIC_ACCESS }

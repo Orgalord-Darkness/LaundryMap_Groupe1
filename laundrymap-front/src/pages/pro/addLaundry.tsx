@@ -12,6 +12,8 @@ import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE, type DayK
 import type { Machine } from '@/components/utils/laundry'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '@/lib/apiClient'
+import { CountrySelect } from '@/components/ui/CountrySelect'
+import { normalizeCountry } from '@/components/utils/countries'
 
 function AddLaundry() {
 
@@ -86,7 +88,7 @@ function AddLaundry() {
           if (d.address)     setAdress(d.address)
           if (d.postal_code) setCodePostal(String(d.postal_code))
           if (d.city)        setCity(d.city)
-          if (d.country)     setCountry(d.country)
+          if (d.country)     setCountry(normalizeCountry(d.country))
 
           if (d.opening_hours) {
             if (d.opening_hours.monday)    setWeek((w) => ({ ...w, lundi:    { morning: { start: d.opening_hours.monday[0]?.open ?? '', end: d.opening_hours.monday[0]?.close ?? '' }, afternoon: { start: d.opening_hours.monday[1]?.open ?? '', end: d.opening_hours.monday[1]?.close ?? '' } } }))
@@ -322,7 +324,12 @@ function AddLaundry() {
         <div ref={el => { fieldRefs.current.country = el }}>
           <Field className='w-85 m-auto items-center justify-center mt-5' id='country-field'>
             <FieldLabel htmlFor="input-field-country">{t('laundry_form_country_label')}<span className='text-orange-600'>*</span></FieldLabel>
-            <Input id="input-field-country" type="text" placeholder={t('laundry_form_country_label')} value={country} onChange={(e) => setCountry(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
+            <CountrySelect
+              id="input-field-country"
+              value={country}
+              onChange={setCountry}
+              className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}
+            />
             {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
           </Field>
         </div>

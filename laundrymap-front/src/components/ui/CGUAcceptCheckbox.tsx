@@ -14,7 +14,6 @@ export function CGUAcceptCheckbox({ checked, onChange }: CGUAcceptCheckboxProps)
   const checkStorage = () => {
     const isRead = localStorage.getItem(CGU_READ_KEY) === "true";
     setCguRead(isRead);
-    if (isRead) onChange(true);
   };
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import GoogleLoginButton from "@/components/utils/google"
 import axios from "axios"
 import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field"
 import { useTranslation } from "react-i18next"
+import PasswordChecklist from "react-password-checklist"
 
 type Inputs = {
     prenom: string
@@ -37,6 +38,7 @@ export default function Inscription() {
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors },
         setError,
     } = useForm<Inputs>()
@@ -137,6 +139,18 @@ export default function Inscription() {
 
                                     <Input id="mot_de_passe" type="password" aria-describedby={ errors.mot_de_passe ? "mot_de_passe-hint mot_de_passe-error" : "mot_de_passe-hint" } tabIndex={4} {...register("mot_de_passe", { required: true })} />
                                     <FieldDescription>{t("password_infos")}</FieldDescription>
+                                    <PasswordChecklist
+                                        rules={["minLength", "capital", "lowercase", "number", "specialChar"]}
+                                        minLength={8}
+                                        value={watch("mot_de_passe") ?? ""}
+                                        messages={{
+                                            minLength:   t("password_rule_length"),
+                                            capital:     t("password_rule_uppercase"),
+                                            lowercase:   t("password_rule_lowercase"),
+                                            number:      t("password_rule_number"),
+                                            specialChar: t("password_rule_special"),
+                                        }}
+                                    />
                                     {errors.mot_de_passe && ( <p id="mot_de_passe-error" role="alert" className="text-red-500 text-xs mt-1 whitespace-pre-wrap"> {errors.mot_de_passe.message} </p> )}
                                 </Field>
 

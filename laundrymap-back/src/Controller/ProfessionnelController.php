@@ -429,4 +429,20 @@ class ProfessionnelController extends AbstractController
 
         return $this->json(['message' => 'Statut du compte professionnel mis à jour.'], Response::HTTP_OK);
     }
+
+    #[Route('/siren-lookup/{siren}', name: 'pro_siren_lookup', methods: ['GET'])]
+    public function sirenLookup(string $siren, SireneService $sireneService): JsonResponse
+    {
+        if (!preg_match('/^\d{9}$/', $siren)) {
+            return $this->json(['message' => 'Format SIREN invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $data = $sireneService->lookupSiren($siren);
+
+        if ($data === null) {
+            return $this->json(['message' => 'SIREN introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($data, Response::HTTP_OK);
+    }
 }

@@ -7,7 +7,8 @@ import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from 
 import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import { useTranslation } from "react-i18next"
-
+import PasswordChecklist from "react-password-checklist"
+import { CountrySelect } from "@/components/ui/CountrySelect"
 
  
 
@@ -15,6 +16,8 @@ function ProInscription() {
 
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/inscription`
   const [googlePrefilled, setGooglePrefilled] = useState(false)
+  const [sirenPrefilled, setSirenPrefilled] = useState(false)
+  const [sirenLoading, setSirenLoading] = useState(false)
   const { t } = useTranslation()
   
   // Infos Pro
@@ -22,6 +25,7 @@ function ProInscription() {
   const [firstname, setFirstname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Infos Entreprise
   const [siren, setSiren] = useState("");
@@ -30,6 +34,26 @@ function ProInscription() {
   const [codePostal, setCodePostal] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+
+  const handleSirenLookup = async () => {
+    setSirenLoading(true)
+    setSirenPrefilled(false)
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/professionnel/siren-lookup/${siren}`
+      )
+      setRue(res.data.voie ?? '')
+      setAdress(res.data.numero_voie ?? '')
+      setCodePostal(res.data.code_postal ?? '')
+      setCity(res.data.commune ?? '')
+      setCountry('France')
+      setSirenPrefilled(true)
+    } catch {
+      setSirenPrefilled(false)
+    } finally {
+      setSirenLoading(false)
+    }
+  }
 
   const handleGoogleSuccess = (credentialResponse: any) => {
     try {
@@ -53,9 +77,10 @@ function ProInscription() {
     firstname: "",
     email: "",
     password: "",
+    confirmPassword: "",
     siren: "",
     adress: "",
-    rue: "",          
+    rue: "",
     codePostal: "",
     city: "",
     country: "",
@@ -67,17 +92,23 @@ function ProInscription() {
   const [cguAccepted, setCguAccepted] = useState(false);
 
   const validateForm = (): boolean => {
+    // TODO(human): implémente la validation du champ confirmPassword ci-dessous.
+    // La valeur à valider est `confirmPassword`, à comparer avec `password`.
+    // Retourne une chaîne vide si valide, sinon un message d'erreur.
+    const confirmPasswordError = "";
+
     const newErrors = {
-      lastname:   !lastname   ? "Le nom est requis"      : "",
-      firstname:  !firstname  ? "Le prénom est requis"   : "",
-      email:      !email      ? "L'email est requis" : (!email.includes("@") || !email.includes(".")) ? "Email invalide" : "",
-      password:   !password   ? "Le mot de passe est requis" : password.length < 8 ? "Le mot de passe doit contenir au moins 8 caractères" : "",
-      siren:      !siren      ? "Le numéro SIREN est requis" : !/^\d{9}$/.test(siren) ? "Le SIREN doit contenir exactement 9 chiffres" : "",
-      adress:     !adress     ? "L'adresse est requise"     : "",
-      rue:        !rue        ? "La rue est requise"        : "",   
-      codePostal: !codePostal ? "Le code postal est requis" : "",
-      city:       !city       ? "La ville est requise"      : "",
-      country:    !country    ? "Le pays est requis"        : "",
+      lastname:        !lastname   ? "Le nom est requis"      : "",
+      firstname:       !firstname  ? "Le prénom est requis"   : "",
+      email:           !email      ? "L'email est requis" : (!email.includes("@") || !email.includes(".")) ? "Email invalide" : "",
+      password:        !password   ? "Le mot de passe est requis" : password.length < 8 ? "Le mot de passe doit contenir au moins 8 caractères" : "",
+      confirmPassword: confirmPasswordError,
+      siren:           !siren      ? "Le numéro SIREN est requis" : !/^\d{9}$/.test(siren) ? "Le SIREN doit contenir exactement 9 chiffres" : "",
+      adress:          !adress     ? "L'adresse est requise"     : "",
+      rue:             !rue        ? "La rue est requise"        : "",
+      codePostal:      !codePostal ? "Le code postal est requis" : "",
+      city:            !city       ? "La ville est requise"      : "",
+      country:         !country    ? "Le pays est requis"        : "",
     };
 
     setErrors(newErrors);
@@ -176,50 +207,95 @@ function ProInscription() {
                   <FieldLabel htmlFor="password">{t("mot_de_passe")}<span className='text-orange-600'>*</span></FieldLabel>
                   <Input id="password" type="password" placeholder={t("mot_de_passe")} value={password} onChange={(e) => setPassword(e.target.value)}/>
                   <FieldDescription>{t("password_infos")}</FieldDescription>
+                  <PasswordChecklist
+                    rules={["minLength", "capital", "lowercase", "number", "specialChar"]}
+                    minLength={8}
+                    value={password}
+                    messages={{
+                      minLength:   t("password_rule_length"),
+                      capital:     t("password_rule_uppercase"),
+                      lowercase:   t("password_rule_lowercase"),
+                      number:      t("password_rule_number"),
+                      specialChar: t("password_rule_special"),
+                    }}
+                  />
                   {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-                </Field> 
-                
-                {/* <Field>
+                </Field>
+
+                <Field>
                   <FieldLabel htmlFor="confirm-password">{t("confirm_password")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="confirm-password" type="password" placeholder={t("confirm_password")} required />
-                  <FieldDescription>{t("please_confirm_password")}</FieldDescription>
-                </Field> */}
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder={t("confirm_password")}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+                </Field>
 
                 <FieldSeparator className="my-5">{t("company_informations")}</FieldSeparator>
 
                 <Field>
                   <FieldLabel htmlFor="siren">{t("siren_number")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="siren" type="text" placeholder={t("siren_number")} maxLength={9} value={siren} onChange={(e) => setSiren(e.target.value)} />
+                  <FieldDescription>{t("siren_lookup_desc")}</FieldDescription>
+                  <div className="flex gap-2 mt-1 w-full">
+                    <Input
+                      id="siren"
+                      type="text"
+                      placeholder={t("siren_number")}
+                      maxLength={9}
+                      value={siren}
+                      onChange={(e) => { setSiren(e.target.value); setSirenPrefilled(false) }}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleSirenLookup}
+                      disabled={siren.length !== 9 || sirenLoading}
+                      className="whitespace-nowrap px-4"
+                    >
+                      {sirenLoading ? t("siren_lookup_loading") : t("siren_lookup_button")}
+                    </Button>
+                  </div>
+                  {sirenPrefilled && !sirenLoading && (
+                    <p className="text-green-600 text-sm mt-1">✓ Informations de l'entreprise importées depuis le SIREN.</p>
+                  )}
                   {errors.siren && <p className="text-red-500 text-sm mt-1">{errors.siren}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="rue">{t("street_number")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="rue" type="text" placeholder="Ex : 12" value={rue} onChange={(e) => setRue(e.target.value)} />
+                  <Input id="rue" type="text" placeholder="Ex : 12" value={rue} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setRue(e.target.value)} />
                   {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="adress">{t("street_name")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="adress" type="text" placeholder="Ex : Rue de la place" value={adress} onChange={(e) => setAdress(e.target.value)} />
+                  <Input id="adress" type="text" placeholder="Ex : Rue de la place" value={adress} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setAdress(e.target.value)} />
                   {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="codePostal">{t("postal_code")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="codePostal" type="text" placeholder={t("postal_code")} value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
+                  <Input id="codePostal" type="text" placeholder={t("postal_code")} value={codePostal} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setCodePostal(e.target.value)} />
                   {errors.codePostal && <p className="text-red-500 text-sm mt-1">{errors.codePostal}</p>}
-                </Field> 
+                </Field>
 
                 <Field>
                   <FieldLabel htmlFor="city">{t("city")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="city" type="text" placeholder={t("city")} value={city} onChange={(e) => setCity(e.target.value)} />
+                  <Input id="city" type="text" placeholder={t("city")} value={city} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setCity(e.target.value)} />
                   {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="country">{t("country")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="country" type="text" placeholder={t("country")} value={country} onChange={(e) => setCountry(e.target.value)} />
+                 <CountrySelect
+                    id="country"
+                    value={country}
+                    onChange={setCountry}
+                    className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''}
+                  />
                   {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
                 </Field>
 
