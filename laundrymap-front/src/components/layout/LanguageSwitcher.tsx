@@ -1,13 +1,13 @@
-import { useTranslation } from 'react-i18next';
+import { usePreferences, type Language } from '@/components/context/PreferencesContext';
 
 export function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { language, setLanguage } = usePreferences();
 
   return (
     <select
-      value={i18n.language}
-      onChange={(e) => i18n.changeLanguage(e.target.value)}
-      className="border p-1 rounded bg-white cursor-pointer"
+      value={language}
+      onChange={(e) => setLanguage(e.target.value as Language)}
+      className="border p-1 rounded bg-card cursor-pointer"
       aria-label="Changer la langue"
     >
       <option value="fr">FR</option>

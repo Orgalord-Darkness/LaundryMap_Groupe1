@@ -269,7 +269,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'fr',
+    lng: (localStorage.getItem('laundrymap_lang') as 'fr' | 'en') ?? 'fr',
     fallbackLng: 'fr',
     interpolation: {
       escapeValue: false,
