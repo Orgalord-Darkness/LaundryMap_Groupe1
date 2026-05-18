@@ -121,12 +121,12 @@ export default function Connexion() {
                                     </p>
                                 </div>
 
-                                <a href="/pro/login" className="text-center text-sm text-gray-700 underline font-medium cursor-pointer" aria-label="Se connecter en tant que professionnel">
+                                <a href="/pro/login" className="text-center text-sm text-foreground underline font-medium cursor-pointer" aria-label="Se connecter en tant que professionnel">
                                     {t('connexion')} {t('en_tant_que_professionnel')} ?
                                 </a>
 
                                 {successMessage && (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                                    <div className="p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl">
                                         {successMessage}
                                     </div>
                                 )}
@@ -148,10 +148,10 @@ export default function Connexion() {
                                     <Input id="password" type="password" required {...register("mot_de_passe", { required: true })}/>
 
                                     {errors.email && (
-                                        <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>
                                     )}
                                     {errors.mot_de_passe && (
-                                        <p className="text-red-500 text-xs mt-1 whitespace-pre-wrap">
+                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">
                                             {errors.mot_de_passe.message}
                                         </p>
                                     )}
@@ -164,7 +164,7 @@ export default function Connexion() {
                                 <FieldSeparator>{t("continuer_avec")}</FieldSeparator>
 
                                 <Field>
-                                    <p className="text-center text-sm text-gray-600 mt-4">{t('consigne_co_google')}</p>
+                                    <p className="text-center text-sm text-muted-foreground mt-4">{t('consigne_co_google')}</p>
                                     <GoogleLoginButton
                                         route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`}
                                         title={t("connexion_avec_google")}

@@ -51,7 +51,7 @@ export function FilterModal({ open, onOpenChange, filters, onFiltersChange }: Fi
 
                 {/* En-tête */}
                 <DialogHeader className="px-6 pt-6 pb-4">
-                    <DialogTitle className="text-lg font-bold text-gray-900">
+                    <DialogTitle className="text-lg font-bold text-foreground">
                         Filtrer les laveries
                     </DialogTitle>
                 </DialogHeader>
@@ -61,7 +61,7 @@ export function FilterModal({ open, onOpenChange, filters, onFiltersChange }: Fi
 
                     {/* Horaires */}
                     <div className="flex flex-col gap-1.5">
-                        <p className="text-sm font-semibold text-gray-800">Horaires</p>
+                        <p className="text-sm font-semibold text-foreground">Horaires</p>
                         <label htmlFor="filter-time" className="text-sm text-primary font-medium">
                             Ouvert à partir de
                         </label>
@@ -103,7 +103,7 @@ export function FilterModal({ open, onOpenChange, filters, onFiltersChange }: Fi
                 </div>
 
                 {/* Footer fixe — bouton centré */}
-                <div className="flex flex-col gap-2 px-6 py-4 border-t border-gray-100 bg-white">
+                <div className="flex flex-col gap-2 px-6 py-4 border-t border-border bg-card">
                     <Button
                         onClick={handleApply}
                         className="w-full font-semibold"
@@ -112,7 +112,7 @@ export function FilterModal({ open, onOpenChange, filters, onFiltersChange }: Fi
                     </Button>
                     <button
                         onClick={handleReset}
-                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors py-1"
+                        className="text-sm text-gray-400 hover:text-muted-foreground transition-colors py-1"
                     >
                         Réinitialiser les filtres
                     </button>

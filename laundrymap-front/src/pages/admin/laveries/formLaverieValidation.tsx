@@ -72,7 +72,7 @@ export default function LaverieValidation() {
     }
 
     if (loading) return <div className="p-10 text-center">Chargement...</div>
-    if (error || !laverie) return <div className="p-10 text-red-500">{error}</div>
+    if (error || !laverie) return <div className="p-10 text-red-500 dark:text-red-400">{error}</div>
 
     const imageUrl = laverie.logo ? `${API_BASE}${laverie.logo.emplacement}` : null
 
@@ -80,10 +80,10 @@ export default function LaverieValidation() {
         <form className="flex flex-col items-center p-4 max-w-md mx-auto">
 
         {/* Titre */}
-        <h1 className="font-semibold mt-10 text-2xl text-gray-900 text-center">
+        <h1 className="font-semibold mt-10 text-2xl text-foreground text-center">
             Demande de laverie
         </h1>
-        <p className="text-gray-500 text-center mb-6">
+        <p className="text-muted-foreground text-center mb-6">
             Consultez les informations avant de prendre une décision
         </p>
 
@@ -92,8 +92,8 @@ export default function LaverieValidation() {
             <div
                 className={`w-full p-4 rounded-xl text-sm mb-4 border ${
                     feedback.type === "success"
-                        ? "bg-green-100 border-green-400 text-green-700"
-                        : "bg-red-50 border-red-200 text-red-600"
+                        ? "bg-green-100 dark:bg-green-900/30 border-green-400 dark:border-green-700 text-green-700 dark:text-green-400"
+                        : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400"
                 }`}
             >
                 {feedback.message}
@@ -110,50 +110,50 @@ export default function LaverieValidation() {
         {/* Nom */}
         <Field className="w-full mt-4">
             <FieldLabel>Nom de la laverie</FieldLabel>
-            <Input value={laverie.nom_etablissement} disabled className="h-11 bg-gray-100" />
+            <Input value={laverie.nom_etablissement} disabled className="h-11 bg-muted" />
         </Field>
 
         {/* Email */}
         <Field className="w-full mt-4">
             <FieldLabel>Email de contact</FieldLabel>
-            <Input value={laverie.contact_email ?? ""} disabled className="h-11 bg-gray-100" />
+            <Input value={laverie.contact_email ?? ""} disabled className="h-11 bg-muted" />
         </Field>
 
         {/* Adresse */}
         <Field className="w-full mt-4">
             <FieldLabel>Numéro</FieldLabel>
-            <Input value={laverie.adresse?.adresse ?? ""} disabled className="h-11 bg-gray-100" />
+            <Input value={laverie.adresse?.adresse ?? ""} disabled className="h-11 bg-muted" />
         </Field>
 
         <Field className="w-full mt-4">
             <FieldLabel>Adresse</FieldLabel>
-            <Input value={laverie.adresse?.rue ?? ""} disabled className="h-11 bg-gray-100" />
+            <Input value={laverie.adresse?.rue ?? ""} disabled className="h-11 bg-muted" />
         </Field>
 
         <Field className="w-full mt-4">
             <FieldLabel>Code postal</FieldLabel>
-            <Input value={laverie.adresse?.code_postal ?? ""} disabled className="h-11 bg-gray-100" />
+            <Input value={laverie.adresse?.code_postal ?? ""} disabled className="h-11 bg-muted" />
         </Field>
 
         <Field className="w-full mt-4">
             <FieldLabel>Ville</FieldLabel>
-            <Input value={laverie.adresse?.ville ?? ""} disabled className="h-11 bg-gray-100" />
+            <Input value={laverie.adresse?.ville ?? ""} disabled className="h-11 bg-muted" />
         </Field>
 
         <Field className="w-full mt-4">
             <FieldLabel>Pays</FieldLabel>
-            <Input value={laverie.adresse?.pays ?? ""} disabled className="h-11 bg-gray-100" />
+            <Input value={laverie.adresse?.pays ?? ""} disabled className="h-11 bg-muted" />
         </Field>
 
         {/* Coordonnées */}
         <div className="w-full grid grid-cols-2 gap-3 mt-4">
             <Field>
                 <FieldLabel>Latitude</FieldLabel>
-                <Input value={laverie.adresse?.latitude ?? ""} disabled className="h-11 bg-gray-100" />
+                <Input value={laverie.adresse?.latitude ?? ""} disabled className="h-11 bg-muted" />
             </Field>
             <Field>
                 <FieldLabel>Longitude</FieldLabel>
-                <Input value={laverie.adresse?.longitude ?? ""} disabled className="h-11 bg-gray-100" />
+                <Input value={laverie.adresse?.longitude ?? ""} disabled className="h-11 bg-muted" />
             </Field>
         </div>
 
@@ -163,7 +163,7 @@ export default function LaverieValidation() {
             <Textarea
                 value={laverie.description ?? ""}
                 disabled
-                className="h-32 bg-gray-100"
+                className="h-32 bg-muted"
             />
         </Field>
 
@@ -181,7 +181,7 @@ export default function LaverieValidation() {
                 />
             )}
             {laverie.services.length === 0 && (
-                <p className="text-gray-500 text-sm">Aucun équipement spécifié</p>
+                <p className="text-muted-foreground text-sm">Aucun équipement spécifié</p>
             )}
         </div>
 
@@ -197,7 +197,7 @@ export default function LaverieValidation() {
                 value={laverie.methodePaiements.map((p:Paiement) => String(p.id))}
             />)}
             {laverie.methodePaiements.length === 0 && (
-                <p className="text-gray-500 text-sm">Aucun moyen de paiement spécifié</p>
+                <p className="text-muted-foreground text-sm">Aucun moyen de paiement spécifié</p>
             )}
             
         </div>
@@ -209,9 +209,9 @@ export default function LaverieValidation() {
                 value={motif}
                 onChange={(e) => setMotif(e.target.value)}
                 placeholder="Expliquez votre décision…"
-                className={`h-28 ${motifError ? "border-red-500" : ""}`}
+                className={`h-28 ${motifError ? "border-red-500 dark:border-red-700" : ""}`}
             />
-            {motifError && <p className="text-red-500 text-xs mt-1">{motifError}</p>}
+            {motifError && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{motifError}</p>}
         </Field>
 
         {/* Boutons */}

@@ -164,8 +164,8 @@ function ProInscription() {
             </a>
         </div>
 
-        {apiError && <p className="m-auto text-red-500 text-sm mt-4 font-semibold">{apiError}</p>}
-        {success  && <p className="m-auto text-green-600 text-sm mt-4 font-semibold">{success}</p>}
+        {apiError && <p className="m-auto text-red-500 dark:text-red-400 text-sm mt-4 font-semibold">{apiError}</p>}
+        {success  && <p className="m-auto text-green-600 dark:text-green-400 text-sm mt-4 font-semibold">{success}</p>}
 
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
@@ -186,20 +186,20 @@ function ProInscription() {
 
                 <Field>
                   <FieldLabel htmlFor="lastname">{t("lastname")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="lastname" type="text" placeholder={t("lastname")} value={lastname} className={`${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`}  onChange={(e) => setLastname(e.target.value)} />
-                  {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname}</p>}
+                  <Input id="lastname" type="text" placeholder={t("lastname")} value={lastname} className={`${googlePrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''}`}  onChange={(e) => setLastname(e.target.value)} />
+                  {errors.lastname && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.lastname}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="firstname">{t("firstname")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="firstname" type="text" placeholder={t("firstname")} className={`${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`} value={firstname} onChange={(e) => setFirstname(e.target.value)} />
-                  {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname}</p>}
+                  <Input id="firstname" type="text" placeholder={t("firstname")} className={`${googlePrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''}`} value={firstname} onChange={(e) => setFirstname(e.target.value)} />
+                  {errors.firstname && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.firstname}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="email">{t("email")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="email" type="email" placeholder="m@example.com" className={`${googlePrefilled ? 'border-green-400 bg-green-50' : ''}`} value={email} onChange={(e) => setEmail(e.target.value)}/>
-                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  <Input id="email" type="email" placeholder="m@example.com" className={`${googlePrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''}`} value={email} onChange={(e) => setEmail(e.target.value)}/>
+                  {errors.email && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.email}</p>}
                   <FieldDescription> {t("email_informations")} </FieldDescription>
                 </Field>
 
@@ -219,7 +219,7 @@ function ProInscription() {
                       specialChar: t("password_rule_special"),
                     }}
                   />
-                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                  {errors.password && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.password}</p>}
                 </Field>
 
                 <Field>
@@ -231,7 +231,7 @@ function ProInscription() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
-                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.confirmPassword}</p>}
                 </Field>
 
                 <FieldSeparator className="my-5">{t("company_informations")}</FieldSeparator>
@@ -259,33 +259,33 @@ function ProInscription() {
                     </Button>
                   </div>
                   {sirenPrefilled && !sirenLoading && (
-                    <p className="text-green-600 text-sm mt-1">✓ Informations de l'entreprise importées depuis le SIREN.</p>
+                    <p className="text-green-600 dark:text-green-400 text-sm mt-1">✓ Informations de l'entreprise importées depuis le SIREN.</p>
                   )}
-                  {errors.siren && <p className="text-red-500 text-sm mt-1">{errors.siren}</p>}
+                  {errors.siren && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.siren}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="rue">{t("street_number")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="rue" type="text" placeholder="Ex : 12" value={rue} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setRue(e.target.value)} />
-                  {errors.rue && <p className="text-red-500 text-sm mt-1">{errors.rue}</p>}
+                  <Input id="rue" type="text" placeholder="Ex : 12" value={rue} className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''} onChange={(e) => setRue(e.target.value)} />
+                  {errors.rue && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.rue}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="adress">{t("street_name")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="adress" type="text" placeholder="Ex : Rue de la place" value={adress} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setAdress(e.target.value)} />
-                  {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
+                  <Input id="adress" type="text" placeholder="Ex : Rue de la place" value={adress} className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''} onChange={(e) => setAdress(e.target.value)} />
+                  {errors.adress && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.adress}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="codePostal">{t("postal_code")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="codePostal" type="text" placeholder={t("postal_code")} value={codePostal} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setCodePostal(e.target.value)} />
-                  {errors.codePostal && <p className="text-red-500 text-sm mt-1">{errors.codePostal}</p>}
+                  <Input id="codePostal" type="text" placeholder={t("postal_code")} value={codePostal} className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''} onChange={(e) => setCodePostal(e.target.value)} />
+                  {errors.codePostal && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.codePostal}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="city">{t("city")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="city" type="text" placeholder={t("city")} value={city} className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''} onChange={(e) => setCity(e.target.value)} />
-                  {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                  <Input id="city" type="text" placeholder={t("city")} value={city} className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''} onChange={(e) => setCity(e.target.value)} />
+                  {errors.city && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.city}</p>}
                 </Field>
 
                 <Field>
@@ -294,9 +294,9 @@ function ProInscription() {
                     id="country"
                     value={country}
                     onChange={setCountry}
-                    className={sirenPrefilled ? 'border-green-400 bg-green-50' : ''}
+                    className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''}
                   />
-                  {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+                  {errors.country && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.country}</p>}
                 </Field>
 
                 
@@ -320,7 +320,7 @@ function ProInscription() {
                       />
                   </GoogleOAuthProvider>
                   {googlePrefilled && (
-                      <p className="text-green-600 text-sm">
+                      <p className="text-green-600 dark:text-green-400 text-sm">
                           ✓ Nom, prénom et email importés depuis Google — complétez les champs restants.
                       </p>
                   )}

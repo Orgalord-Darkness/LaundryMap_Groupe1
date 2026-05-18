@@ -1,71 +1,36 @@
 import { Link } from "react-router-dom";
 
 export function Footer() {
-
   const legalLinks = [
     { label: "CGU", href: "/cgu" },
     { label: "Mentions légales", href: "/mentions-legales" },
   ];
 
   return (
-    <footer
-      style={{
-        background: "linear-gradient(135deg, #1ab3d8 0%, #4ecfee 100%)",
-        padding: "28px 24px 20px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "24px",
-        }}
-      >
-        {/* Liens légaux — texte blanc foncé sur fond clair = bon contraste */}
-        <div style={{ display: "flex", flexDirection: "row", gap: "12px", minWidth: "150px", margin:'auto' }}>
+    <footer className="
+      bg-gradient-to-br from-[#1ab3d8] to-[#4ecfee]
+      dark:from-gray-900 dark:to-gray-800
+      px-6 pt-7 pb-5
+    ">
+      <div className="max-w-[900px] mx-auto flex items-center justify-center flex-wrap gap-6">
+        {/* Liens légaux */}
+        <div className="flex flex-row gap-3 min-w-[150px]">
           {legalLinks.map((link) => (
             <Link
               key={link.href}
               to={link.href}
-              style={{
-                color: "#0a3d52",
-                textDecoration: "underline",
-                textUnderlineOffset: "3px",
-                fontSize: "15px",
-                fontWeight: 600,
-              }}
+              className="text-[#0a3d52] dark:text-cyan-200 underline underline-offset-[3px] text-[15px] font-semibold"
             >
               {link.label}
             </Link>
           ))}
         </div>
-
-        {/* Icônes réseaux sociaux — fond bleu très foncé pour contraste maximal avec icônes blanches */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "12px",
-          }}
-        >
-          
-        </div>
       </div>
 
       {/* Copyright */}
-      <div style={{
-        textAlign: "center",
-        marginTop: "20px",
-        fontSize: "12px",
-        color: "#0a3d52",
-        fontWeight: 500,
-      }}>
+      <p className="text-center mt-5 text-xs font-medium text-[#0a3d52] dark:text-cyan-300">
         © {new Date().getFullYear()} EC2E — LaundryMap. Tous droits réservés.
-      </div>
+      </p>
     </footer>
   );
 }

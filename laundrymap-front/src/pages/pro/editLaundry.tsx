@@ -340,7 +340,7 @@ export default function FormEditLaverie() {
         return (
             <div className="flex flex-col gap-4 p-4 max-w-md mx-auto mt-10">
                 {[...Array(5)].map((_, i) => (
-                    <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+                    <div key={i} className="h-12 bg-muted rounded-xl animate-pulse" />
                 ))}
             </div>
         )
@@ -354,16 +354,16 @@ export default function FormEditLaverie() {
                 <button
                     type="button"
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                     {t('edit_laundry_back')}
                 </button>
             </div>
 
-            <h1 className="font-semibold mt-4 text-2xl text-gray-900 text-center">
+            <h1 className="font-semibold mt-4 text-2xl text-foreground text-center">
                 {t('edit_laundry_title')}
             </h1>
-            <p className="text-gray-500 text-center mb-6">
+            <p className="text-muted-foreground text-center mb-6">
                 {t('edit_laundry_subtitle')}
             </p>
 
@@ -392,7 +392,7 @@ export default function FormEditLaverie() {
                     </Button>
                 </div>
                 {wilineError && (
-                    <p className="text-red-500 text-xs mt-1">{wilineError}</p>
+                    <p className="text-red-500 dark:text-red-400 text-xs mt-1">{wilineError}</p>
                 )}
             </Field>
 
@@ -411,7 +411,7 @@ export default function FormEditLaverie() {
             {/* Galerie d'images */}
             <Field className="w-full mt-4">
                 <FieldLabel>{t('laundry_form_gallery_title')}</FieldLabel>
-                <p className="text-gray-500 text-sm mb-2">{t('laundry_form_gallery_description')}</p>
+                <p className="text-muted-foreground text-sm mb-2">{t('laundry_form_gallery_description')}</p>
                 <UppyImageUploader
                     mode="gallery"
                     onFilesChange={setGalleryFiles}
@@ -420,13 +420,13 @@ export default function FormEditLaverie() {
             </Field>
 
             {successMessage && (
-                <div role="status" aria-live="polite" className="w-full p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl text-sm mb-4">
+                <div role="status" aria-live="polite" className="w-full p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl text-sm mb-4">
                     {successMessage}
                 </div>
             )}
 
             {error && (
-                <div role="alert" className="w-full p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm mb-4">
+                <div role="alert" className="w-full p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl text-sm mb-4">
                     {error}
                 </div>
             )}
@@ -438,7 +438,7 @@ export default function FormEditLaverie() {
                         {t('laundry_form_name_label')} <span className="text-orange-500">*</span>
                     </FieldLabel>
                     <Input id="name" type="text" value={name} onChange={e => setName(e.target.value)} className="h-11" />
-                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                    {errors.name && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.name}</p>}
                 </Field>
             </div>
 
@@ -452,7 +452,7 @@ export default function FormEditLaverie() {
 
             <div ref={el => {fieldsRef.current.adresse = el}} className='w-full'>
                 {geoErreur && (
-                    <p className="text-red-500 text-xs mt-1">{geoErreur}</p>
+                    <p className="text-red-500 dark:text-red-400 text-xs mt-1">{geoErreur}</p>
                 )}
 
                 {/* Adresse */}
@@ -460,24 +460,24 @@ export default function FormEditLaverie() {
                     <FieldLabel htmlFor="adresse">
                         {t('laundry_form_address_label')} <span className="text-orange-500">*</span>
                     </FieldLabel>
-                    <Input id="adresse" type="text" value={adresse} onChange={e => setAdresse(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
-                    {errors.adresse && <p className="text-red-500 text-xs mt-1">{errors.adresse}</p>}
+                    <Input id="adresse" type="text" value={adresse} onChange={e => setAdresse(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`} />
+                    {errors.adresse && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.adresse}</p>}
                 </Field>
 
                 <Field className="w-full mt-4">
                     <FieldLabel htmlFor="codePostal">
                         {t('laundry_form_postal_label')} <span className="text-orange-500">*</span>
                     </FieldLabel>
-                    <Input id="codePostal" type="text" value={codePostal} onChange={e => setCodePostal(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
-                    {errors.codePostal && <p className="text-red-500 text-xs mt-1">{errors.codePostal}</p>}
+                    <Input id="codePostal" type="text" value={codePostal} onChange={e => setCodePostal(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`}/>
+                    {errors.codePostal && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.codePostal}</p>}
                 </Field>
 
                 <Field className="w-full mt-4">
                     <FieldLabel htmlFor="city">
                         {t('laundry_form_city_label')} <span className="text-orange-500">*</span>
                     </FieldLabel>
-                    <Input id="city" type="text" value={city} onChange={e => setCity(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`} />
-                    {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                    <Input id="city" type="text" value={city} onChange={e => setCity(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`} />
+                    {errors.city && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.city}</p>}
                 </Field>
 
                 <Field className="w-full mt-4">
@@ -488,9 +488,9 @@ export default function FormEditLaverie() {
                         id="country"
                         value={country}
                         onChange={setCountry}
-                        className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}
+                        className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`}
                     />
-                    {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
+                    {errors.country && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.country}</p>}
                 </Field>
             </div>
 
@@ -529,7 +529,7 @@ export default function FormEditLaverie() {
                         <button
                             type="button"
                             onClick={() => handleRemoveMachine(index)}
-                            className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 text-xs font-bold transition"
+                            className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-200 text-xs font-bold transition"
                             aria-label={t('edit_laundry_delete_machine')}
                         >
                             ✕

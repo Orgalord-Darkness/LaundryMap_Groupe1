@@ -50,7 +50,7 @@ const ONGLETS = [
 const BADGE_STYLES: Record<StatutOnglet, string> = {
     EN_ATTENTE: "bg-amber-100 text-amber-700 border border-amber-200",
     VALIDE:     "bg-emerald-100 text-emerald-700 border border-emerald-200",
-    REFUSE:     "bg-red-100 text-red-600 border border-red-200",
+    REFUSE:     "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800",
 }
 
 const BADGE_LABELS: Record<StatutOnglet, string> = {
@@ -162,7 +162,7 @@ function ContextMenu({
             ref={ref}
             role="menu"
             aria-label="Actions"
-            className="absolute right-0 bottom-10 z-20 bg-white rounded-2xl shadow-lg border border-gray-100 py-1 min-w-[170px] overflow-hidden"
+            className="absolute right-0 bottom-10 z-20 bg-card rounded-2xl shadow-lg border border-border py-1 min-w-[170px] overflow-hidden"
         >
             {items.map(({ label, icon, href, danger }) => (
                 <a
@@ -170,8 +170,8 @@ function ContextMenu({
                     href={href}
                     role="menuitem"
                     onClick={onClose}
-                    className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-gray-50 ${
-                        danger ? "text-red-500 hover:text-red-600" : "text-gray-700"
+                    className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-background ${
+                        danger ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:text-red-400" : "text-foreground"
                     }`}
                 >
                     {icon}
@@ -209,7 +209,7 @@ export function PaginationBar({
             <button
                 onClick={() => onChange(page - 1)} disabled={page === 1}
                 aria-label="Page précédente"
-                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 disabled:opacity-40 hover:bg-gray-50 transition-colors text-base"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-border text-muted-foreground disabled:opacity-40 hover:bg-background transition-colors text-base"
             >‹</button>
 
             {pages.map((p, i) =>
@@ -222,7 +222,7 @@ export function PaginationBar({
                         aria-current={p === page ? "page" : undefined}
                         aria-label={`Page ${p}`}
                         className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-medium transition-colors ${
-                            p === page ? "bg-blue-600 text-white shadow-sm" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                            p === page ? "bg-blue-600 text-white shadow-sm" : "border border-border text-muted-foreground hover:bg-background"
                         }`}
                     >{p}</button>
                 )
@@ -231,7 +231,7 @@ export function PaginationBar({
             <button
                 onClick={() => onChange(page + 1)} disabled={page === totalPages}
                 aria-label="Page suivante"
-                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 disabled:opacity-40 hover:bg-gray-50 transition-colors text-base"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-border text-muted-foreground disabled:opacity-40 hover:bg-background transition-colors text-base"
             >›</button>
         </nav>
     )
@@ -249,7 +249,7 @@ function LaverieCard({
     return (
         <Card className="overflow-hidden rounded-2xl p-0 gap-0 shadow-sm hover:shadow-md transition-shadow duration-200">
             {/* Image */}
-            <div className="relative bg-white overflow-hidden w-full">
+            <div className="relative bg-card overflow-hidden w-full">
                 {laverie.image_url ? (
                     <img
                         src={laverie.image_url}
@@ -272,13 +272,13 @@ function LaverieCard({
             {/* Contenu */}
             <CardContent className="p-4 flex flex-col gap-3">
                 <div className="flex flex-col gap-0.5">
-                    <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                    <h3 className="font-semibold text-foreground text-base leading-tight">
                         {laverie.nom_etablissement}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Propriétaire : {laverie.proprietaire_nom}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Créé le {laverie.date_creation}
                     </p>
                 </div>
@@ -300,7 +300,7 @@ function LaverieCard({
                                 aria-label="Plus d'actions"
                                 aria-haspopup="true"
                                 aria-expanded={menuOpen}
-                                className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-muted hover:text-muted-foreground transition-colors"
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <circle cx="12" cy="5"  r="1.5" />
@@ -365,9 +365,9 @@ export default function LaveriesValidation() {
 
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background">
             <main className="max-w-2xl mx-auto px-4 py-6">
-                <h1 className="text-2xl font-semibold text-gray-900 mb-5">
+                <h1 className="text-2xl font-semibold text-foreground mb-5">
                     Demandes de laveries
                 </h1>
 
@@ -376,14 +376,14 @@ export default function LaveriesValidation() {
                 {loading && (
                     <div role="status" aria-live="polite" className="flex flex-col gap-4">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-white rounded-2xl h-64 animate-pulse border border-gray-100" />
+                            <div key={i} className="bg-card rounded-2xl h-64 animate-pulse border border-border" />
                         ))}
                         <span className="sr-only">Chargement…</span>
                     </div>
                 )}
 
                 {!loading && error && (
-                    <div role="alert" className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">
+                    <div role="alert" className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl text-sm">
                         {error}
                     </div>
                 )}

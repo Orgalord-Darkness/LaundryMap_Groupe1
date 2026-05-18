@@ -44,7 +44,7 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
             aria-label={`Laverie ${laverie.nomEtablissement}`}
         >
             {/* Image / Placeholder */}
-            <div className="relative bg-white overflow-hidden shrink-0 w-full">
+            <div className="relative bg-card overflow-hidden shrink-0 w-full">
                 {laverie.logoUrl ? (
                     <img
                         src={`${API_BASE}${laverie.logoUrl}`}
@@ -61,12 +61,12 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
                 )}
 
                 {/* Badge statut */}
-                <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200 leading-tight">
+                <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 leading-tight">
                     {t("search_open")}
                 </span>
 
                 {/* Badge distance */}
-                <span className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-white/90 text-gray-700 shadow-sm font-medium flex items-center gap-1">
+                <span className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-card/90 text-foreground shadow-sm font-medium flex items-center gap-1">
                     <MapPin className="w-2.5 h-2.5" aria-hidden="true" />
                     {formatDistance(laverie.distanceMetres)}
                 </span>
@@ -74,17 +74,17 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
 
             {/* Contenu */}
             <div className="p-3 flex flex-col gap-1 flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2">
+                <h3 className="font-semibold text-foreground text-sm leading-tight line-clamp-2">
                     {laverie.nomEtablissement}
                 </h3>
 
-                <p className="text-xs text-gray-500 flex items-start gap-1 line-clamp-1">
+                <p className="text-xs text-muted-foreground flex items-start gap-1 line-clamp-1">
                     <MapPin className="w-3 h-3 mt-0.5 shrink-0 text-gray-400" aria-hidden="true" />
                     {laverie.adresse.rue}, {laverie.adresse.codePostal} {laverie.adresse.ville}
                 </p>
 
                 {laverie.contactEmail && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                         <Mail className="w-3 h-3 shrink-0 text-gray-400" aria-hidden="true" />
                         <span className="truncate">{laverie.contactEmail}</span>
                     </p>

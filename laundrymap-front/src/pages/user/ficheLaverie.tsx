@@ -113,7 +113,7 @@ const StatusBadge = ({ isOpen }: { isOpen: boolean }) => (
 
 /** Carte avis */
 const ReviewCard = ({ review }: { review: Review }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 shadow-sm">
+  <div className="bg-card rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 shadow-sm">
     <div className="flex items-center gap-3">
       <img
         src={review.avatar}
@@ -215,7 +215,7 @@ const ModalAvis = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-5">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-5">
  
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -445,8 +445,8 @@ function FicheLaverie() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="flex flex-col items-center gap-4 text-gray-500">
+      <div className="flex items-center justify-center min-h-screen bg-muted">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
           <div className="w-10 h-10 border-4 border-gray/30 border-t-gray-500 rounded-full animate-spin" />
           <p className="text-sm font-medium opacity-70">Chargement de la laverie…</p>
         </div>
@@ -456,8 +456,8 @@ function FicheLaverie() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center shadow-xl">
+      <div className="flex items-center justify-center min-h-screen bg-muted">
+        <div className="bg-card rounded-2xl p-8 max-w-sm mx-4 text-center shadow-xl">
           {/* <p className="text-4xl mb-3">⚠️</p> */}
           <h2 className="text-slate-800 font-bold text-lg mb-2">Une erreur est survenue</h2>
           <p className="text-slate-500 text-sm">{error}</p>
@@ -474,11 +474,11 @@ function FicheLaverie() {
 
   return (
 
-    <div className="flex flex-col items-center p-4 min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center p-4 min-h-screen bg-muted">
       <div className="w-full max-w-5xl mx-auto space-y-6">
 
         {/* ── HERO INFO ── */}
-        <div className="bg-white rounded-lg border border-slate-100 shadow-sm p-5 w-full">
+        <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-5 w-full">
           <div className="flex items-start gap-4">
             <img
               src={laverie.logo}
@@ -558,7 +558,7 @@ function FicheLaverie() {
         </div>
 
         {/* ── ADRESSE & NAVIGATION ── */}
-        <div className="bg-white rounded-lg border border-slate-100 shadow-sm p-4 w-full space-y-4">
+        <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-4 w-full space-y-4">
           <h3 className="text-slate-900 text-lg font-semibold"> Adresse & Itinéraire </h3>
 
           <div className="flex items-start gap-3">
@@ -601,7 +601,7 @@ function FicheLaverie() {
         <div className="grid lg:grid-cols-2 grid-cols-1 gap-6">
 
           {/* Services */}
-          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-white">
+          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
             <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Services</h3>
 
             <div className="mt-4">
@@ -638,7 +638,7 @@ function FicheLaverie() {
           </div>
 
           {/* Horaires */}
-          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-white">
+          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
             <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Horaires</h3>
 
             <div className="mt-4 space-y-3">
@@ -663,7 +663,7 @@ function FicheLaverie() {
         {/* LISTE MACHINES */}
         <div className="grid lg:grid-cols-1 sm:grid-cols-1 gap-6 mt-12 mx-auto w-full">
 
-          <div className="border border-gray-100 shadow-sm rounded-md bg-white p-6">
+          <div className="border border-border shadow-sm rounded-md bg-card p-6">
             <h3 className="text-slate-900 text-2xl font-semibold mb-4 text-center">Liste des machines</h3>
 
             {/* Liste Machines pour une laverie  */} 
@@ -685,7 +685,7 @@ function FicheLaverie() {
 
 
         {/* COMMENTAIRES */}
-        <div className="border border-gray-100 shadow-sm rounded-md p-6 bg-white">
+        <div className="border border-border shadow-sm rounded-md p-6 bg-card">
  
           
           <div className="flex items-center justify-between mb-4">

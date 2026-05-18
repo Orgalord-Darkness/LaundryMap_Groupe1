@@ -56,7 +56,8 @@ import AdminValidationLaverie from "./admin/laveries/list.tsx";
 import ProfessionnalAccountValidationList from "./admin/professional/list.tsx";
 import NewPassword from '@/components/layout/NewPassword'; 
 import AddLaundry from "./pro/addLaundry";
-import { FavorisList } from "./user/FavorisList";
+import { FavorisList } from "./user/FavorisList"
+import MesPreferences from "./user/preferences";
 import FicheLaverie from "./user/ficheLaverie";
 import MentionsLegales from "./legal/MentionsLegales";
 import CGU from "./legal/CGU";
@@ -74,7 +75,7 @@ function ProtectedRoute({
   if (isLoading) return (
     <div className="flex flex-col gap-4 p-8 max-w-md mx-auto mt-20">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+        <div key={i} className="h-12 bg-muted rounded-xl animate-pulse" />
       ))}
     </div>
   )
@@ -126,6 +127,12 @@ export default function Router() {
       <Route path="/user/favoris" element={
         <ProtectedRoute allowedRoles={["utilisateur"]}>
           <FavorisList />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/user/preferences" element={
+        <ProtectedRoute allowedRoles={["utilisateur", "professionnel"]}>
+          <MesPreferences />
         </ProtectedRoute>
       } />
 

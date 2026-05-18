@@ -96,7 +96,7 @@ function ProLogin() {
                         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
 
                             {successMessage && (
-                                <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                                <div className="p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl">
                                     {successMessage}
                                 </div>
                             )}
@@ -113,7 +113,7 @@ function ProLogin() {
                                 <Field>
                                     <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
                                     <Input id="email" type="email" placeholder="lambert@example.net" required {...register("email", { required: "L'email est requis" })}/>
-                                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+                                    {errors.email && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.email.message}</p>}
                                 </Field>
 
                                 <Field>
@@ -127,7 +127,7 @@ function ProLogin() {
                                         </a>
                                     </div>
                                     <Input id="mot_de_passe" type="password" required {...register("mot_de_passe", { required: "Le mot de passe est requis" })}/>
-                                    {errors.mot_de_passe && <p className="text-red-500 text-sm mt-1">{errors.mot_de_passe.message}</p>}
+                                    {errors.mot_de_passe && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.mot_de_passe.message}</p>}
                                 </Field>
 
                                 <Field>

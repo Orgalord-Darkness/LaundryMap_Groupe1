@@ -14,7 +14,7 @@ export type PersonalSpaceTab = (typeof PERSONAL_SPACE_TABS)[number]
 export const TAB_ROUTES: Record<PersonalSpaceTab, string | null> = {
     Profil: "/user/informations",
     Favoris: "/user/favoris",
-    Préférences: null,
+    Préférences: "/user/preferences",
     Avis: null,
 }
 
@@ -35,7 +35,7 @@ export function PersonalSpaceNavbar({ active, onChange }: PersonalSpaceNavbarPro
         <nav aria-label="Navigation espace personnel" className="w-full">
             <div
                 role="tablist"
-                className="flex items-center w-full border-b border-gray-200 bg-white"
+                className="flex items-center w-full border-b border-border bg-card"
             >
                 {visibleTabs.map((tab) => {
                     const isActive = tab === active
@@ -52,7 +52,7 @@ export function PersonalSpaceNavbar({ active, onChange }: PersonalSpaceNavbarPro
                                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset
                                 ${isActive
                                     ? "text-primary"
-                                    : "text-gray-500 hover:text-gray-700"
+                                    : "text-muted-foreground hover:text-foreground"
                                 }
                             `}
                         >

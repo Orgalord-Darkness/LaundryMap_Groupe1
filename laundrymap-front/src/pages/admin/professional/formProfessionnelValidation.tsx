@@ -69,7 +69,7 @@ export default function FormProfessionnelValidation() {
     }
 
     if (loading) return <div className="p-10 text-center">Chargement...</div>
-    if (error || !pro) return <div className="p-10 text-red-500 text-center">{error}</div>
+    if (error || !pro) return <div className="p-10 text-red-500 dark:text-red-400 text-center">{error}</div>
 
     const statutLabel: Record<string, string> = {
         'en attente': 'En attente',
@@ -81,10 +81,10 @@ export default function FormProfessionnelValidation() {
     return (
         <form className="flex flex-col items-center p-4 max-w-md mx-auto">
 
-            <h1 className="font-semibold mt-10 text-2xl text-gray-900 text-center">
+            <h1 className="font-semibold mt-10 text-2xl text-foreground text-center">
                 Demande de compte professionnel
             </h1>
-            <p className="text-gray-500 text-center mb-6">
+            <p className="text-muted-foreground text-center mb-6">
                 Consultez les informations avant de prendre une décision
             </p>
 
@@ -92,8 +92,8 @@ export default function FormProfessionnelValidation() {
             {feedback && (
                 <div className={`w-full p-4 rounded-xl text-sm mb-4 border ${
                     feedback.type === 'success'
-                        ? 'bg-green-100 border-green-400 text-green-700'
-                        : 'bg-red-50 border-red-200 text-red-600'
+                        ? 'bg-green-100 dark:bg-green-900/30 border-green-400 dark:border-green-700 text-green-700 dark:text-green-400'
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
                 }`}>
                     {feedback.message}
                 </div>
@@ -101,13 +101,13 @@ export default function FormProfessionnelValidation() {
 
             {/* Statut actuel */}
             <div className="w-full mb-2 flex items-center gap-2">
-                <span className="text-sm text-gray-500">Statut actuel :</span>
+                <span className="text-sm text-muted-foreground">Statut actuel :</span>
                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                     pro.statut === 'en attente'
                         ? 'bg-orange-100 text-orange-600'
                         : pro.statut === 'validé'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-600'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
                 }`}>
                     {statutLabel[pro.statut] ?? pro.statut}
                 </span>
@@ -116,22 +116,22 @@ export default function FormProfessionnelValidation() {
             {/* Identité */}
             <Field className="w-full mt-4">
                 <FieldLabel>Prénom</FieldLabel>
-                <Input value={pro.utilisateur.prenom} disabled className="h-11 bg-gray-100" />
+                <Input value={pro.utilisateur.prenom} disabled className="h-11 bg-muted" />
             </Field>
 
             <Field className="w-full mt-4">
                 <FieldLabel>Nom</FieldLabel>
-                <Input value={pro.utilisateur.nom} disabled className="h-11 bg-gray-100" />
+                <Input value={pro.utilisateur.nom} disabled className="h-11 bg-muted" />
             </Field>
 
             <Field className="w-full mt-4">
                 <FieldLabel>Email</FieldLabel>
-                <Input value={pro.utilisateur.email} disabled className="h-11 bg-gray-100" />
+                <Input value={pro.utilisateur.email} disabled className="h-11 bg-muted" />
             </Field>
 
             <Field className="w-full mt-4">
                 <FieldLabel>Numéro SIREN</FieldLabel>
-                <Input value={String(pro.siren)} disabled className="h-11 bg-gray-100" />
+                <Input value={String(pro.siren)} disabled className="h-11 bg-muted" />
             </Field>
 
             {/* Adresse */}
@@ -139,28 +139,28 @@ export default function FormProfessionnelValidation() {
                 <>
                     <Field className="w-full mt-4">
                         <FieldLabel>Numéro</FieldLabel>
-                        <Input value={pro.adresse.adresse} disabled className="h-11 bg-gray-100" />
+                        <Input value={pro.adresse.adresse} disabled className="h-11 bg-muted" />
                     </Field>
 
                     <Field className="w-full mt-4">
                         <FieldLabel>Rue</FieldLabel>
-                        <Input value={pro.adresse.rue} disabled className="h-11 bg-gray-100" />
+                        <Input value={pro.adresse.rue} disabled className="h-11 bg-muted" />
                     </Field>
 
                     <div className="w-full grid grid-cols-2 gap-3 mt-4">
                         <Field>
                             <FieldLabel>Code postal</FieldLabel>
-                            <Input value={String(pro.adresse.code_postal)} disabled className="h-11 bg-gray-100" />
+                            <Input value={String(pro.adresse.code_postal)} disabled className="h-11 bg-muted" />
                         </Field>
                         <Field>
                             <FieldLabel>Ville</FieldLabel>
-                            <Input value={pro.adresse.ville} disabled className="h-11 bg-gray-100" />
+                            <Input value={pro.adresse.ville} disabled className="h-11 bg-muted" />
                         </Field>
                     </div>
 
                     <Field className="w-full mt-4">
                         <FieldLabel>Pays</FieldLabel>
-                        <Input value={pro.adresse.pays} disabled className="h-11 bg-gray-100" />
+                        <Input value={pro.adresse.pays} disabled className="h-11 bg-muted" />
                     </Field>
                 </>
             )}
@@ -172,9 +172,9 @@ export default function FormProfessionnelValidation() {
                     value={motif}
                     onChange={(e) => setMotif(e.target.value)}
                     placeholder="Expliquez votre décision…"
-                    className={`h-28 ${motifError ? 'border-red-500' : ''}`}
+                    className={`h-28 ${motifError ? 'border-red-500 dark:border-red-700' : ''}`}
                 />
-                {motifError && <p className="text-red-500 text-xs mt-1">{motifError}</p>}
+                {motifError && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{motifError}</p>}
             </Field>
 
             {/* Boutons */}

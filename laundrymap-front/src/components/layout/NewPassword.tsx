@@ -53,18 +53,18 @@ export default function NouveauMotDePasse() {
 
     if (!resetToken) {
         return (
-            <p className="text-center text-red-500 mt-10">
+            <p className="text-center text-red-500 dark:text-red-400 mt-10">
                 Token manquant ou invalide.
             </p>
         )
     }
 
     return (
-        <div className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-white rounded-2xl shadow-lg mt-10">
-            <h2 className="text-2xl font-semibold text-gray-900 text-center">
+        <div className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-card rounded-2xl shadow-lg mt-10">
+            <h2 className="text-2xl font-semibold text-foreground text-center">
                 Définir votre mot de passe
             </h2>
-            <p className="text-gray-500 text-center text-sm">
+            <p className="text-muted-foreground text-center text-sm">
                 Votre compte Google est prêt. Choisissez un mot de passe pour pouvoir aussi vous connecter par email.
             </p>
 
@@ -74,7 +74,7 @@ export default function NouveauMotDePasse() {
                     <label htmlFor="mot_de_passe" className="text-sm font-medium mb-1">
                         Mot de passe <strong className="text-orange-500">*</strong>
                     </label>
-                    <p className="text-xs text-gray-500 mb-1">
+                    <p className="text-xs text-muted-foreground mb-1">
                         8 caractères minimum, 1 majuscule, 1 minuscule, 1 caractère spécial.
                     </p>
                     <Input
@@ -84,7 +84,7 @@ export default function NouveauMotDePasse() {
                         {...register('mot_de_passe', { required: true })}
                     />
                     {errors.mot_de_passe && (
-                        <p id="mdp-error" role="alert" className="text-red-500 text-xs mt-1 whitespace-pre-wrap">
+                        <p id="mdp-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">
                             {errors.mot_de_passe.message}
                         </p>
                     )}
@@ -101,7 +101,7 @@ export default function NouveauMotDePasse() {
                         {...register('confirmation_mot_de_passe', { required: true })}
                     />
                     {errors.confirmation_mot_de_passe && (
-                        <p id="confirm-error" role="alert" className="text-red-500 text-xs mt-1">
+                        <p id="confirm-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">
                             {errors.confirmation_mot_de_passe.message}
                         </p>
                     )}

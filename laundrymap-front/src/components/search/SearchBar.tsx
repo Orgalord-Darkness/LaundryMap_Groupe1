@@ -183,17 +183,17 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                     disabled={loading}
                     autoComplete="off"
                     className={`
-                        w-full rounded-xl border px-4 py-2.5 text-sm bg-white
+                        w-full rounded-xl border px-4 py-2.5 text-sm bg-card
                         shadow-sm outline-none transition-all duration-200
                         focus:ring-2 focus:ring-primary/40 focus:border-primary
                         disabled:opacity-50 disabled:cursor-not-allowed
-                        ${touched && value.trim() === "" ? "border-red-400" : "border-gray-200"}
+                        ${touched && value.trim() === "" ? "border-red-400 dark:border-red-700" : "border-border"}
                     `}
                 />
 
                 {/* Message de validation */}
                 {touched && value.trim() === "" && (
-                    <p className="text-xs text-red-500 mt-1 ml-1" role="alert">
+                    <p className="text-xs text-red-500 dark:text-red-400 mt-1 ml-1" role="alert">
                         Veuillez saisir une ville ou un code postal.
                     </p>
                 )}
@@ -204,7 +204,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                         id="search-suggestions"
                         role="listbox"
                         aria-label="Suggestions d'adresses"
-                        className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+                        className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden"
                     >
                         {suggestions.map((suggestion, index) => (
                             <li
@@ -219,7 +219,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                                     flex flex-col gap-0.5
                                     ${activeIndex === index
                                         ? "bg-primary/10 text-primary"
-                                        : "text-gray-700 hover:bg-gray-50"
+                                        : "text-foreground hover:bg-background"
                                     }
                                 `}
                             >

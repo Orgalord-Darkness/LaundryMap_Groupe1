@@ -31,7 +31,7 @@ export const CheckboxGroup = ({ title, options, disabled, value = [], onChange }
 
     return (
         <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-bold text-gray-800">{title}</h3>
+            <h3 className="text-sm font-bold text-foreground">{title}</h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                 {options.map((option) => {
                     const checked = value.includes(String(option.value))
@@ -41,17 +41,17 @@ export const CheckboxGroup = ({ title, options, disabled, value = [], onChange }
                             className={`
                                 flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer
                                 border transition-all duration-150 select-none
-                                ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50 active:scale-[0.98]"}
+                                ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-background active:scale-[0.98]"}
                                 ${checked
                                     ? "border-primary bg-primary/5 text-primary"
-                                    : "border-gray-200 bg-white text-gray-700"
+                                    : "border-border bg-card text-foreground"
                                 }
                             `}
                         >
                             {/* Checkbox custom */}
                             <span className={`
                                 flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors
-                                ${checked ? "bg-primary border-primary" : "bg-white border-gray-300"}
+                                ${checked ? "bg-primary border-primary" : "bg-card border-border"}
                             `}>
                                 {checked && (
                                     <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
