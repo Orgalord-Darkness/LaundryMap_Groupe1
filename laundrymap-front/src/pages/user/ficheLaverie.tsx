@@ -337,11 +337,7 @@ function FicheLaverie() {
     setIsLoading(true);
     setError(null);
  
-    const headers: HeadersInit = { "Content-Type": "application/json" };
-
-    if (token) headers["Authorization"] = `Bearer ${token}`;
- 
-    fetch(url, { method: "GET", headers })
+    fetch(url, { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include" })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`Erreur ${response.status} : ${response.statusText}`);
@@ -387,13 +383,11 @@ function FicheLaverie() {
 
   // Soumission d'un avis 
   const handleSubmitAvis = (note: number, commentaire: string) => {
-    const currentToken = localStorage.getItem("token");
-    if (!currentToken) return;
- 
     setIsSubmitting(true);
     fetch(commentaireUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${currentToken}` },
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ note, commentaire }),
     })
       .then(async (response) => {
