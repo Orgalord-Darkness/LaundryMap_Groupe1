@@ -20,6 +20,7 @@ class LaverieRepository extends ServiceEntityRepository
 
     public function findAllWithDetails(int $offset = 0, int $limit = 10, LaverieStatutEnum $statut=LaverieStatutEnum::EN_ATTENTE): array
     {
+        
         $queryBuilder = $this->createQueryBuilder('l')
         ->leftJoin('l.logo', 'logo')
         ->leftJoin('l.adresse', 'adresse')
@@ -174,9 +175,10 @@ class LaverieRepository extends ServiceEntityRepository
      * @param int   $radius Rayon de recherche en mètres (défaut : 2000 m = 2 km)
      * @return array        Liste de laveries avec leur distance en mètres
      */
-    public function findByLocation(float $lat, float $lng, int $radius = 2000): array
+    public function findByLocation(float $lat, float $lng, int $radius = 2000, $user = null): array
     {
         $conn = $this->getEntityManager()->getConnection();
+        $userId = $user?->getId();
 
         // La formule haversine calcule la distance en mètres entre 2 points GPS.
         // Sous-requête pour éviter le HAVING sur alias (incompatible strict SQL).
@@ -202,10 +204,12 @@ class LaverieRepository extends ServiceEntityRepository
                             cos(radians(:lat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:lng))
                             + sin(radians(:lat)) * sin(radians(a.latitude))
                         ))
-                    , 1) AS distanceMetres
+                    , 1) AS distanceMetres, 
+                    CASE WHEN f.laverie_id IS NOT NULL THEN 1 ELSE 0 END AS isFavorite
                 FROM laverie l
                 INNER JOIN adresse a ON l.adresse_id = a.id
                 LEFT  JOIN media   m ON l.logo_id    = m.id
+                LEFT JOIN laverie_favori f ON f.laverie_id = l.id AND f.utilisateur_id = :userId
                 WHERE l.statut = :statut
                   AND l.supprime_le IS NULL
                   AND a.latitude IS NOT NULL
@@ -220,6 +224,7 @@ class LaverieRepository extends ServiceEntityRepository
             'lng'    => $lng,
             'radius' => $radius,
             'statut' => LaverieStatutEnum::VALIDE->value,
+            'userId' => $userId,
         ]);
     }
 
@@ -251,15 +256,17 @@ class LaverieRepository extends ServiceEntityRepository
      * @param int   $radius  Rayon en mètres (défaut : 2000)
      * @param array $filters Filtres optionnels : services[], payments[], openAt (HH:MM)
      */
-    public function findByLocationAndFilters(float $lat, float $lng, int $radius = 2000, array $filters = []): array
+    public function findByLocationAndFilters(float $lat, float $lng, int $radius = 2000, array $filters = [], $user = null): array
     {
         $conn = $this->getEntityManager()->getConnection();
+        $userId = $user?->getId();
 
         $params = [
             'lat'    => $lat,
             'lng'    => $lng,
             'radius' => $radius,
             'statut' => LaverieStatutEnum::VALIDE->value,
+            'userId' => $userId,
         ];
         $types  = [];
         $joins  = '';
@@ -312,10 +319,12 @@ class LaverieRepository extends ServiceEntityRepository
                         cos(radians(:lat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:lng))
                         + sin(radians(:lat)) * sin(radians(a.latitude))
                     ))
-                , 1) AS distanceMetres
+                , 1) AS distanceMetres,
+                CASE WHEN f.laverie_id IS NOT NULL THEN 1 ELSE 0 END AS isFavorite
             FROM laverie l
             INNER JOIN adresse a ON l.adresse_id = a.id
             LEFT  JOIN media   m ON l.logo_id    = m.id
+            LEFT  JOIN laverie_favori f ON f.laverie_id = l.id AND f.utilisateur_id = :userId
             {$joins}
             WHERE l.statut = :statut
               AND l.supprime_le IS NULL

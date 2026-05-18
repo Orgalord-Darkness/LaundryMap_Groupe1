@@ -19,12 +19,25 @@ type Inputs = {
 
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription`
 
+const INSCRIPTION_DRAFT_KEY = "laundrymap_inscription_draft";
+
+function loadDraft(): Partial<Inputs> {
+    try {
+        const saved = sessionStorage.getItem(INSCRIPTION_DRAFT_KEY);
+        return saved ? JSON.parse(saved) : {};
+    } catch {
+        return {};
+    }
+}
+
 export default function Inscription() {
 
     const { t } = useTranslation()
 
     const [successMessage, setSuccessMessage] = useState("");
-    const [cguAccepted, setCguAccepted] = useState(false);
+    const [cguAccepted, setCguAccepted] = useState(
+        () => localStorage.getItem('laundrymap_cgu_read') === 'true'
+    );
     
     useEffect(() => {
         if (successMessage) {
@@ -41,7 +54,17 @@ export default function Inscription() {
         watch,
         formState: { errors },
         setError,
-    } = useForm<Inputs>()
+    } = useForm<Inputs>({
+        defaultValues: loadDraft()
+    })
+
+    const [prenom, nom, email] = watch(['prenom', 'nom', 'email'])
+
+    useEffect(() => {
+        if (prenom || nom || email) {
+            sessionStorage.setItem(INSCRIPTION_DRAFT_KEY, JSON.stringify({ prenom, nom, email }));
+        }
+    }, [prenom, nom, email])
     
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
@@ -55,6 +78,7 @@ export default function Inscription() {
 
             console.log(reponse.status); 
 
+            sessionStorage.removeItem(INSCRIPTION_DRAFT_KEY);
             setSuccessMessage("Inscription réussie ! Vérifiez votre email.");
             
         } catch (erreur) {

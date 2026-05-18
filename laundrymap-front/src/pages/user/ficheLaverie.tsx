@@ -285,6 +285,8 @@ const ModalAvis = ({
 
 
 
+const JOURS_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+
 // COMPOSANT PRINCIPAL
 
 function FicheLaverie() {
@@ -642,7 +644,9 @@ function FicheLaverie() {
             <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Horaires</h3>
 
             <div className="mt-4 space-y-3">
-              {laverie.horaires.map((horaire) => (
+              {[...laverie.horaires]
+                .sort((a, b) => JOURS_ORDER.indexOf(a.day) - JOURS_ORDER.indexOf(b.day))
+                .map((horaire) => (
                 <div
                   key={horaire.day}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-slate-100 pb-2 last:border-0"
