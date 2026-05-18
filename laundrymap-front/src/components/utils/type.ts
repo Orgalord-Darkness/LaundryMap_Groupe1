@@ -101,6 +101,7 @@ export interface LaverieSearch {
     adresse: AdresseSearch
     distanceMetres: number
     logoUrl?: string | null
+    isFavorite?: boolean
 }
 
 export interface Coordinates {
@@ -126,3 +127,5 @@ export interface SearchResult {
     }
     distanceMetres: number
 }
+
+export type SortOrder = "distance_asc" | "distance_desc" | "name_asc"

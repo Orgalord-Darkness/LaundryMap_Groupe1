@@ -1,7 +1,9 @@
+import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { LaverieSearchCard } from "./LaverieSearchCard"
-import type { LaverieSearch } from "@/components/utils/type"
+import type { LaverieSearch, SortOrder } from "@/components/utils/type"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // ─── LaverieList — liste des résultats de recherche ───────────────────────────
 // Gère les états : chargement, erreur, vide (après recherche), invitation initiale
@@ -26,6 +28,19 @@ export function LaverieList({
     hasActiveFilters = false,
 }: LaverieListProps) {
     const { t } = useTranslation()
+    const [sortOrder, setSortOrder] = useState<SortOrder>("distance_asc")
+
+    const sortedLaveries = useMemo(() => {
+        const copy = [...laveries]
+        switch (sortOrder) {
+            case "distance_desc":
+                return copy.sort((a, b) => b.distanceMetres - a.distanceMetres)
+            case "name_asc":
+                return copy.sort((a, b) => a.nomEtablissement.localeCompare(b.nomEtablissement, 'fr'))
+            default:
+                return copy.sort((a, b) => a.distanceMetres - b.distanceMetres)
+        }
+    }, [laveries, sortOrder])
 
     // ─── États ────────────────────────────────────────────────────────────────
 
@@ -75,17 +90,34 @@ export function LaverieList({
     // ─── Résultats ────────────────────────────────────────────────────────────
 
     return (
-        <ScrollArea className="h-[400px]" aria-label="Liste des laveries trouvées">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
-                {laveries.map((laverie) => (
-                    <LaverieSearchCard
-                        key={laverie.id}
-                        laverie={laverie}
-                        selected={selectedId === laverie.id}
-                        onClick={() => onSelectLaverie(laverie.id)}
-                    />
-                ))}
+        <div>
+            <div className="flex items-center justify-between mb-2 px-1">
+                <span className="text-xs text-muted-foreground">
+                    {laveries.length} résultat{laveries.length > 1 ? "s" : ""}
+                </span>
+                <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as SortOrder)}>
+                    <SelectTrigger className="w-44 h-7 text-xs">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="distance_asc">Distance croissante</SelectItem>
+                        <SelectItem value="distance_desc">Distance décroissante</SelectItem>
+                        <SelectItem value="name_asc">Nom A → Z</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
-        </ScrollArea>
+            <ScrollArea className="h-[400px]" aria-label="Liste des laveries trouvées">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
+                    {sortedLaveries.map((laverie) => (
+                        <LaverieSearchCard
+                            key={laverie.id}
+                            laverie={laverie}
+                            selected={selectedId === laverie.id}
+                            onClick={() => onSelectLaverie(laverie.id)}
+                        />
+                    ))}
+                </div>
+            </ScrollArea>
+        </div>
     )
 }

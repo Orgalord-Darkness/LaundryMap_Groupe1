@@ -65,6 +65,16 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
                     {t("search_open")}
                 </span>
 
+                {/* Badge favori */}
+                {laverie.isFavorite && (
+                    <span className="absolute top-2 left-2 p-1 rounded-full bg-card/80 backdrop-blur-sm shadow-sm" aria-label="Favori">
+                        <svg className="w-4 h-4 text-rose-500 fill-rose-500" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </span>
+                )}
+
                 {/* Badge distance */}
                 <span className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-card/90 text-foreground shadow-sm font-medium flex items-center gap-1">
                     <MapPin className="w-2.5 h-2.5" aria-hidden="true" />

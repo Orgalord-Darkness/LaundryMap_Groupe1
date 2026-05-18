@@ -914,7 +914,8 @@ class LaverieController extends AbstractController
         }
 
         // Recherche des laveries dans le rayon
-        $laveries = $laverieRepository->findByLocation($lat, $lng, $radius);
+        $user = $this->getUser(); 
+        $laveries = $laverieRepository->findByLocation($lat, $lng, $radius, $user);
 
         if (empty($laveries)) {
             return $this->json(['message' => 'Aucune laverie trouvée dans ce périmètre. Essayez d\'augmenter le rayon de recherche.'], Response::HTTP_NOT_FOUND);
@@ -938,6 +939,7 @@ class LaverieController extends AbstractController
                 ],
                 'distanceMetres'   => (float) $laverie['distanceMetres'],
                 'logoUrl'          => $laverie['logoUrl'] ?? null,
+                'isFavorite' => (bool) ($laverie['isFavorite'] ?? false),
             ];
         }, $laveries);
 
@@ -1103,6 +1105,8 @@ class LaverieController extends AbstractController
             return $this->json(['message' => 'Veuillez fournir une position GPS (lat + lng) ou une adresse (query).'], Response::HTTP_BAD_REQUEST);
         }
 
+        $user = $this->getUser();
+
         // Lecture des filtres optionnels
         $services   = $request->query->all('services');     // ex: ["wifi", "parking"]
         $payments   = $request->query->all('payments');     // ex: ["carte", "especes"]
@@ -1120,8 +1124,8 @@ class LaverieController extends AbstractController
 
         // Recherche avec ou sans filtres
         $laveries = $hasFilters
-            ? $laverieRepository->findByLocationAndFilters($lat, $lng, $radius, $filters)
-            : $laverieRepository->findByLocation($lat, $lng, $radius);
+            ? $laverieRepository->findByLocationAndFilters($lat, $lng, $radius, $filters, $user)
+            : $laverieRepository->findByLocation($lat, $lng, $radius, $this->getUser());
 
         if (empty($laveries)) {
             return $this->json(['message' => 'Aucune laverie trouvée. Essayez de modifier vos filtres ou d\'augmenter le rayon.'], Response::HTTP_NOT_FOUND);
@@ -1145,6 +1149,7 @@ class LaverieController extends AbstractController
                 ],
                 'distanceMetres'   => (float) $laverie['distanceMetres'],
                 'logoUrl'          => $laverie['logoUrl'] ?? null,
+                'isFavorite'       => (bool) ($laverie['isFavorite'] ?? false),
             ];
         }, $laveries);
 
