@@ -29,7 +29,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Si 200 → utilise getRoleFromSymfonyRoles(data.roles) et setUser({ email, role })
     // Si 401 → setUser(null)
     // Dans le finally → setIsLoading(false)
-    setIsLoading(false);
+    setIsLoading(true);
+    axios.get(`${API_BASE}/api/v1/auth/me`, {withCredentials:true}).then(
+      (response) => {
+      const email = response.data.email;
+      const role = getRoleFromSymfonyRoles(response.data.roles)
+      setUser({email, role})
+      }
+    ).catch(() => {
+      setUser(null)
+    }).finally( () => {
+      setIsLoading(false)
+    }
+    );
   }, []);
 
   const logout = useCallback(async () => {
