@@ -27,7 +27,7 @@ export function PaginationBar({
                 onClick={() => onChange(page - 1)}
                 disabled={page === 1}
                 aria-label="Page précédente"
-                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 disabled:opacity-40 hover:bg-gray-50 transition-colors text-base"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-border text-muted-foreground disabled:opacity-40 hover:bg-background transition-colors text-base"
             >
                 ‹
             </button>
@@ -46,7 +46,7 @@ export function PaginationBar({
                         className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-medium transition-colors ${
                             p === page
                                 ? "bg-blue-600 text-white shadow-sm"
-                                : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                : "border border-border text-muted-foreground hover:bg-background"
                         }`}
                     >
                         {p}
@@ -58,7 +58,7 @@ export function PaginationBar({
                 onClick={() => onChange(page + 1)}
                 disabled={page === totalPages}
                 aria-label="Page suivante"
-                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 disabled:opacity-40 hover:bg-gray-50 transition-colors text-base"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-border text-muted-foreground disabled:opacity-40 hover:bg-background transition-colors text-base"
             >
                 ›
             </button>

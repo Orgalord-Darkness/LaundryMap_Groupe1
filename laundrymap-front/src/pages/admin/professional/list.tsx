@@ -27,20 +27,20 @@ function ProfessionnalAccountValidationList() {
         return (
             <div className="flex flex-col gap-4 p-4 max-w-md mx-auto mt-10">
                 {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-28 bg-gray-100 rounded-xl animate-pulse" />
+                    <div key={i} className="h-28 bg-muted rounded-xl animate-pulse" />
                 ))}
             </div>
         )
     }
 
     if (error) {
-        return <div className="p-10 text-red-500 text-center">{error}</div>
+        return <div className="p-10 text-red-500 dark:text-red-400 text-center">{error}</div>
     }
 
     return (
         <div className="flex flex-col items-center p-4 min-h-screen">
             <h1 className="font-bold text-2xl mt-6">Validation des comptes professionnels</h1>
-            <p className="text-gray-500 text-center mt-2 mb-6">
+            <p className="text-muted-foreground text-center mt-2 mb-6">
                 Gérez les comptes professionnels en attente de validation
             </p>
 
@@ -51,7 +51,7 @@ function ProfessionnalAccountValidationList() {
                     {pros.map((pro) => (
                         <div
                             key={pro.id}
-                            className="bg-white border border-gray-200 shadow-md p-6 rounded-lg"
+                            className="bg-card border border-border shadow-md p-6 rounded-lg"
                         >
                             <h3 className="text-xl font-semibold text-slate-900">
                                 {pro.utilisateur.prenom} {pro.utilisateur.nom}

@@ -32,10 +32,10 @@ export function DeleteFavoriteButton({ laverieId, onRemoved, className = "" }: F
             className={`
                 group relative flex items-center justify-center
                 w-10 h-10 rounded-full
-                bg-white/90 backdrop-blur-sm
+                bg-card/90 backdrop-blur-sm
                 shadow-md border border-white/60
                 transition-all duration-200
-                hover:scale-110 hover:shadow-lg hover:bg-red-50
+                hover:scale-110 hover:shadow-lg hover:bg-red-50 dark:bg-red-900/20
                 active:scale-95
                 disabled:opacity-60 disabled:cursor-not-allowed
                 ${className}
@@ -57,7 +57,7 @@ export function DeleteFavoriteButton({ laverieId, onRemoved, className = "" }: F
                 <span className="relative">
                     {/* Cœur par défaut */}
                     <svg
-                        className="w-5 h-5 text-red-500 fill-red-500 group-hover:opacity-0 transition-opacity duration-150"
+                        className="w-5 h-5 text-red-500 dark:text-red-400 fill-red-500 group-hover:opacity-0 transition-opacity duration-150"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth="1.5"

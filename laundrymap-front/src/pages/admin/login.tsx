@@ -105,7 +105,7 @@ function AdminLogin() {
                   <Field>
                     <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
                     <Input id="email" type="email" placeholder="adm@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
-                    {errors.email && ( <p className="text-red-500 text-sm mt-1">{errors.email}</p> )}
+                    {errors.email && ( <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.email}</p> )}
                   </Field>
 
                   <Field>
@@ -113,7 +113,7 @@ function AdminLogin() {
                       <FieldLabel htmlFor="password">{t("mot_de_passe")}</FieldLabel>
                     </div>
                     <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
-                    {errors.password && ( <p className="text-red-500 text-sm mt-1">{errors.password}</p> )}
+                    {errors.password && ( <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.password}</p> )}
                   </Field>
 
                   <Field>

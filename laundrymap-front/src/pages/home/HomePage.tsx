@@ -169,7 +169,7 @@ export default function HomePage() {
     // ─── Rendu ────────────────────────────────────────────────────────────────
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-background">
             <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col gap-5">
 
                 {/* Barre de recherche + bouton filtres — z-10 pour passer au-dessus de la carte */}
@@ -206,7 +206,7 @@ export default function HomePage() {
                 <section aria-labelledby="list-title">
                     <h2
                         id="list-title"
-                        className="text-lg font-semibold text-gray-800 mb-4"
+                        className="text-lg font-semibold text-foreground mb-4"
                     >
                         {t("search_title")}
                         {hasSearched && laveries.length > 0 && (

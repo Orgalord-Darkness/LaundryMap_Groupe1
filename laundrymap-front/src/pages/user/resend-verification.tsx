@@ -31,7 +31,7 @@ export default function ResendVerification() {
   };
 
   return (
-    <div className="mx-auto max-w-md mt-8 p-6 bg-white shadow-lg rounded-lg">
+    <div className="mx-auto max-w-md mt-8 p-6 bg-card shadow-lg rounded-lg">
       <h1 className="text-xl font-semibold mb-4">Renvoyer l'email de validation</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <input
@@ -44,8 +44,8 @@ export default function ResendVerification() {
         />
         <button type="submit" className="bg-blue-600 text-white p-2 rounded">Envoyer</button>
       </form>
-      {message && <p className="text-green-600 mt-3">{message}</p>}
-      {error && <p className="text-red-600 mt-3">{error}</p>}
+      {message && <p className="text-green-600 dark:text-green-400 mt-3">{message}</p>}
+      {error && <p className="text-red-600 dark:text-red-400 mt-3">{error}</p>}
     </div>
   );
 }

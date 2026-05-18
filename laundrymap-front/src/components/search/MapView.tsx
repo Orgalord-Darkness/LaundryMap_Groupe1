@@ -185,7 +185,7 @@ export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound
     const navigate = useNavigate()
     return (
         <div
-            className="w-full rounded-2xl overflow-hidden shadow-sm border border-gray-100"
+            className="w-full rounded-2xl overflow-hidden shadow-sm border border-border"
             style={{ height: "50vh", minHeight: "300px" }}
             role="application"
             aria-label="Carte des laveries"
@@ -245,12 +245,12 @@ export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound
                         >
                             <Popup>
                                 <div className="text-sm font-semibold">{laverie.nomEtablissement}</div>
-                                <div className="text-xs text-gray-500 mt-0.5">
+                                <div className="text-xs text-muted-foreground mt-0.5">
                                     {laverie.adresse.rue}, {laverie.adresse.ville}
                                 </div>
                                 <button 
                                     onClick={() => navigate(`/user/fiche-laverie/${laverie.id}`)}
-                                    className="w-full text-xs bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-white hover:text-primary hover:border hover:border-primary transition-colors cursor-pointer"
+                                    className="w-full text-xs bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-card hover:text-primary hover:border hover:border-primary transition-colors cursor-pointer"
                                 >
 
                                     Voir la fiche

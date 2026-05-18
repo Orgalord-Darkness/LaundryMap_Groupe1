@@ -46,10 +46,10 @@ export default function CGU() {
   return (
     <>
       {/* Barre de progression sticky */}
-      <div className="sticky top-0 z-50 bg-white shadow-sm print:hidden">
+      <div className="sticky top-0 z-50 bg-card shadow-sm print:hidden">
         <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-3">
-          <span className="text-xs text-gray-500 whitespace-nowrap">Progression de lecture</span>
-          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Progression de lecture</span>
+          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-100"
               style={{
@@ -58,17 +58,17 @@ export default function CGU() {
               }}
             />
           </div>
-          <span className="text-xs text-gray-500 whitespace-nowrap">{Math.round(scrollProgress)}%</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">{Math.round(scrollProgress)}%</span>
         </div>
       </div>
 
-      <div className="min-h-screen bg-gray-50 py-10 px-4">
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-8 md:p-12">
+      <div className="min-h-screen bg-background py-10 px-4">
+        <div className="max-w-4xl mx-auto bg-card rounded-2xl shadow-sm p-8 md:p-12">
 
           <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Conditions Générales d'Utilisation</h1>
-              <p className="text-gray-500 mt-1">LaundryMap — Version du 1er janvier 2025</p>
+              <h1 className="text-3xl font-bold text-foreground">Conditions Générales d'Utilisation</h1>
+              <p className="text-muted-foreground mt-1">LaundryMap — Version du 1er janvier 2025</p>
               <p className="text-gray-400 text-sm mt-0.5">Éditeur : EC2E (Electro Câblage Engineering et Équipement)</p>
             </div>
             <Button
@@ -86,12 +86,12 @@ export default function CGU() {
             </Button>
           </div>
 
-          <hr className="border-gray-200 mb-10" />
+          <hr className="border-border mb-10" />
 
-          <div className="space-y-10 text-gray-700 leading-relaxed">
+          <div className="space-y-10 text-foreground leading-relaxed">
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 1 — Objet et champ d'application</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 1 — Objet et champ d'application</h2>
               <p className="mb-3">
                 Les présentes Conditions Générales d'Utilisation (ci-après « CGU ») régissent l'accès et l'utilisation de la plateforme LaundryMap, éditée par EC2E (Electro Câblage Engineering et Équipement), SAS au capital de 1 600 000,00 €, immatriculée au RCS de Pontoise sous le numéro 312 517 071, dont le siège social est situé 4 boulevard Napoléon 1er, ZAC du Pont des Rayons, 95290 L'Isle-Adam, France.
               </p>
@@ -101,7 +101,7 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 2 — Accès au service</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 2 — Accès au service</h2>
               <p className="mb-3">
                 LaundryMap est accessible gratuitement à toute personne disposant d'un accès à Internet. Les fonctionnalités de base (recherche et consultation des fiches laveries) sont disponibles sans inscription préalable.
               </p>
@@ -114,9 +114,9 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 3 — Création de compte</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 3 — Création de compte</h2>
 
-              <h3 className="text-base font-semibold text-gray-800 mt-4 mb-2">3.1 Compte utilisateur</h3>
+              <h3 className="text-base font-semibold text-foreground mt-4 mb-2">3.1 Compte utilisateur</h3>
               <p className="mb-2 text-sm">
                 Toute personne physique majeure peut créer un compte utilisateur en fournissant les informations suivantes :
               </p>
@@ -130,7 +130,7 @@ export default function CGU() {
                 L'utilisateur s'engage à maintenir la confidentialité de ses identifiants et à notifier EC2E de toute utilisation non autorisée de son compte à l'adresse : contact@ec2e.com.
               </p>
 
-              <h3 className="text-base font-semibold text-gray-800 mt-5 mb-2">3.2 Compte professionnel</h3>
+              <h3 className="text-base font-semibold text-foreground mt-5 mb-2">3.2 Compte professionnel</h3>
               <p className="mb-2 text-sm">
                 Les gérants de laveries automatiques peuvent créer un compte professionnel en fournissant, en plus des informations personnelles mentionnées ci-dessus :
               </p>
@@ -144,9 +144,9 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 4 — Services proposés</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 4 — Services proposés</h2>
 
-              <h3 className="text-base font-semibold text-gray-800 mt-4 mb-2">4.1 Services aux utilisateurs</h3>
+              <h3 className="text-base font-semibold text-foreground mt-4 mb-2">4.1 Services aux utilisateurs</h3>
               <ul className="list-disc list-inside space-y-1 text-sm pl-2">
                 <li>Recherche de laveries par géolocalisation ou saisie manuelle d'adresse</li>
                 <li>Consultation des fiches laveries (horaires, équipements, photos, tarifs)</li>
@@ -156,7 +156,7 @@ export default function CGU() {
                 <li>Notifications de fermetures exceptionnelles</li>
               </ul>
 
-              <h3 className="text-base font-semibold text-gray-800 mt-5 mb-2">4.2 Services aux professionnels</h3>
+              <h3 className="text-base font-semibold text-foreground mt-5 mb-2">4.2 Services aux professionnels</h3>
               <ul className="list-disc list-inside space-y-1 text-sm pl-2">
                 <li>Référencement et gestion de leurs établissements sur la plateforme</li>
                 <li>Mise à jour des informations (horaires, équipements, photos, tarifs)</li>
@@ -167,7 +167,7 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 5 — Obligations des utilisateurs</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 5 — Obligations des utilisateurs</h2>
               <p className="mb-3">En utilisant LaundryMap, tout utilisateur s'engage à :</p>
               <ul className="list-disc list-inside space-y-1.5 text-sm pl-2">
                 <li>Fournir des informations exactes, complètes et à jour lors de la création de son compte</li>
@@ -185,7 +185,7 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 6 — Obligations spécifiques aux professionnels</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 6 — Obligations spécifiques aux professionnels</h2>
               <p className="mb-3">En plus des obligations listées à l'Article 5, les utilisateurs professionnels s'engagent à :</p>
               <ul className="list-disc list-inside space-y-1.5 text-sm pl-2">
                 <li>Fournir un numéro SIREN valide correspondant à leur activité réelle et légalement enregistrée</li>
@@ -198,7 +198,7 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 7 — Propriété intellectuelle</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 7 — Propriété intellectuelle</h2>
               <p className="mb-3">
                 L'ensemble des éléments constituant LaundryMap (structure, design, textes, graphiques, logos, images, base de données, code source) est la propriété exclusive d'EC2E, sauf mention contraire explicite. Toute reproduction, distribution, modification, adaptation ou publication, même partielle, est strictement interdite sans accord écrit préalable d'EC2E, conformément aux dispositions du Code de la propriété intellectuelle français.
               </p>
@@ -208,7 +208,7 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 8 — Protection des données personnelles</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 8 — Protection des données personnelles</h2>
               <p className="mb-3">
                 EC2E traite les données personnelles des utilisateurs de LaundryMap conformément au Règlement Général sur la Protection des Données (RGPD – Règlement UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée.
               </p>
@@ -221,7 +221,7 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 9 — Responsabilité</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 9 — Responsabilité</h2>
               <p className="mb-3">
                 EC2E s'efforce de maintenir LaundryMap disponible et à jour. Toutefois, EC2E ne peut être tenu responsable :
               </p>
@@ -239,7 +239,7 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 10 — Modification des CGU</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 10 — Modification des CGU</h2>
               <p className="mb-3">
                 EC2E se réserve le droit de modifier les présentes CGU à tout moment, afin notamment de les adapter aux évolutions légales, réglementaires ou techniques, ou aux évolutions du service.
               </p>
@@ -252,14 +252,14 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 11 — Résiliation et suppression de compte</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 11 — Résiliation et suppression de compte</h2>
 
-              <h3 className="text-base font-semibold text-gray-800 mt-4 mb-2">11.1 À l'initiative de l'utilisateur</h3>
+              <h3 className="text-base font-semibold text-foreground mt-4 mb-2">11.1 À l'initiative de l'utilisateur</h3>
               <p className="text-sm mb-3">
                 Tout utilisateur peut supprimer son compte à tout moment depuis la page « Mon Profil ». Cette action entraîne la suppression immédiate des données personnelles identifiantes, conformément à la politique de conservation décrite dans les Mentions Légales.
               </p>
 
-              <h3 className="text-base font-semibold text-gray-800 mt-4 mb-2">11.2 À l'initiative d'EC2E</h3>
+              <h3 className="text-base font-semibold text-foreground mt-4 mb-2">11.2 À l'initiative d'EC2E</h3>
               <p className="text-sm">
                 EC2E se réserve le droit de suspendre ou résilier, sans préavis ni indemnité, tout compte en cas de :
               </p>
@@ -273,7 +273,7 @@ export default function CGU() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Article 12 — Droit applicable et juridiction compétente</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3">Article 12 — Droit applicable et juridiction compétente</h2>
               <p className="mb-3">
                 Les présentes CGU sont régies par le droit français, à l'exclusion de toute autre législation.
               </p>
@@ -285,10 +285,10 @@ export default function CGU() {
               </p>
             </section>
 
-            <hr className="border-gray-200" />
+            <hr className="border-border" />
 
-            <div className="bg-gray-50 rounded-xl p-5 text-sm text-gray-600">
-              <p className="font-medium text-gray-800 mb-1">Contact EC2E</p>
+            <div className="bg-background rounded-xl p-5 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground mb-1">Contact EC2E</p>
               <p>4 boulevard Napoléon 1er, ZAC du Pont des Rayons, 95290 L'Isle-Adam, France</p>
               <p>Tél. : +33 (0)1 83 02 02 02 — Email : contact@ec2e.com</p>
               <p className="text-xs text-gray-400 mt-2">Document établi dans le cadre du projet scolaire LaundryMap – Bachelor Développeur Web – EC2E – 2025</p>
@@ -301,18 +301,18 @@ export default function CGU() {
 
           {/* Boutons Accepter / Refuser */}
           <div className="mt-8 flex flex-col items-center gap-4 print:hidden">
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-muted-foreground text-center">
               Avez-vous lu et acceptez-vous les présentes Conditions Générales d'Utilisation ?
             </p>
 
             {refused && (
-              <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-center">
+              <p role="alert" className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-2 text-center">
                 Vous avez refusé les CGU. Vous ne pourrez pas créer de compte sur LaundryMap.
               </p>
             )}
 
             {hasRead && !refused && (
-              <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-center">
+              <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 border border-green-200 dark:border-green-800 rounded-lg px-4 py-2 text-center">
                 Vous avez lu les CGU. Vous pouvez maintenant cocher la case d'acceptation dans le formulaire d'inscription.
               </p>
             )}

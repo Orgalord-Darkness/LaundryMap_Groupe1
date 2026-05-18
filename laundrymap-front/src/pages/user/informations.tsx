@@ -175,12 +175,12 @@ export default function MonProfi() {
         }
     }
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <div className="bg-white px-4 pt-6 pb-0">
+        <div className="min-h-screen bg-background flex flex-col">
+            <div className="bg-card px-4 pt-6 pb-0">
                 <div className="max-w-lg mx-auto">
                     <div className="text-center mb-4">
-                        <h1 className="text-xl font-bold text-gray-900">Espace personnel</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">Mon profil</p>
+                        <h1 className="text-xl font-bold text-foreground">Espace personnel</h1>
+                        <p className="text-sm text-muted-foreground mt-0.5">Mon profil</p>
                     </div>
                     <PersonalSpaceNavbar active="Profil" onChange={handleTabChange} />
                 </div>
@@ -189,17 +189,17 @@ export default function MonProfi() {
             <main className="flex-1 px-4 py-5">
                 <form
                     onSubmit={handleSubmit(onSubmit)}
-                    className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-white rounded-2xl shadow-lg"
+                    className="w-full max-w-md mx-auto flex flex-col gap-4 p-6 bg-card rounded-2xl shadow-lg"
                 >
-                    <h2 className="text-2xl font-semibold text-gray-900 text-center mb-2">
+                    <h2 className="text-2xl font-semibold text-foreground text-center mb-2">
                         {t('mes_informations', 'Mes informations')}
                     </h2>
-                    <p className="text-gray-600 text-center">
+                    <p className="text-muted-foreground text-center">
                         {t('modifier_mes_informations', 'Modifier mes informations')}
                     </p>
 
                     {successMessage && (
-                        <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                        <div className="p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl">
                             {successMessage}
                         </div>
                     )}
@@ -210,7 +210,7 @@ export default function MonProfi() {
                             type="text"
                             {...register("prenom", { required: false })}
                         />
-                        {errors.prenom && <p className="text-red-500 text-xs mt-1">{errors.prenom.message}</p>}
+                        {errors.prenom && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.prenom.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
@@ -219,7 +219,7 @@ export default function MonProfi() {
                             type="text"
                             {...register("nom", { required: false })}
                         />
-                        {errors.nom && <p className="text-red-500 text-xs mt-1">{errors.nom.message}</p>}
+                        {errors.nom && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.nom.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
@@ -237,12 +237,12 @@ export default function MonProfi() {
                             type="password"
                             {...register("mot_de_passe_actuel", { required: false })}
                         />
-                        {errors.mot_de_passe_actuel && <p className="text-red-500 text-xs mt-1">{errors.mot_de_passe_actuel.message}</p>}
+                        {errors.mot_de_passe_actuel && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.mot_de_passe_actuel.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
                         <label className="text-sm font-medium mb-1">Nouveau Mot de passe</label>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                             Longueur minimal : 8 caractères<br />
                             Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial
                         </p>
@@ -250,7 +250,7 @@ export default function MonProfi() {
                             type="password"
                             {...register("mot_de_passe", { required: false })}
                         />
-                        {errors.mot_de_passe && <p className="text-red-500 text-xs mt-1 whitespace-pre-wrap">{errors.mot_de_passe.message}<br /></p>}
+                        {errors.mot_de_passe && <p className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">{errors.mot_de_passe.message}<br /></p>}
                     </div>
 
                     <div className="flex flex-col">
@@ -259,28 +259,28 @@ export default function MonProfi() {
                             type="password"
                             {...register("confirmation_mot_de_passe", { required: false })}
                         />
-                        {errors.confirmation_mot_de_passe && <p className="text-red-500 text-xs mt-1">{errors.confirmation_mot_de_passe.message}</p>}
+                        {errors.confirmation_mot_de_passe && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.confirmation_mot_de_passe.message}</p>}
                     </div>
 
                     <Button type="submit" className="mt-4 w-full">
                         Confirmation
                     </Button>
 
-                    {/* <p className="text-center text-sm text-gray-700 underline font-medium mt-2 cursor-pointer">
+                    {/* <p className="text-center text-sm text-foreground underline font-medium mt-2 cursor-pointer">
                         S'inscrire en tant que professionnel ?
                     </p> */}
                 </form>
                 <section
                     aria-labelledby="zone-danger-titre"
-                    className="w-full max-w-md mx-auto mt-4 p-6 bg-white rounded-2xl shadow-lg border border-red-100"
+                    className="w-full max-w-md mx-auto mt-4 p-6 bg-card rounded-2xl shadow-lg border border-red-100"
                 >
                     <h3
                         id="zone-danger-titre"
-                        className="text-base font-semibold text-red-600 mb-1 text-center"
+                        className="text-base font-semibold text-red-600 dark:text-red-400 mb-1 text-center"
                     >
                         {t("zone_danger", "Zone de danger")}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4 text-center">
+                    <p className="text-sm text-muted-foreground mb-4 text-center">
                         {t("supprimer_compte_description", "La suppression de votre compte est définitive. Vos avis et favoris seront conservés.")}
                     </p>
                     <Button
@@ -305,7 +305,7 @@ export default function MonProfi() {
                         </DrawerHeader>
 
                         {deleteError && (
-                            <p role="alert" className="px-4 text-red-500 text-sm text-center">
+                            <p role="alert" className="px-4 text-red-500 dark:text-red-400 text-sm text-center">
                                 {deleteError}
                             </p>
                         )}

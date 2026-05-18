@@ -33,7 +33,7 @@ export function LaverieList({
         return (
             <div className="flex items-center justify-center py-12" role="status" aria-label={t("search_loading")}>
                 <span className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" aria-hidden="true" />
-                <span className="ml-3 text-sm text-gray-500">{t("search_loading")}</span>
+                <span className="ml-3 text-sm text-muted-foreground">{t("search_loading")}</span>
             </div>
         )
     }
@@ -41,7 +41,7 @@ export function LaverieList({
     if (error) {
         return (
             <div className="flex flex-col items-center justify-center py-10 gap-2 text-center" role="alert">
-                <p className="text-red-500 text-sm">{t("search_error")}</p>
+                <p className="text-red-500 dark:text-red-400 text-sm">{t("search_error")}</p>
             </div>
         )
     }

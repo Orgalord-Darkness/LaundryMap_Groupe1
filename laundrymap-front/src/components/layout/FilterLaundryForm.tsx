@@ -24,8 +24,8 @@ export default function TechnicalDetailsForm() {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-sm border border-gray-100 space-y-6">
-            <h2 className="text-lg font-bold text-gray-800 border-b pb-2">
+        <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-card rounded-xl shadow-sm border border-border space-y-6">
+            <h2 className="text-lg font-bold text-foreground border-b pb-2">
                 Détails Techniques
             </h2>
 

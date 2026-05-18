@@ -61,7 +61,7 @@ export default function ForgotPassword() {
                                 </div>
 
                                 {successMessage && (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl text-sm">
+                                    <div className="p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl text-sm">
                                         {successMessage}
                                     </div>
                                 )}
@@ -75,7 +75,7 @@ export default function ForgotPassword() {
                                         {...register("email", { required: "L'adresse email est requise." })}
                                     />
                                     {errors.email && (
-                                        <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>
                                     )}
                                 </Field>
 
