@@ -17,17 +17,6 @@ interface PreferencesContextValue {
 
 const PreferencesContext = createContext<PreferencesContextValue | null>(null)
 
-function applyTheme(theme: Theme) {
-  const root = document.documentElement
-  if (theme === 'dark') {
-    root.classList.add('dark')
-  } else if (theme === 'light') {
-    root.classList.remove('dark')
-  } else {
-    root.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches)
-  }
-}
-
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(
     () => (localStorage.getItem(STORAGE_THEME) as Theme) ?? 'system'
@@ -36,19 +25,25 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     () => (localStorage.getItem(STORAGE_LANG) as Language) ?? 'fr'
   )
 
-  useEffect(() => {
-    applyTheme(theme)
-    if (theme !== 'system') return
+  useEffect(() =>{
+    const root = document.documentElement
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = () => applyTheme('system')
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [theme])
+
+    const apply = () => {
+     root.classList.toggle('dark', theme === 'dark' || (theme === 'system' && mq.matches))
+   }
+    apply()
+    if (theme !== 'system') {
+      return 
+    }
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+
+  }, [theme]) 
 
   function setTheme(t: Theme) {
     setThemeState(t)
     localStorage.setItem(STORAGE_THEME, t)
-    applyTheme(t)
   }
 
   function setLanguage(lang: Language) {
