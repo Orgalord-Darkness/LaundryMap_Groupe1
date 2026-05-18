@@ -19,7 +19,7 @@ export default function TechnicalDetailsForm() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        console.log("Données techniques envoyées :", formData)
+        if (import.meta.env.DEV) console.log("Données techniques envoyées :", formData)
         // Ici, tu appelles ta fonction de sauvegarde ou ton API
     }
 

@@ -149,11 +149,11 @@ export default function MonProfi() {
 
             if (axios.isAxiosError(erreur) && erreur.response) {
                 const data = erreur.response.data
-                console.log("data reponse back:", JSON.stringify(data))
+                if (import.meta.env.DEV) console.log("data reponse back:", JSON.stringify(data))
 
                 if (data && typeof data === "object") {
                     const erreurs = data.erreurs ?? data.errors ?? data
-                    console.log("erreurs extraites:", JSON.stringify(erreurs))
+                    if (import.meta.env.DEV) console.log("erreurs extraites:", JSON.stringify(erreurs))
                     Object.keys(erreurs).forEach((champ) => {
                         if (champ !== "message") {
                             setError(champ as keyof Inputs, {

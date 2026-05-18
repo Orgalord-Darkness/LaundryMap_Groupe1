@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,6 +15,11 @@ use OpenApi\Attributes as OA;
 #[Route('/api/v1/auth')]
 final class AuthController extends AbstractController
 {
+    public function __construct(
+        #[Autowire('%env(bool:COOKIE_SECURE)%')]
+        private readonly bool $cookieSecure,
+    ) {}
+
     #[Route('/me', name: 'api_auth_me', methods: ['GET'])]
     #[OA\Tag(name: 'Auth')]
     #[OA\Response(
@@ -57,7 +63,7 @@ final class AuthController extends AbstractController
             ->withExpires(1)
             ->withPath('/')
             ->withDomain(null)
-            ->withSecure(false)
+            ->withSecure($this->cookieSecure)
             ->withHttpOnly(true)
             ->withSameSite('strict');
         $response = new JsonResponse(['message' => 'Déconnexion réussie']);
