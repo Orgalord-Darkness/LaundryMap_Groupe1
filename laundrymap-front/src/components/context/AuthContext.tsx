@@ -24,11 +24,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO(human): Restauration de session — appelle GET /api/v1/auth/me avec
-    // withCredentials: true pour vérifier si un cookie BEARER valide existe.
-    // Si 200 → utilise getRoleFromSymfonyRoles(data.roles) et setUser({ email, role })
-    // Si 401 → setUser(null)
-    // Dans le finally → setIsLoading(false)
     setIsLoading(true);
     axios.get(`${API_BASE}/api/v1/auth/me`, {withCredentials:true}).then(
       (response) => {

@@ -104,7 +104,7 @@ function ProDashboard() {
                             setTotal(prev => prev - 1)
                           }}
                           onEdit={() => {
-                            console.log("edit")
+                            navigate(`/pro/laverie/${laundry.id}`)
                           }}
                           name={laundry.nom}
                         />

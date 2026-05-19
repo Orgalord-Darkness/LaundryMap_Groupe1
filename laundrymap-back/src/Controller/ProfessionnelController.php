@@ -20,6 +20,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
@@ -29,6 +30,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/v1/professionnel')]
 class ProfessionnelController extends AbstractController
 {
+    public function __construct(
+        #[Autowire('%env(bool:COOKIE_SECURE)%')]
+        private readonly bool $cookieSecure,
+    ) {}
 
     /**
      * Route de connexion pour les professionnels
@@ -134,7 +139,7 @@ class ProfessionnelController extends AbstractController
                 ->withExpires(time() + 3600)
                 ->withPath('/')
                 ->withDomain(null)
-                ->withSecure(false)
+                ->withSecure($this->cookieSecure)
                 ->withHttpOnly(true)
                 ->withSameSite('strict');
             $response = $this->json([
