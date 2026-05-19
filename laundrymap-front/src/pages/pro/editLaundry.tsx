@@ -11,6 +11,8 @@ import WeekSchedulePicker, { type WeekSchedule, DEFAULT_WEEK_SCHEDULE, type DayK
 import apiClient from '@/lib/apiClient'
 import { CountrySelect } from '@/components/ui/CountrySelect'
 import { normalizeCountry } from '@/components/utils/countries'
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
+import type { AddressSelection } from '@/components/ui/AddressAutocomplete'
 import UppyImageUploader from '@/components/ui/UppyImageUploader'
 import CardMachine from '@/components/ui/cardMachine'
 import MachineModal, { type EquipementFormData } from '@/components/ui/MachineModal'
@@ -194,7 +196,12 @@ export default function FormEditLaverie() {
                 setWilineCode(String(data.wi_line_reference ?? ""))
 
                 if (data.adresse) {
-                    setAdresse(data.adresse.adresse ?? "")
+                    const adressVal = data.adresse.adresse ?? ""
+                    const rueVal = data.adresse.rue ?? ""
+                    const fullAddress = rueVal && !adressVal.includes(rueVal)
+                        ? `${adressVal} ${rueVal}`
+                        : adressVal
+                    setAdresse(fullAddress)
                     setCodePostal(String(data.adresse.code_postal ?? ""))
                     setCity(data.adresse.ville ?? "")
                     setCountry(normalizeCountry(data.adresse.pays ?? ""))
@@ -460,7 +467,17 @@ export default function FormEditLaverie() {
                     <FieldLabel htmlFor="adresse">
                         {t('laundry_form_address_label')} <span className="text-orange-500">*</span>
                     </FieldLabel>
-                    <Input id="adresse" type="text" value={adresse} onChange={e => setAdresse(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`} />
+                    <AddressAutocomplete
+                        value={adresse}
+                        onChange={setAdresse}
+                        onSelect={(sel: AddressSelection) => {
+                            setAdresse(sel.address)
+                            setCodePostal(sel.postcode)
+                            setCity(sel.city)
+                        }}
+                        placeholder={t('laundry_form_address_placeholder')}
+                        className={geoErreur ? "border border-red-500 dark:border-red-700" : ""}
+                    />
                     {errors.adresse && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.adresse}</p>}
                 </Field>
 
