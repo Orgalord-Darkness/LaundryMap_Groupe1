@@ -78,7 +78,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
     useEffect(() => {
         if (debounceRef.current) clearTimeout(debounceRef.current)
 
-        if (value.trim().length < 2) {
+        if (value.trim().length < 3) {
             setSuggestions([])
             setShowDropdown(false)
             return
