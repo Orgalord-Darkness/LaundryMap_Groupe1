@@ -14,6 +14,8 @@ import { useNavigate } from 'react-router-dom'
 import apiClient from '@/lib/apiClient'
 import { CountrySelect } from '@/components/ui/CountrySelect'
 import { normalizeCountry } from '@/components/utils/countries'
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
+import type { AddressSelection } from '@/components/ui/AddressAutocomplete'
 
 function AddLaundry() {
 
@@ -161,17 +163,13 @@ function AddLaundry() {
     { key: 'country',    refKey: 'country'   },
   ]
 
-  // TODO(human): Implémentez la validation en utilisant t() pour les messages d'erreur.
-  // Pour chaque champ obligatoire, retournez t('validation_*_required') si vide, sinon "".
-  // Clés disponibles : validation_name_required, validation_address_required,
-  // validation_postal_required, validation_city_required, validation_country_required
   const validateForm = () => {
     const newErrors = {
-      name:       "",
-      adress:     "",
-      codePostal: "",
-      city:       "",
-      country:    "",
+      name:       name.trim()       ? "" : t('validation_name_required'),
+      adress:     adress.trim()     ? "" : t('validation_address_required'),
+      codePostal: codePostal.trim() ? "" : t('validation_postal_required'),
+      city:       city.trim()       ? "" : t('validation_city_required'),
+      country:    country.trim()    ? "" : t('validation_country_required'),
     }
     setErrors(newErrors)
     return { valid: Object.values(newErrors).every(e => e === ""), newErrors }
@@ -300,7 +298,17 @@ function AddLaundry() {
           <Field className='w-85 m-auto items-center justify-center mt-5' id='adress-field'>
             {geoErreur && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{geoErreur}</p>}
             <FieldLabel htmlFor="input-field-adress">{t('laundry_form_address_label')}<span className='text-orange-600'>*</span></FieldLabel>
-            <Input id="input-field-adress" type="text" placeholder={t('laundry_form_address_placeholder')} value={adress} onChange={(e) => setAdress(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`}/>
+            <AddressAutocomplete
+              value={adress}
+              onChange={setAdress}
+              onSelect={(sel: AddressSelection) => {
+                setAdress(sel.address)
+                setCodePostal(sel.postcode)
+                setCity(sel.city)
+              }}
+              placeholder={t('laundry_form_address_placeholder')}
+              className={geoErreur ? "border border-red-500 dark:border-red-700" : ""}
+            />
             {errors.adress && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.adress}</p>}
           </Field>
         </div>

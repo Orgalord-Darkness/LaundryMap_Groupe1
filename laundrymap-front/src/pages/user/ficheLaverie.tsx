@@ -571,7 +571,11 @@ function FicheLaverie() {
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-slate-800">{laverie.address} {laverie.rue}</p>
+              <p className="font-semibold text-slate-800">
+                {laverie.rue && !laverie.address.includes(laverie.rue)
+                  ? `${laverie.address} ${laverie.rue}`
+                  : laverie.address}
+              </p>
               <p className="text-slate-500 text-sm">{laverie.postalCode} {laverie.city}</p>
             </div>
           </div>
