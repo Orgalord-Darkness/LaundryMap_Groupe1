@@ -1,6 +1,7 @@
 ##############################
 # ENVIRONNEMENT & SECRETS
 ##############################
+.env 
 .env.local
 .env.dev
 .env.test
