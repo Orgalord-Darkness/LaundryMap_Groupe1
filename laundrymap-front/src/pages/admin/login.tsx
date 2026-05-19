@@ -19,6 +19,7 @@ function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors]     = useState({ email: "", password: "" });
+  const [loginError, setLoginError] = useState("");
 
 
   // Validation côté client
@@ -44,37 +45,22 @@ function AdminLogin() {
 
   const navigate = useNavigate();
 
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoginError("")
+    if (!validateForm()) {
+      return; 
+    }
 
-    if (validateForm()) {
-
-      const response = await axios.post(url, {
-        email,
-        password
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      })
-      const data = response.data
-
-      if (data.errors) {
-        Object.keys(data.errors).forEach((champ) => {
-          setErrors((prev) => ({
-            ...prev,
-            [champ]: data.errors[champ],
-          }));
-        });
-        return;
-      }
-
+    try {
+      await axios.post(url, {email, password}, {headers: {"Content-Type": "application/json"}, withCredentials: true})
+      
       const meUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/me`;
       const meResponse = await axios.get(meUrl, { withCredentials: true });
       login({ email: meResponse.data.email, role: meResponse.data.roles[0] });
       navigate("/admin/dashboard");
+    } catch {
+      setLoginError("Échec de la connexion. Veuillez vérifier vos identifiants.");  
     }
   };
 
@@ -118,6 +104,7 @@ function AdminLogin() {
 
                   <Field>
                     <Button type="submit">{t("connexion")}</Button>
+                     {loginError && (<p className="text-red-500 dark:text-red-400 text-sm text-center">{loginError}</p>)}
                   </Field>
 
                 </FieldGroup>

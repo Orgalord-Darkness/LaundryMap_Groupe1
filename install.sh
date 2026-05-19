@@ -1,11 +1,17 @@
 #!/bin/bash
+set -e
 
-echo "Installation des dépendances Symfony..."
-cd laundrymap-back
+echo "=== Génération des clés JWT ===" 
+docker compose exec php php bin/console lexik:jwt:generate-keypair --overwrite
+
+echo "=== Installation des dépendances ==="
 docker compose exec php composer install
-echo "Installation Symfony terminée."
 
-echo "Installation des dépendances React..."
-cd laundrymap-front
-docker compose exec laundrymap-front npm install
-echo "Installation React terminée."
+echo "=== Migrations et fixtures ==="
+docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+docker compose exec php php bin/console doctrine:fixtures:load --no-interaction
+
+echo "=== Installation des dépendances React ==="
+docker compose exec laundrymap-front npm install 
+
+echo "Installation terminée." 

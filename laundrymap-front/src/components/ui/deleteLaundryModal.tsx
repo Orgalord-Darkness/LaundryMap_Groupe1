@@ -18,7 +18,6 @@ export function DeleteLaverieModal({
   onDeleted,
 }: DeleteLaverieModalProps) {
   const [loading, setLoading] = useState(false);
-  console.log('test : ', import.meta.env.VITE_API_BASE_URL); 
   const handleDelete = async () => {
     try {
       setLoading(true);
