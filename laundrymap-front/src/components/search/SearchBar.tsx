@@ -23,7 +23,7 @@ interface GeoFeature {
 // Appel à l'API gouvernementale d'autocomplétion d'adresses françaises.
 // Gratuite, sans clé API, gère les accents et fautes de frappe.
 async function fetchSuggestions(query: string): Promise<Suggestion[]> {
-    if (query.trim().length < 2) return []
+    if (query.trim().length < 3) return []
 
     const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`
     const response = await fetch(url)
