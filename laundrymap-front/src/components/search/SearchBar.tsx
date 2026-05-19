@@ -14,29 +14,33 @@ interface Suggestion {
 }
 
 interface GeoFeature {
-    properties: { label: string; city: string; postcode: string }
+    properties: { name?: string; housenumber?: string; street?: string; city: string; postcode: string }
     geometry: { coordinates: [number, number] }  // GeoJSON : [lng, lat]
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Appel à l'API gouvernementale d'autocomplétion d'adresses françaises.
-// Gratuite, sans clé API, gère les accents et fautes de frappe.
 async function fetchSuggestions(query: string): Promise<Suggestion[]> {
     if (query.trim().length < 3) return []
 
-    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=fr`
     const response = await fetch(url)
     if (!response.ok) return []
 
     const data = await response.json()
-    return (data.features ?? []).map((f: GeoFeature) => ({
-        label: f.properties.label,
-        city: f.properties.city,
-        postcode: f.properties.postcode,
-        lat: f.geometry.coordinates[1],
-        lng: f.geometry.coordinates[0],
-    }))
+    return (data.features ?? []).map((f: GeoFeature) => {
+        const p = f.properties
+        const label = [p.housenumber, p.street ?? p.name, p.postcode, p.city]
+            .filter(Boolean)
+            .join(' ')
+        return {
+            label,
+            city:     p.city ?? '',
+            postcode: p.postcode ?? '',
+            lat:      f.geometry.coordinates[1],
+            lng:      f.geometry.coordinates[0],
+        }
+    })
 }
 
 // ─── SearchBar — champ de recherche avec autocomplétion ───────────────────────

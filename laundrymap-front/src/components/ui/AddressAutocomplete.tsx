@@ -29,18 +29,24 @@ interface AddressAutocompleteProps {
 
 async function fetchAddressSuggestions(query: string): Promise<AddressSuggestion[]> {
     if (query.trim().length < 3) return []
-    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=fr`
     const response = await fetch(url)
     if (!response.ok) return []
     const data = await response.json()
-    return (data.features ?? []).map((f: any) => ({
-        label:       f.properties.label,
-        housenumber: f.properties.housenumber,
-        street:      f.properties.street,
-        name:        f.properties.name,
-        postcode:    f.properties.postcode,
-        city:        f.properties.city,
-    }))
+    return (data.features ?? []).map((f: any) => {
+        const p = f.properties
+        const label = [p.housenumber, p.street ?? p.name, p.postcode, p.city]
+            .filter(Boolean)
+            .join(' ')
+        return {
+            label,
+            housenumber: p.housenumber,
+            street:      p.street,
+            name:        p.name ?? label,
+            postcode:    p.postcode ?? '',
+            city:        p.city ?? '',
+        }
+    })
 }
 
 // ─── Composant ────────────────────────────────────────────────────────────────
