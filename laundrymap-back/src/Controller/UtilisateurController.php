@@ -21,12 +21,17 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Service\EmailVerificationService;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Cookie;
 
 #[Route('/api/v1/utilisateur')]
 final class UtilisateurController extends AbstractController
 {
-    
+    public function __construct(
+        #[Autowire('%env(bool:COOKIE_SECURE)%')]
+        private readonly bool $cookieSecure,
+    ) {}
+
     /**
      * Route de connexion
      */
@@ -129,7 +134,7 @@ final class UtilisateurController extends AbstractController
                 ->withExpires(time() + 3600)
                 ->withPath('/')
                 ->withDomain(null)
-                ->withSecure(false)
+                ->withSecure($this->cookieSecure)
                 ->withHttpOnly(true)
                 ->withSameSite('strict');
             $response = $this->json([
@@ -565,7 +570,7 @@ final class UtilisateurController extends AbstractController
                 ->withExpires(time() + 3600)
                 ->withPath('/')
                 ->withDomain(null)
-                ->withSecure(false)
+                ->withSecure($this->cookieSecure)
                 ->withHttpOnly(true)
                 ->withSameSite('strict');
             $response = $this->json([
