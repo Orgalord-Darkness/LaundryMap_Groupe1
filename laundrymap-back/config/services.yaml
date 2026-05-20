@@ -6,6 +6,7 @@
 parameters:
     cover_image_directory: '%kernel.project_dir%/public/assets/cover'
     frontend_public_dir: '%env(FRONTEND_PUBLIC_DIR)%'
+    env(COOKIE_SECURE): 'false'
 
 services:
     # default configuration for services in *this* file
