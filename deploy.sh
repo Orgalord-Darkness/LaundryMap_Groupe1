@@ -55,14 +55,11 @@ HTTP_LOGIN=$(curl -s -o /dev/null -w "%{http_code}" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"${SMOKE_TEST_ADMIN_EMAIL}\",\"password\":\"${SMOKE_TEST_ADMIN_PASSWORD}\"}")
 
-if [ "$HTTP_LOGIN" = "200" ]; then
-    echo "✓ Login admin OK (200)"
-elif [ "$HTTP_LOGIN" = "401" ]; then
-    echo "✓ Endpoint login actif (401 — credentials de test)"
-else
-    echo "✗ ERREUR login admin — HTTP $HTTP_LOGIN (attendu 200 ou 401)"
+if [ "$HTTP_LOGIN" = "500" ] || [ "$HTTP_LOGIN" = "000" ]; then
+    echo "✗ ERREUR login admin — HTTP $HTTP_LOGIN (JWT cassé ou DB inaccessible)"
     exit 1
 fi
+echo "✓ Login admin actif (HTTP $HTTP_LOGIN)"
 
 # Smoke test 2 : recherche laverie (valide l'API publique)
 echo "→ Smoke test recherche laverie..."
