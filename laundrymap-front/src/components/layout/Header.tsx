@@ -24,7 +24,7 @@ export function Header() {
           shadow-sm max-w-[220px] w-full overflow-hidden
         ">
           <img
-                src={`${import.meta.env.VITE_API_BASE_URL}/fichiers/logo/logo_titre.png}`}
+                src={`${import.meta.env.VITE_API_BASE_URL}/fichiers/logo/logo_titre.png`}
                 alt="LaundryMap"
             className="h-[52px] w-auto max-w-full block"
           />
