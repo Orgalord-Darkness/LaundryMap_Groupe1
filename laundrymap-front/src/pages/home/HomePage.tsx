@@ -42,6 +42,7 @@ export default function HomePage() {
     const [searchClearKey, setSearchClearKey] = useState(0)
 
     const lastSearchPosRef = useRef<{ lat: number; lng: number } | null>(null)
+    const isManualSearchActive = useRef(false)
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -76,15 +77,20 @@ export default function HomePage() {
         setGeoModalOpen(false)
     }, [])
 
-    const handleLocationFound = useCallback(async (pos: { lat: number; lng: number}) => {                                                                                                 
-        // Ne relance la recherche que si la position a changé de plus de ~100m                                                                                                           
-        if (lastSearchPosRef.current) {                                                                                                                                                   
-            const dLat = Math.abs(pos.lat - lastSearchPosRef.current.lat)                                                                                                                 
-            const dLng = Math.abs(pos.lng - lastSearchPosRef.current.lng)                                                                                                                 
-            if (dLat < 0.001 && dLng < 0.001) return                                                                                                                                      
-        }                                                                                                                                                                                 
-        lastSearchPosRef.current = pos
+    const handleLocationFound = useCallback(async (pos: { lat: number; lng: number}) => {
+        // Met toujours à jour la position (point bleu sur la carte)
         setUserPosition(pos)
+
+        if (isManualSearchActive.current) return
+
+        // Ne relance la recherche que si la position a changé de plus de ~100m
+        if (lastSearchPosRef.current) {
+            const dLat = Math.abs(pos.lat - lastSearchPosRef.current.lat)
+            const dLng = Math.abs(pos.lng - lastSearchPosRef.current.lng)
+            if (dLat < 0.001 && dLng < 0.001) return
+        }
+        lastSearchPosRef.current = pos
+        isManualSearchActive.current = false
         setLoading(true)
         setError(null)
         setSelectedId(null)
@@ -125,6 +131,7 @@ export default function HomePage() {
     // Déclenché par la SearchBar quand l'utilisateur valide une adresse
     const handleSearch = useCallback((query: string, coords?: { lat: number; lng: number }) => {
         void coords  // coords transmises par SearchBar mais le centrage se fait via fitBounds sur les markers
+        isManualSearchActive.current = true
         lastSearchPosRef.current = null  // Permet à la géoloc de relancer même si la position n'a pas changé
         setLastQuery(query)
         setSearchParams(prev => { prev.set("q", query); return prev })

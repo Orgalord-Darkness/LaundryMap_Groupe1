@@ -267,6 +267,12 @@ class LaverieController extends AbstractController
         // ─────────────────────────────────────────────
         $adresse = $laverie->getAdresse();
 
+        // Capturer les valeurs actuelles avant modification pour détecter un vrai changement
+        $oldAdresse = $adresse->getAdresse();
+        $oldCp      = $adresse->getCodePostal();
+        $oldVille   = $adresse->getVille();
+        $oldPays    = $adresse->getPays();
+
         foreach (['ville', 'pays'] as $champ) {
             if (isset($donnees[$champ])) {
                 $setter = 'set' . ucfirst($champ);
@@ -277,16 +283,21 @@ class LaverieController extends AbstractController
         if (isset($donnees['code_postal'])) {
             $adresse->setCodePostal((int)$donnees['code_postal']);
         }
-        
+
         if (isset($donnees['adresse'])) {
             $adresse->setAdresse(htmlspecialchars($donnees['adresse']));
             $rue = preg_replace('/^\s*\d+\s*/', '', explode(',', $donnees['adresse'])[0]);
             $adresse->setRue($rue);
         }
 
-        $addressChanged = isset($donnees['adresse']) || isset($donnees['code_postal']) || isset($donnees['ville'])   || isset($donnees['pays']);
+        // Le frontend envoie toujours tous les champs — on vérifie si quelque chose a réellement changé
+        $addressActuallyChanged =
+            (isset($donnees['adresse'])     && trim($donnees['adresse'])     !== $oldAdresse) ||
+            (isset($donnees['code_postal']) && (int)$donnees['code_postal']  !== $oldCp)      ||
+            (isset($donnees['ville'])       && trim($donnees['ville'])        !== $oldVille)   ||
+            (isset($donnees['pays'])        && trim($donnees['pays'])         !== $oldPays);
 
-        if ($addressChanged) {
+        if ($addressActuallyChanged) {
             $fullAdresse = implode(' ', array_filter([
                 $adresse->getAdresse(),
                 (string) $adresse->getCodePostal(),   
