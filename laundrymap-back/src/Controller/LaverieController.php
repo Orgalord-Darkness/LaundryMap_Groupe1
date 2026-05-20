@@ -302,12 +302,13 @@ class LaverieController extends AbstractController
             if ($coords !== null && isset($coords['lat'], $coords['lng'])) {
                 $adresse->setLatitude($coords['lat']);
                 $adresse->setLongitude($coords['lng']);
-            } else {
+            } elseif ($adresse->getLatitude() === null || $adresse->getLongitude() === null) {
                 return $this->json(
                     ['message' => 'Données invalides.', 'errors' => ['geolocation' => 'Impossible de géolocaliser l\'adresse fournie.']],
                     Response::HTTP_UNPROCESSABLE_ENTITY
                 );
             }
+            // Géocodage échoué mais coordonnées existantes — on conserve les coords actuelles
         }
 
         // ─────────────────────────────────────────────
