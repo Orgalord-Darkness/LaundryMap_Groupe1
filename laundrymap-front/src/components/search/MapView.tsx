@@ -59,6 +59,7 @@ interface MapViewProps {
     userPosition?: { lat: number; lng: number } | null
     searchRadius?: number
     fitBoundsKey?: number
+    initialCenter?: [number, number] | null
 }
 
 interface LocateControlComponentProps {
@@ -181,7 +182,7 @@ function LeafletLocateControl({ onLocationFound, onLocationStop, autoStart }: Lo
 const PARIS: [number, number] = [48.8566, 2.3522]
 const DEFAULT_ZOOM = 12
 
-export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, onLocationStop, autoStart, userPosition, searchRadius, fitBoundsKey }: MapViewProps) {
+export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, onLocationStop, autoStart, userPosition, searchRadius, fitBoundsKey, initialCenter }: MapViewProps) {
     const navigate = useNavigate()
     return (
         <div
@@ -191,7 +192,7 @@ export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound
             aria-label="Carte des laveries"
         >
             <MapContainer
-                center={PARIS}
+                center={initialCenter ?? PARIS}
                 zoom={DEFAULT_ZOOM}
                 style={{ height: "100%", width: "100%" }}
                 zoomControl={true}

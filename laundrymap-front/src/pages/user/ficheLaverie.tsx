@@ -5,6 +5,8 @@ import { useAuth } from "@/components/context/AuthContext";
 import axios from "axios";
 import CardMachine from "@/components/ui/cardMachine";
 import { Card, CardContent } from "@/components/ui/card";
+import { StatusBadge } from "@/components/utils/StatusBadge";
+import type { HoraireSlot } from "@/components/utils/type";
 import {
   Carousel,
   CarouselContent,
@@ -95,21 +97,6 @@ const StarRating = ({
   );
 };
 
-/** Badge Ouvert / Fermé */
-const StatusBadge = ({ isOpen }: { isOpen: boolean }) => (
-  <span
-    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${
-      isOpen ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"
-    }`}
-  >
-    <span
-      className={`w-1.5 h-1.5 rounded-full ${
-        isOpen ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
-      }`}
-    />
-    {isOpen ? "Ouvert" : "Fermé"}
-  </span>
-);
 
 /** Carte avis */
 const ReviewCard = ({ review }: { review: Review }) => (
@@ -472,7 +459,14 @@ function FicheLaverie() {
     return null;
   }
 
-  
+  // Convertir les horaires de la fiche au format HoraireSlot[] pour le badge de statut
+  const fermeturesFiche: HoraireSlot[] = laverie.horaires.flatMap((h) => {
+    const jour = h.day.toLowerCase()
+    const slots: HoraireSlot[] = []
+    if (h.openAm && h.closeAm) slots.push({ jour, heureDebut: h.openAm, heureFin: h.closeAm })
+    if (h.openPm && h.closePm) slots.push({ jour, heureDebut: h.openPm, heureFin: h.closePm })
+    return slots
+  })
 
   return (
 
@@ -518,7 +512,7 @@ function FicheLaverie() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <StatusBadge isOpen={laverie.isOpen} />
+                <StatusBadge fermetures={fermeturesFiche} />
                 <div className="flex items-center gap-1.5">
                   <StarRating rating={laverie.rating} />
                   <span className="text-sm font-bold text-slate-700">{laverie.rating}</span>

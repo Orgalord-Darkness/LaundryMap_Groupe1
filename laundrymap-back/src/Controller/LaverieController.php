@@ -1165,6 +1165,14 @@ class LaverieController extends AbstractController
             ];
         }, $laveries);
 
+        // Attacher les créneaux horaires à chaque laverie (1 seule requête supplémentaire)
+        $ids = array_column($result, 'id');
+        $fermeturesParLaverie = $laverieRepository->findFermeturesByLaverieIds($ids);
+        $result = array_map(function (array $laverie) use ($fermeturesParLaverie) {
+            $laverie['fermetures'] = $fermeturesParLaverie[$laverie['id']] ?? [];
+            return $laverie;
+        }, $result);
+
         return $this->json($result, Response::HTTP_OK);
     }
 }
