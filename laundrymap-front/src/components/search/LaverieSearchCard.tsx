@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card"
-import { MapPin, Mail } from "lucide-react"
+import { MapPin } from "lucide-react"
 import type { LaverieSearch } from "@/components/utils/type"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
@@ -24,6 +24,13 @@ interface LaverieSearchCardProps {
 
 export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchCardProps) {
     const navigate = useNavigate()
+
+    function todayHours(fermetures: LaverieSearch["fermetures"]): string | null {
+        const currentDay = new Date().toLocaleDateString("fr-FR", { weekday: "long" }).toLowerCase()
+        const todaySlots = fermetures?.filter(slot => slot.jour === currentDay) ?? []
+        if (todaySlots.length === 0) return null
+        return todaySlots.map(slot => `${slot.heureDebut} - ${slot.heureFin}`).join(" / ")
+    }
 
     return (
         <Card
@@ -90,10 +97,9 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
                     {laverie.adresse.rue}, {laverie.adresse.codePostal} {laverie.adresse.ville}
                 </p>
 
-                {laverie.contactEmail && (
+                {laverie.fermetures && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                        <Mail className="w-3 h-3 shrink-0 text-gray-400" aria-hidden="true" />
-                        <span className="truncate">{laverie.contactEmail}</span>
+                        <span className="truncate">{todayHours(laverie.fermetures)}</span>
                     </p>
                 )}
 

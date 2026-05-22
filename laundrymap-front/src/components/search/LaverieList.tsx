@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { LaverieSearchCard } from "./LaverieSearchCard"
 import type { LaverieSearch, SortOrder } from "@/components/utils/type"
@@ -18,6 +18,18 @@ interface LaverieListProps {
     hasActiveFilters?: boolean
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  return isMobile;
+}
+
 export function LaverieList({
     laveries,
     loading,
@@ -29,6 +41,7 @@ export function LaverieList({
 }: LaverieListProps) {
     const { t } = useTranslation()
     const [sortOrder, setSortOrder] = useState<SortOrder>("distance_asc")
+    const isMobile = useIsMobile()
 
     const sortedLaveries = useMemo(() => {
         const copy = [...laveries]
@@ -106,18 +119,34 @@ export function LaverieList({
                     </SelectContent>
                 </Select>
             </div>
-            <ScrollArea className="h-[400px]" aria-label="Liste des laveries trouvées">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
+            {isMobile ? (
+                <ScrollArea className="h-[400px]" aria-label="Liste des laveries trouvées">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
                     {sortedLaveries.map((laverie) => (
                         <LaverieSearchCard
-                            key={laverie.id}
-                            laverie={laverie}
-                            selected={selectedId === laverie.id}
-                            onClick={() => onSelectLaverie(laverie.id)}
+                        key={laverie.id}
+                        laverie={laverie}
+                        selected={selectedId === laverie.id}
+                        onClick={() => onSelectLaverie(laverie.id)}
                         />
                     ))}
+                    </div>
+                </ScrollArea>
+                ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
+                    {sortedLaveries.map((laverie) => (
+                    <LaverieSearchCard
+                        key={laverie.id}
+                        laverie={laverie}
+                        selected={selectedId === laverie.id}
+                        onClick={() => onSelectLaverie(laverie.id)}
+                    />
+                    ))}
                 </div>
-            </ScrollArea>
+                )
+            }
+
+           
         </div>
     )
 }
