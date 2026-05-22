@@ -103,9 +103,9 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
                     </p>
                 )}
 
-                {laverie.description && (
+                {laverie.paiements && (
                     <p className="text-xs text-gray-400 line-clamp-1">
-                        {laverie.description}
+                        {laverie.paiements.join(', ')}
                     </p>
                 )}
             </div>

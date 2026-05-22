@@ -109,6 +109,7 @@ export interface LaverieSearch {
     logoUrl?: string | null
     isFavorite?: boolean
     fermetures?: HoraireSlot[]
+    paiements?: string[]
 }
 
 export interface Coordinates {
