@@ -134,6 +134,8 @@ export default function Router() {
       <Route path="/user/avis" element={
         <ProtectedRoute allowedRoles={["utilisateur"]}>
           <Review />
+        </ProtectedRoute>
+      } />
             
       <Route path="/user/preferences" element={
         <ProtectedRoute allowedRoles={["utilisateur", "professionnel"]}>
