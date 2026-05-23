@@ -19,12 +19,25 @@ type Inputs = {
 
 const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription`
 
+const INSCRIPTION_DRAFT_KEY = "laundrymap_inscription_draft";
+
+function loadDraft(): Partial<Inputs> {
+    try {
+        const saved = sessionStorage.getItem(INSCRIPTION_DRAFT_KEY);
+        return saved ? JSON.parse(saved) : {};
+    } catch {
+        return {};
+    }
+}
+
 export default function Inscription() {
 
     const { t } = useTranslation()
 
     const [successMessage, setSuccessMessage] = useState("");
-    const [cguAccepted, setCguAccepted] = useState(false);
+    const [cguAccepted, setCguAccepted] = useState(
+        () => localStorage.getItem('laundrymap_cgu_read') === 'true'
+    );
     
     useEffect(() => {
         if (successMessage) {
@@ -41,7 +54,17 @@ export default function Inscription() {
         watch,
         formState: { errors },
         setError,
-    } = useForm<Inputs>()
+    } = useForm<Inputs>({
+        defaultValues: loadDraft()
+    })
+
+    const [prenom, nom, email] = watch(['prenom', 'nom', 'email'])
+
+    useEffect(() => {
+        if (prenom || nom || email) {
+            sessionStorage.setItem(INSCRIPTION_DRAFT_KEY, JSON.stringify({ prenom, nom, email }));
+        }
+    }, [prenom, nom, email])
     
     const onSubmit: SubmitHandler<Inputs> = async (donnees) => {
         try {
@@ -55,6 +78,7 @@ export default function Inscription() {
 
             console.log(reponse.status); 
 
+            sessionStorage.removeItem(INSCRIPTION_DRAFT_KEY);
             setSuccessMessage("Inscription réussie ! Vérifiez votre email.");
             
         } catch (erreur) {
@@ -102,12 +126,12 @@ export default function Inscription() {
                                     </p>
                                 </div>
 
-                                <a href="/pro/inscription" className="text-center text-sm text-gray-700 underline font-medium cursor-pointer" aria-label="S'inscrire en tant que professionnel">
+                                <a href="/pro/inscription" className="text-center text-sm text-foreground underline font-medium cursor-pointer" aria-label="S'inscrire en tant que professionnel">
                                     {t('inscription')} {t('en_tant_que_professionnel')} ?
                                 </a>
 
                                 {successMessage && (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                                    <div className="p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl">
                                         {successMessage}
                                     </div>
                                 )}
@@ -117,19 +141,19 @@ export default function Inscription() {
                                     <Input id="prenom" type="text" aria-describedby={errors.prenom ? "prenom-error" : undefined} tabIndex={1} placeholder="John"
                                         {...register("prenom", { required: true })}
                                     />
-                                    {errors.prenom && ( <p id="prenom-error" role="alert" className="text-red-500 text-xs mt-1"> {errors.prenom.message} </p> )}
+                                    {errors.prenom && ( <p id="prenom-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1"> {errors.prenom.message} </p> )}
                                 </Field>
 
                                 <Field>
                                     <FieldLabel htmlFor="nom">{t("lastname")}<strong className="text-orange-500" aria-hidden="true">*</strong></FieldLabel>
                                     <Input id="nom" type="text" aria-describedby={errors.nom ? "nom-error" : undefined} tabIndex={2} placeholder="Doe" {...register("nom", { required: true })} />
-                                    {errors.nom && ( <p id="nom-error" role="alert" className="text-red-500 text-xs mt-1"> {errors.nom.message} </p> )}
+                                    {errors.nom && ( <p id="nom-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1"> {errors.nom.message} </p> )}
                                 </Field>
                                 
                                 <Field>
                                     <FieldLabel htmlFor="email">{t("email")}<strong className="text-orange-500" aria-hidden="true">*</strong></FieldLabel>
                                     <Input id="email" type="email" aria-describedby={errors.email ? "email-error" : undefined} tabIndex={3} placeholder="john.doe@example.com" {...register("email", { required: true })} />
-                                    {errors.email && ( <p id="email-error" role="alert" className="text-red-500 text-xs whitespace-pre-wrap"> {errors.email.message} </p> )}
+                                    {errors.email && ( <p id="email-error" role="alert" className="text-red-500 dark:text-red-400 text-xs whitespace-pre-wrap"> {errors.email.message} </p> )}
                                 </Field>
 
                                 <Field>
@@ -151,13 +175,13 @@ export default function Inscription() {
                                             specialChar: t("password_rule_special"),
                                         }}
                                     />
-                                    {errors.mot_de_passe && ( <p id="mot_de_passe-error" role="alert" className="text-red-500 text-xs mt-1 whitespace-pre-wrap"> {errors.mot_de_passe.message} </p> )}
+                                    {errors.mot_de_passe && ( <p id="mot_de_passe-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap"> {errors.mot_de_passe.message} </p> )}
                                 </Field>
 
                                 <Field>
                                     <FieldLabel htmlFor="confirmation_mot_de_passe">{t("confirm_password")}<strong className="text-orange-500" aria-hidden="true">*</strong></FieldLabel>
                                     <Input aria-label="Confirmation du mot de passe" id="confirmation_mot_de_passe" type="password" aria-describedby={ errors.confirmation_mot_de_passe ? "confirmation-error" : undefined } tabIndex={5} {...register("confirmation_mot_de_passe", { required: true })} />
-                                    {errors.confirmation_mot_de_passe && ( <p id="confirmation-error" role="alert" className="text-red-500 text-xs mt-1"> {errors.confirmation_mot_de_passe.message} </p> )}
+                                    {errors.confirmation_mot_de_passe && ( <p id="confirmation-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1"> {errors.confirmation_mot_de_passe.message} </p> )}
                                 </Field>
 
                                 <CGUAcceptCheckbox checked={cguAccepted} onChange={setCguAccepted} />

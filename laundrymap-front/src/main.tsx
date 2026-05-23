@@ -9,6 +9,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google"
 import {Header} from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
 import { AuthProvider } from "@/components/context/AuthContext"
+import { PreferencesProvider } from "@/components/context/PreferencesContext"
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -27,8 +28,8 @@ class ErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-8">
-          <p className="text-red-600 font-semibold">Une erreur s'est produite.</p>
-          <p className="text-sm text-gray-500 text-center">{(this.state.error as Error)?.message}</p>
+          <p className="text-red-600 dark:text-red-400 font-semibold">Une erreur s'est produite.</p>
+          <p className="text-sm text-muted-foreground text-center">{(this.state.error as Error)?.message}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm"
@@ -47,13 +48,15 @@ createRoot(document.getElementById('root')!).render(
         <ErrorBoundary>
             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
                 <BrowserRouter>
-                    <AuthProvider>
-                        <div className="min-h-screen flex flex-col">
-                            <Header />
-                                <Router />
-                            <Footer />
-                        </div>
-                    </AuthProvider>
+                    <PreferencesProvider>
+                        <AuthProvider>
+                            <div className="min-h-screen flex flex-col">
+                                <Header />
+                                    <Router />
+                                <Footer />
+                            </div>
+                        </AuthProvider>
+                    </PreferencesProvider>
                 </BrowserRouter>
             </GoogleOAuthProvider>
         </ErrorBoundary>

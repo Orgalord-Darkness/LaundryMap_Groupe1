@@ -119,7 +119,7 @@ export default function UppyImageUploader({ mode, onFilesChange, existingUrls = 
       {/* Compteur galerie */}
       {mode === 'gallery' && (
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-600">Galerie ({config.maxFiles} max)</span>
+          <span className="text-sm font-medium text-muted-foreground">Galerie ({config.maxFiles} max)</span>
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
             fileCount >= config.maxFiles ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
           }`}>
@@ -136,9 +136,9 @@ export default function UppyImageUploader({ mode, onFilesChange, existingUrls = 
         onKeyDown={e => e.key === 'Enter' && inputRef.current?.click()}
         role="button"
         tabIndex={0}
-        className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-colors select-none"
+        className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-colors select-none"
       >
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Glissez vos images ici ou{' '}
           <span className="text-blue-500 underline">parcourez</span>
         </p>
@@ -154,18 +154,18 @@ export default function UppyImageUploader({ mode, onFilesChange, existingUrls = 
       </div>
 
       {/* Erreur de restriction Uppy */}
-      {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+      {error && <p className="text-red-500 dark:text-red-400 text-xs mt-2">{error}</p>}
 
       {/* Images existantes (affichées seulement si aucune nouvelle sélection) */}
       {existingUrls.length > 0 && fileCount === 0 && (
         <div className="mt-3">
-          <p className="text-xs text-gray-500 mb-1">
+          <p className="text-xs text-muted-foreground mb-1">
             {mode === 'logo' ? 'Logo actuel :' : 'Images actuelles :'}
           </p>
           <div className="flex flex-wrap gap-2">
             {existingUrls.map((url, i) => (
               <img key={i} src={url} alt={`Image ${i + 1}`}
-                className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm" />
+                className="w-16 h-16 object-cover rounded-lg border border-border shadow-sm" />
             ))}
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function UppyImageUploader({ mode, onFilesChange, existingUrls = 
               <img
                 src={previewUrls.current[file.id]}
                 alt={file.name ?? ''}
-                className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm"
+                className="w-16 h-16 object-cover rounded-lg border border-border shadow-sm"
               />
               <button
                 type="button"

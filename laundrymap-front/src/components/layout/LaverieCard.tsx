@@ -18,7 +18,7 @@ export function LaverieCard({
     return (
         <Card className="overflow-hidden rounded-2xl p-0 gap-0 shadow-sm hover:shadow-md transition-shadow duration-200">
             {/* Image */}
-            <div className="relative h-44 bg-gray-100 overflow-hidden">
+            <div className="relative h-44 bg-muted overflow-hidden">
                 {laverie.image_url ? (
                     <img
                         src={laverie.image_url}
@@ -39,7 +39,7 @@ export function LaverieCard({
             </div>
             {/* 🔵 Bouton 3 points */}
             <div className="absolute top-2 right-2">
-                <div className="bg-white/90 backdrop-blur rounded-lg shadow-sm">
+                <div className="bg-card/90 backdrop-blur rounded-lg shadow-sm">
                     <LaverieActions
                         id={laverie.id}
                         onDeleted={() => {
@@ -57,13 +57,13 @@ export function LaverieCard({
             {/* Contenu */}
             <CardContent className="p-4 flex flex-col gap-3">
                 <div className="flex flex-col gap-0.5">
-                    <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                    <h3 className="font-semibold text-foreground text-base leading-tight">
                         {laverie.nom_etablissement}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Propriétaire : {laverie.proprietaire_nom}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Créé le {laverie.date_creation}
                     </p>
                 </div>

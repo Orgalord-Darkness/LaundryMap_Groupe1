@@ -14,6 +14,8 @@ import { useNavigate } from 'react-router-dom'
 import apiClient from '@/lib/apiClient'
 import { CountrySelect } from '@/components/ui/CountrySelect'
 import { normalizeCountry } from '@/components/utils/countries'
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
+import type { AddressSelection } from '@/components/ui/AddressAutocomplete'
 
 function AddLaundry() {
 
@@ -161,17 +163,13 @@ function AddLaundry() {
     { key: 'country',    refKey: 'country'   },
   ]
 
-  // TODO(human): Implémentez la validation en utilisant t() pour les messages d'erreur.
-  // Pour chaque champ obligatoire, retournez t('validation_*_required') si vide, sinon "".
-  // Clés disponibles : validation_name_required, validation_address_required,
-  // validation_postal_required, validation_city_required, validation_country_required
   const validateForm = () => {
     const newErrors = {
-      name:       "",
-      adress:     "",
-      codePostal: "",
-      city:       "",
-      country:    "",
+      name:       name.trim()       ? "" : t('validation_name_required'),
+      adress:     adress.trim()     ? "" : t('validation_address_required'),
+      codePostal: codePostal.trim() ? "" : t('validation_postal_required'),
+      city:       city.trim()       ? "" : t('validation_city_required'),
+      country:    country.trim()    ? "" : t('validation_country_required'),
     }
     setErrors(newErrors)
     return { valid: Object.values(newErrors).every(e => e === ""), newErrors }
@@ -241,7 +239,7 @@ function AddLaundry() {
       <form onSubmit={handleSubmit} className="flex flex-col items-center p-4">
 
         <h1 className='flex flex-col font-bold mt-10 items-center justify-center text-2xl'>{t('add_laundry_title')}</h1>
-        <p className="flex flex-col items-center justify-center text-gray-500">{t('add_laundry_subtitle')}</p>
+        <p className="flex flex-col items-center justify-center text-muted-foreground">{t('add_laundry_subtitle')}</p>
 
         {/* Wi-Line */}
         <Field className="w-full max-w-md mx-auto mt-10" id='wiline-field'>
@@ -268,7 +266,7 @@ function AddLaundry() {
                 </Button>
             </div>
             {wilineError && (
-                <p className="text-red-500 text-xs mt-1">{wilineError}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{wilineError}</p>
             )}
         </Field>
 
@@ -279,7 +277,7 @@ function AddLaundry() {
 
         <Field className='w-85 m-auto items-center justify-center mt-5' id='images-field'>
           <FieldLabel>{t('laundry_form_gallery_title')}</FieldLabel>
-          <p className="text-sm text-gray-500 mb-2">{t('laundry_form_gallery_description')}</p>
+          <p className="text-sm text-muted-foreground mb-2">{t('laundry_form_gallery_description')}</p>
           <UppyImageUploader mode="gallery" onFilesChange={setGalleryFiles} />
         </Field>
 
@@ -287,7 +285,7 @@ function AddLaundry() {
           <Field className='w-85 m-auto items-center justify-center mt-10' id='name-field'>
             <FieldLabel htmlFor="input-field-name">{t('laundry_form_name_label')}<span className='text-orange-600'>*</span></FieldLabel>
             <Input id="input-field-name" type="text" placeholder={t('laundry_form_name_placeholder')} value={name} onChange={(e) => setName(e.target.value)} className='h-11' aria-label={t('laundry_form_name_label')}/>
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.name}</p>}
           </Field>
         </div>
 
@@ -298,26 +296,36 @@ function AddLaundry() {
 
         <div ref={el => { fieldRefs.current.adress = el }}>
           <Field className='w-85 m-auto items-center justify-center mt-5' id='adress-field'>
-            {geoErreur && <p className="text-red-500 text-sm mt-1">{geoErreur}</p>}
+            {geoErreur && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{geoErreur}</p>}
             <FieldLabel htmlFor="input-field-adress">{t('laundry_form_address_label')}<span className='text-orange-600'>*</span></FieldLabel>
-            <Input id="input-field-adress" type="text" placeholder={t('laundry_form_address_placeholder')} value={adress} onChange={(e) => setAdress(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
-            {errors.adress && <p className="text-red-500 text-sm mt-1">{errors.adress}</p>}
+            <AddressAutocomplete
+              value={adress}
+              onChange={setAdress}
+              onSelect={(sel: AddressSelection) => {
+                setAdress(sel.address)
+                setCodePostal(sel.postcode)
+                setCity(sel.city)
+              }}
+              placeholder={t('laundry_form_address_placeholder')}
+              className={geoErreur ? "border border-red-500 dark:border-red-700" : ""}
+            />
+            {errors.adress && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.adress}</p>}
           </Field>
         </div>
 
         <div ref={el => { fieldRefs.current.codePostal = el }}>
           <Field className='w-85 m-auto items-center justify-center mt-5' id='zip-field'>
             <FieldLabel htmlFor="input-field-codePostal">{t('laundry_form_postal_label')}<span className='text-orange-600'>*</span></FieldLabel>
-            <Input id="input-field-codePostal" type="text" placeholder={t('laundry_form_postal_label')} value={codePostal} onChange={(e) => setCodePostal(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
-            {errors.codePostal && <p className="text-red-500 text-sm mt-1">{errors.codePostal}</p>}
+            <Input id="input-field-codePostal" type="text" placeholder={t('laundry_form_postal_label')} value={codePostal} onChange={(e) => setCodePostal(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`}/>
+            {errors.codePostal && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.codePostal}</p>}
           </Field>
         </div>
 
         <div ref={el => { fieldRefs.current.city = el }}>
           <Field className='w-85 m-auto items-center justify-center mt-5' id='city-field'>
             <FieldLabel htmlFor="input-field-city">{t('laundry_form_city_label')}<span className='text-orange-600'>*</span></FieldLabel>
-            <Input id="input-field-city" type="text" placeholder={t('laundry_form_city_label')} value={city} onChange={(e) => setCity(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}/>
-            {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+            <Input id="input-field-city" type="text" placeholder={t('laundry_form_city_label')} value={city} onChange={(e) => setCity(e.target.value)} className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`}/>
+            {errors.city && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.city}</p>}
           </Field>
         </div>
 
@@ -328,9 +336,9 @@ function AddLaundry() {
               id="input-field-country"
               value={country}
               onChange={setCountry}
-              className={`h-11 ${geoErreur ? "border border-red-500" : ""}`}
+              className={`h-11 ${geoErreur ? "border border-red-500 dark:border-red-700" : ""}`}
             />
-            {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+            {errors.country && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.country}</p>}
           </Field>
         </div>
 
@@ -393,8 +401,8 @@ function AddLaundry() {
           onChange={setSelectedPayments}
         />
 
-        {apiError && <p className="text-red-500 text-sm mt-4 font-semibold">{apiError}</p>}
-        {success  && <p className="text-green-600 text-sm mt-4 font-semibold">{success}</p>}
+        {apiError && <p className="text-red-500 dark:text-red-400 text-sm mt-4 font-semibold">{apiError}</p>}
+        {success  && <p className="text-green-600 dark:text-green-400 text-sm mt-4 font-semibold">{success}</p>}
 
         <div className='flex flex-col items-center justify-center my-12'>
           <Button type="submit" disabled={loading}>

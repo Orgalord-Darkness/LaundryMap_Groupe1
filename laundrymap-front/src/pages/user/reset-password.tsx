@@ -73,7 +73,7 @@ export default function ResetPassword() {
 
                                 <Field>
                                     <FieldLabel htmlFor="mot_de_passe">Nouveau mot de passe</FieldLabel>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-muted-foreground">
                                         Minimum 8 caractères, 1 majuscule, 1 minuscule, 1 caractère spécial
                                     </p>
                                     <Input
@@ -84,7 +84,7 @@ export default function ResetPassword() {
                                         })}
                                     />
                                     {errors.mot_de_passe && (
-                                        <p className="text-red-500 text-xs mt-1">{errors.mot_de_passe.message}</p>
+                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.mot_de_passe.message}</p>
                                     )}
                                 </Field>
 
@@ -101,7 +101,7 @@ export default function ResetPassword() {
                                         })}
                                     />
                                     {errors.confirmation_mot_de_passe && (
-                                        <p className="text-red-500 text-xs mt-1">
+                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                                             {errors.confirmation_mot_de_passe.message}
                                         </p>
                                     )}

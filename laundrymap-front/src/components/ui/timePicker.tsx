@@ -59,14 +59,14 @@ interface TimePairProps {
 function TimePair({ label, startId, endId, start, end, onChangeStart, onChangeEnd }: TimePairProps) {
   const inputClass = `
     w-full text-center rounded-xl border px-2 py-1.5
-    text-xs font-medium text-gray-800 bg-gray-50 border-gray-200
+    text-xs font-medium text-foreground bg-background border-border
     focus:outline-none focus:ring-2 focus:ring-gray-200
     transition-all duration-150
   `;
 
   return (
     <div className="grid grid-cols-[80px_1fr_auto_1fr] items-center gap-2">
-      <span className="text-xs font-medium text-gray-500">{label}</span>
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
 
       <div className="flex flex-col gap-0.5">
         <label htmlFor={startId} className="text-[9px] font-medium text-gray-400 uppercase tracking-wide">
@@ -116,10 +116,10 @@ export default function WeekSchedulePicker({ value, onChange }: WeekSchedulePick
     });
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white shadow-md overflow-hidden">
+    <div className="w-full max-w-md rounded-2xl border border-border bg-card shadow-md overflow-hidden">
 
       {/* ── En-tête ── */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
           className="text-gray-400"
@@ -129,14 +129,14 @@ export default function WeekSchedulePicker({ value, onChange }: WeekSchedulePick
           <line x1="8"  y1="2" x2="8"  y2="6" />
           <line x1="3"  y1="10" x2="21" y2="10" />
         </svg>
-        <span className="text-sm font-semibold text-gray-900">Horaires de la semaine</span>
+        <span className="text-sm font-semibold text-foreground">Horaires de la semaine</span>
       </div>
 
       {/* ── 7 jours ── */}
       {DAYS.map(({ key, label }, index) => (
         <div
           key={key}
-          className={`px-4 py-3 flex flex-col gap-2 ${index < DAYS.length - 1 ? "border-b border-gray-100" : ""}`}
+          className={`px-4 py-3 flex flex-col gap-2 ${index < DAYS.length - 1 ? "border-b border-border" : ""}`}
         >
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
             {label}

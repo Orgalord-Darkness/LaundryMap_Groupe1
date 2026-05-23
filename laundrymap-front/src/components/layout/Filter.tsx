@@ -39,7 +39,7 @@ export function FilterTabs<T extends string>({
                         transition-colors duration-150 whitespace-nowrap
                         ${active === value
                             ? "bg-primary text-white shadow-sm"
-                            : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                            : "bg-muted text-muted-foreground hover:bg-muted hover:text-foreground"
                         }
                     `}
                 >

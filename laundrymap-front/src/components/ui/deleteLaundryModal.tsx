@@ -18,7 +18,6 @@ export function DeleteLaverieModal({
   onDeleted,
 }: DeleteLaverieModalProps) {
   const [loading, setLoading] = useState(false);
-  console.log('test : ', import.meta.env.VITE_API_BASE_URL); 
   const handleDelete = async () => {
     try {
       setLoading(true);
@@ -49,7 +48,7 @@ export function DeleteLaverieModal({
       {/* MODAL CONTAINER */}
       <div className="relative z-10 w-full max-w-md mx-4">
         
-        <div className="bg-white rounded-2xl shadow-xl p-6 flex flex-col gap-4">
+        <div className="bg-card rounded-2xl shadow-xl p-6 flex flex-col gap-4">
 
           {/* TITLE */}
           <h2 className="text-lg font-semibold text-center">
@@ -58,13 +57,13 @@ export function DeleteLaverieModal({
 
           {/* NAME */}
           {name && (
-            <p className="text-center text-sm text-gray-600">
-              Supprimer <span className="font-semibold text-gray-900">{name}</span> ?
+            <p className="text-center text-sm text-muted-foreground">
+              Supprimer <span className="font-semibold text-foreground">{name}</span> ?
             </p>
           )}
 
           {/* WARNING */}
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-xs text-muted-foreground text-center">
             Cette action est irréversible.
           </p>
 

@@ -21,12 +21,12 @@ export default function Verification() {
   }, [token]);
 
   return (
-    <div className="mx-auto max-w-md p-6 mt-8 bg-white rounded-lg shadow-lg">
+    <div className="mx-auto max-w-md p-6 mt-8 bg-card rounded-lg shadow-lg">
       <h1 className="text-xl font-semibold mb-4">Confirmation email</h1>
       {error ? (
-        <div className="text-red-600">{error}</div>
+        <div className="text-red-600 dark:text-red-400">{error}</div>
       ) : (
-        <div className="text-green-600">{message}</div>
+        <div className="text-green-600 dark:text-green-400">{message}</div>
       )}
       <Link to="/user/login" className="text-blue-600 underline mt-4 inline-block">Retour à la connexion</Link>
     </div>

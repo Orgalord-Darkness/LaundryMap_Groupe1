@@ -1,7 +1,7 @@
 nelmio_cors:
     defaults:
         origin_regex: false
-        allow_origin: ['http://localhost:8888']
+        allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
         allow_credentials: true
         allow_headers: ['Content-Type', 'Authorization']
         allow_methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
@@ -9,7 +9,7 @@ nelmio_cors:
 
     paths:
         '^/api/':
-            allow_origin: ['http://localhost:8888']
+            allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
             allow_credentials: true
             allow_headers: ['Content-Type', 'Authorization']
             allow_methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']

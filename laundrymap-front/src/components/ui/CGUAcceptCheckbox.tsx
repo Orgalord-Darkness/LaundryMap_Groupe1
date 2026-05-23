@@ -37,7 +37,7 @@ export function CGUAcceptCheckbox({ checked, onChange }: CGUAcceptCheckboxProps)
           onChange={(e) => onChange(e.target.checked)}
           className="mt-0.5 h-4 w-4 accent-blue-500 cursor-pointer disabled:cursor-not-allowed"
         />
-        <span className="text-sm text-gray-800">
+        <span className="text-sm text-foreground">
           J'ai lu et j'accepte les{" "}
           <Link
             to="/cgu"

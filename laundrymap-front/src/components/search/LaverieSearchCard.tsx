@@ -1,9 +1,9 @@
-import { useTranslation } from "react-i18next"
 import { Card } from "@/components/ui/card"
-import { MapPin, Mail } from "lucide-react"
+import { MapPin } from "lucide-react"
 import type { LaverieSearch } from "@/components/utils/type"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
+import { StatusBadge } from "@/components/utils/StatusBadge"
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
@@ -23,8 +23,14 @@ interface LaverieSearchCardProps {
 }
 
 export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchCardProps) {
-    const { t } = useTranslation()
     const navigate = useNavigate()
+
+    function todayHours(fermetures: LaverieSearch["fermetures"]): string | null {
+        const currentDay = new Date().toLocaleDateString("fr-FR", { weekday: "long" }).toLowerCase()
+        const todaySlots = fermetures?.filter(slot => slot.jour === currentDay) ?? []
+        if (todaySlots.length === 0) return null
+        return todaySlots.map(slot => `${slot.heureDebut} - ${slot.heureFin}`).join(" / ")
+    }
 
     return (
         <Card
@@ -44,7 +50,7 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
             aria-label={`Laverie ${laverie.nomEtablissement}`}
         >
             {/* Image / Placeholder */}
-            <div className="relative bg-white overflow-hidden shrink-0 w-full">
+            <div className="relative bg-card overflow-hidden shrink-0 w-full">
                 {laverie.logoUrl ? (
                     <img
                         src={`${API_BASE}${laverie.logoUrl}`}
@@ -60,13 +66,21 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
                     </div>
                 )}
 
-                {/* Badge statut */}
-                <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200 leading-tight">
-                    {t("search_open")}
-                </span>
+                {/* Badge statut dynamique */}
+                <StatusBadge fermetures={laverie.fermetures} className="absolute top-2 right-2" />
+
+                {/* Badge favori */}
+                {laverie.isFavorite && (
+                    <span className="absolute top-2 left-2 p-1 rounded-full bg-card/80 backdrop-blur-sm shadow-sm" aria-label="Favori">
+                        <svg className="w-4 h-4 text-rose-500 fill-rose-500" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </span>
+                )}
 
                 {/* Badge distance */}
-                <span className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-white/90 text-gray-700 shadow-sm font-medium flex items-center gap-1">
+                <span className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-card/90 text-foreground shadow-sm font-medium flex items-center gap-1">
                     <MapPin className="w-2.5 h-2.5" aria-hidden="true" />
                     {formatDistance(laverie.distanceMetres)}
                 </span>
@@ -74,25 +88,24 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
 
             {/* Contenu */}
             <div className="p-3 flex flex-col gap-1 flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2">
+                <h3 className="font-semibold text-foreground text-sm leading-tight line-clamp-2">
                     {laverie.nomEtablissement}
                 </h3>
 
-                <p className="text-xs text-gray-500 flex items-start gap-1 line-clamp-1">
+                <p className="text-xs text-muted-foreground flex items-start gap-1 line-clamp-1">
                     <MapPin className="w-3 h-3 mt-0.5 shrink-0 text-gray-400" aria-hidden="true" />
                     {laverie.adresse.rue}, {laverie.adresse.codePostal} {laverie.adresse.ville}
                 </p>
 
-                {laverie.contactEmail && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
-                        <Mail className="w-3 h-3 shrink-0 text-gray-400" aria-hidden="true" />
-                        <span className="truncate">{laverie.contactEmail}</span>
+                {laverie.fermetures && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                        <span className="truncate">{todayHours(laverie.fermetures)}</span>
                     </p>
                 )}
 
-                {laverie.description && (
+                {laverie.paiements && (
                     <p className="text-xs text-gray-400 line-clamp-1">
-                        {laverie.description}
+                        {laverie.paiements.join(', ')}
                     </p>
                 )}
             </div>

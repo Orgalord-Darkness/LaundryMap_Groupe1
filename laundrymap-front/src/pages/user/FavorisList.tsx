@@ -65,15 +65,15 @@ function FavoriCard({
     }
 
     const statutStyle: Record<FavoriLaverie["statut"], string> = {
-        OUVERT: "bg-green-100 text-green-700",
-        FERME: "bg-red-100 text-red-700",
-        INCONNU: "bg-gray-100 text-gray-500",
+        OUVERT: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+        FERME: "bg-red-100 dark:bg-red-900/30 text-red-700",
+        INCONNU: "bg-muted text-muted-foreground",
     }
 
     return (
         <Card className="overflow-hidden rounded-2xl p-0 gap-0 shadow-sm hover:shadow-md transition-shadow duration-200">
             {/* Image */}
-            <div className="relative bg-white overflow-hidden w-full">
+            <div className="relative bg-card overflow-hidden w-full">
                 {laverie.image_url ? (
                     <img
                         src={laverie.image_url}
@@ -103,14 +103,14 @@ function FavoriCard({
             {/* Contenu */}
             <CardContent className="p-4 flex flex-col gap-3">
                 <div className="flex flex-col gap-0.5">
-                    <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                    <h3 className="font-semibold text-foreground text-base leading-tight">
                         {laverie.nom_etablissement}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         {laverie.adresse}, {laverie.code_postal} {laverie.ville}
                     </p>
                     {laverie.horaires_aujourd_hui && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                             Aujourd'hui : {laverie.horaires_aujourd_hui}
                         </p>
                     )}
@@ -127,7 +127,7 @@ function FavoriCard({
                     </Button>
 
                     {laverie.note !== undefined && (
-                        <span className="flex items-center gap-1 text-sm font-medium text-gray-600">
+                        <span className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                             Note : {laverie.note.toFixed(1)}
                             <svg className="w-4 h-4 text-yellow-400 fill-yellow-400" viewBox="0 0 24 24">
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -146,15 +146,15 @@ function EmptyFavoris() {
     const navigate = useNavigate()
     return (
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
                 <svg className="w-10 h-10 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                         d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                 </svg>
             </div>
             <div>
-                <p className="font-semibold text-gray-800 text-base">Aucune laverie en favori</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="font-semibold text-foreground text-base">Aucune laverie en favori</p>
+                <p className="text-sm text-muted-foreground mt-1">
                     Explorez la carte et ajoutez des laveries à vos favoris pour les retrouver ici.
                 </p>
             </div>
@@ -202,13 +202,13 @@ export function FavorisList() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-background flex flex-col">
             {/* En-tête de section */}
-            <div className="bg-white px-4 pt-6 pb-0">
+            <div className="bg-card px-4 pt-6 pb-0">
                 <div className="max-w-lg mx-auto">
                     <div className="text-center mb-4">
-                        <h1 className="text-xl font-bold text-gray-900">Espace personnel</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">Mes laveries favorites</p>
+                        <h1 className="text-xl font-bold text-foreground">Espace personnel</h1>
+                        <p className="text-sm text-muted-foreground mt-0.5">Mes laveries favorites</p>
                     </div>
 
                     {/* Onglets de navigation */}
@@ -223,15 +223,15 @@ export function FavorisList() {
                     // Skeleton loader
                     <div className="flex flex-col gap-4">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="rounded-2xl overflow-hidden bg-white shadow-sm animate-pulse">
-                                <div className="h-44 bg-gray-200" />
+                            <div key={i} className="rounded-2xl overflow-hidden bg-card shadow-sm animate-pulse">
+                                <div className="h-44 bg-muted" />
                                 <div className="p-4 flex flex-col gap-3">
-                                    <div className="h-4 bg-gray-200 rounded w-2/3" />
-                                    <div className="h-3 bg-gray-100 rounded w-1/2" />
-                                    <div className="h-3 bg-gray-100 rounded w-3/5" />
+                                    <div className="h-4 bg-muted rounded w-2/3" />
+                                    <div className="h-3 bg-muted rounded w-1/2" />
+                                    <div className="h-3 bg-muted rounded w-3/5" />
                                     <div className="flex justify-between items-center">
-                                        <div className="h-8 bg-gray-200 rounded-lg w-28" />
-                                        <div className="h-4 bg-gray-100 rounded w-16" />
+                                        <div className="h-8 bg-muted rounded-lg w-28" />
+                                        <div className="h-4 bg-muted rounded w-16" />
                                     </div>
                                 </div>
                             </div>
@@ -239,7 +239,7 @@ export function FavorisList() {
                     </div>
                 ) : error ? (
                     <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-                        <p className="text-sm text-red-500">{error}</p>
+                        <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
                         <Button variant="outline" size="sm" onClick={fetchFavoris}>
                             Réessayer
                         </Button>

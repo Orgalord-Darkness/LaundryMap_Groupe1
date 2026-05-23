@@ -1,6 +1,7 @@
 ##############################
 # ENVIRONNEMENT & SECRETS
 ##############################
+.env 
 .env.local
 .env.dev
 .env.test
@@ -40,6 +41,7 @@ laundrymap-back/vendor/
 # Fichiers de config serveur — ne jamais écraser
 laundrymap-back/config/bundles.php
 deploy.sh
+deploy-secrets.sh
 
 ##############################
 # NODE / REACT

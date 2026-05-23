@@ -5,8 +5,10 @@ namespace App\Controller;
 use App\Repository\LaverieRepository;
 use App\Repository\LaverieMediaRepository;
 use App\Repository\LaverieFermetureRepository;
+use App\Repository\LaverieFermetureExceptionnelleRepository;
 use App\Repository\LaverieEquipementRepository;
 use App\Repository\LaverieNoteRepository;
+use App\Entity\Laverie;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,12 +21,13 @@ use App\Entity\LaverieNote;
 class FicheLaverieController extends AbstractController
 {
     public function __construct(
-        private readonly LaverieRepository           $laverieRepository,
-        private readonly LaverieMediaRepository      $laverieMediaRepository,
-        private readonly LaverieFermetureRepository  $laverieFermetureRepository,
-        private readonly LaverieEquipementRepository $laverieEquipementRepository,
-        private readonly LaverieNoteRepository       $laverieNoteRepository,
-        private readonly EntityManagerInterface      $entityManager,
+        private readonly LaverieRepository                          $laverieRepository,
+        private readonly LaverieMediaRepository                     $laverieMediaRepository,
+        private readonly LaverieFermetureRepository                 $laverieFermetureRepository,
+        private readonly LaverieFermetureExceptionnelleRepository   $laverieFermetureExceptionnelleRepository,
+        private readonly LaverieEquipementRepository                $laverieEquipementRepository,
+        private readonly LaverieNoteRepository                      $laverieNoteRepository,
+        private readonly EntityManagerInterface                     $entityManager,
     ) {}
 
 
@@ -97,7 +100,7 @@ class FicheLaverieController extends AbstractController
         }
 
         // Statut ouvert / fermé (calculé dynamiquement)
-        $isOpen = $this->calculateIsOpen($fermetures);
+        $isOpen = $this->calculateIsOpen($fermetures, $laverie);
 
 
         //  Machines (LaverieEquipement) 
@@ -240,11 +243,19 @@ class FicheLaverieController extends AbstractController
 
 
 
-    // Calcul dynamique ouvert / fermé
-    private function calculateIsOpen(array $fermetures): bool
+    // Calcul dynamique ouvert / fermé (tient compte des fermetures exceptionnelles)
+    private function calculateIsOpen(array $fermetures, Laverie $laverie): bool
     {
         $maintenant    = new \DateTime('now');
         $heureActuelle = $maintenant->format('H:i');
+
+        // Vérifier d'abord si une fermeture exceptionnelle est active
+        $fermeturesExc = $this->laverieFermetureExceptionnelleRepository->findBy(['laverie' => $laverie]);
+        foreach ($fermeturesExc as $exc) {
+            if ($maintenant >= $exc->getDateDebut() && $maintenant <= $exc->getDateFin()) {
+                return false;
+            }
+        }
 
        
         $jourActuel = match ($maintenant->format('N')) {

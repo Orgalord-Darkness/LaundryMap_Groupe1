@@ -40,4 +40,25 @@ class MethodePaiementRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function findPaiementsByLaverieIds(array $ids): array {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $conn = $this->getEntityManager()->getConnection();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));  
+        $sql = "SELECT lp.laverie_id, mp.nom 
+            FROM laverie_paiement lp 
+            JOIN methode_paiement mp ON mp.id = lp.methode_paiement_id
+            WHERE lp.laverie_id IN ($placeholders)
+            ORDER BY mp.nom"; 
+        
+        $query = $conn->fetchAllAssociative($sql, array_values($ids));
+        $grouped = []; 
+        foreach ($query as $row) {
+            $grouped[(int) $row['laverie_id']][] = $row['nom']; 
+        }
+        return $grouped;
+    }
 }

@@ -53,15 +53,15 @@ function ProDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="text-center mt-10 text-gray-500">Chargement...</p>;
-  if (error)   return <p className="text-center mt-10 text-red-500">{error}</p>;
+  if (loading) return <p className="text-center mt-10 text-muted-foreground">Chargement...</p>;
+  if (error)   return <p className="text-center mt-10 text-red-500 dark:text-red-400">{error}</p>;
  
   return (
     <>
       <div className="flex flex-col items-center p-4 min-h-screen">
 
         <h1 className="font-bold text-2xl mt-6">Tableau de bord</h1>
-        <p className="text-gray-500 text-center mt-2">Bienvenue dans votre espace professionnel</p>
+        <p className="text-muted-foreground text-center mt-2">Bienvenue dans votre espace professionnel</p>
 
         <div className="w-[150px] my-12">
           <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center">
@@ -87,7 +87,7 @@ function ProDashboard() {
                 return (
                   <Card className="relative mx-auto w-full max-w-sm pt-0 overflow-hidden" key={laundry.id}>
 
-                    <div className="relative h-40 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-xl">
+                    <div className="relative h-40 bg-background flex items-center justify-center overflow-hidden rounded-t-xl">
                       <img
                         src={laundry.logoUrl ? `${import.meta.env.VITE_API_BASE_URL}${laundry.logoUrl}` : '/placeholder.png'}
                         alt={laundry.nom}
@@ -96,7 +96,7 @@ function ProDashboard() {
                     </div>
                       {/* bouton 3 points */}
                     <div className="absolute top-2 right-2 z-40">
-                      <div className="bg-white/90 backdrop-blur rounded-lg shadow-sm">
+                      <div className="bg-card/90 backdrop-blur rounded-lg shadow-sm">
                         <LaverieActions
                           id={laundry.id}
                           onDeleted={() => {
@@ -104,7 +104,7 @@ function ProDashboard() {
                             setTotal(prev => prev - 1)
                           }}
                           onEdit={() => {
-                            console.log("edit")
+                            navigate(`/pro/laverie/${laundry.id}`)
                           }}
                           name={laundry.nom}
                         />
@@ -126,7 +126,7 @@ function ProDashboard() {
                         {laundry.rating !== null ? (
                           <>
                             <span className="text-yellow-500">★ {laundry.rating}</span>
-                            <span className="text-gray-500 ml-2">{laundry.avis} avis</span>
+                            <span className="text-muted-foreground ml-2">{laundry.avis} avis</span>
                           </>
                         ) : (
                           <span className="text-gray-400 italic">Aucun avis</span>

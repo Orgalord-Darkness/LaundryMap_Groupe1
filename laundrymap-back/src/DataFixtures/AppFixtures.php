@@ -271,36 +271,80 @@ class AppFixtures extends Fixture
 
 
 
-        // MEDIAS
-         
+        // MÉDIAS LOGOS (20 fichiers — /fichiers/logo/)
+        // $logoMedias[0..3]  → $laveries[0..3]
+        // $logoMedias[4..19] → $laveriesGeo[0..15], rotation pour geo[16..19] et senlisLaveries
 
-        $mediaData = [
-            [
-                'emplacement'  => 'uploads/medias/media1.png',
-                'nom_original' => 'media1.png',
-                'poids'        => 50,
-                'mime_type'    => 'image/png',
-            ],
-            [
-                'emplacement'  => 'uploads/medias/media2.png',
-                'nom_original' => 'media2.png',
-                'poids'        => 50,
-                'mime_type'    => 'image/png',
-            ],
+        $logoMediaData = [
+            ['emplacement' => '/fichiers/logo/logo_laverie1.png',   'nom_original' => 'logo_laverie1.png',   'poids' => 6767,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_2.png',  'nom_original' => 'logo_laverie_2.png',  'poids' => 185068,  'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_3.png',  'nom_original' => 'logo_laverie_3.png',  'poids' => 8360,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_4.png',  'nom_original' => 'logo_laverie_4.png',  'poids' => 4748,    'mime_type' => 'image/webp'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_5.png',  'nom_original' => 'logo_laverie_5.png',  'poids' => 64201,   'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_6.png',  'nom_original' => 'logo_laverie_6.png',  'poids' => 4765,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_7.png',  'nom_original' => 'logo_laverie_7.png',  'poids' => 5201,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_8.png',  'nom_original' => 'logo_laverie_8.png',  'poids' => 7680,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_9.png',  'nom_original' => 'logo_laverie_9.png',  'poids' => 6593,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_10.png', 'nom_original' => 'logo_laverie_10.png', 'poids' => 6001,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_11.png', 'nom_original' => 'logo_laverie_11.png', 'poids' => 9088,    'mime_type' => 'image/webp'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_12.png', 'nom_original' => 'logo_laverie_12.png', 'poids' => 27526,   'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_13.png', 'nom_original' => 'logo_laverie_13.png', 'poids' => 8707,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_14.png', 'nom_original' => 'logo_laverie_14.png', 'poids' => 8346,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_15.png', 'nom_original' => 'logo_laverie_15.png', 'poids' => 59575,   'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_16.png', 'nom_original' => 'logo_laverie_16.png', 'poids' => 16378,   'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_17.png', 'nom_original' => 'logo_laverie_17.png', 'poids' => 6592,    'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_18.png', 'nom_original' => 'logo_laverie_18.png', 'poids' => 6580,    'mime_type' => 'image/png'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_19.png', 'nom_original' => 'logo_laverie_19.png', 'poids' => 5272,    'mime_type' => 'image/webp'],
+            ['emplacement' => '/fichiers/logo/logo_laverie_20.png', 'nom_original' => 'logo_laverie_20.png', 'poids' => 5191,    'mime_type' => 'image/png'],
         ];
 
-        $medias = [];
-        foreach ($mediaData as $data) {
+        $logoMedias = [];
+        foreach ($logoMediaData as $data) {
             $media = new Media();
             $media->setEmplacement($data['emplacement']);
             $media->setNomOriginal($data['nom_original']);
             $media->setPoids($data['poids']);
             $media->setMimeType($data['mime_type']);
-
             $manager->persist($media);
-            $medias[] = $media;
+            $logoMedias[] = $media;
         }
-        // $medias[0] = media1 | $medias[1] = media2
+
+
+        // MÉDIAS IMAGES (20 fichiers — /fichiers/images/)
+
+        $imageMediaData = [
+            ['emplacement' => '/fichiers/images/images.jpeg',                                                                                              'nom_original' => 'images.jpeg',                                                                                              'poids' => 7794,      'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/images2.jpeg',                                                                                             'nom_original' => 'images2.jpeg',                                                                                             'poids' => 9115,      'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/images3_.jpeg',                                                                                            'nom_original' => 'images3_.jpeg',                                                                                            'poids' => 7625,      'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/images4.jpeg',                                                                                             'nom_original' => 'images4.jpeg',                                                                                             'poids' => 10272,     'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/images5.jpeg',                                                                                             'nom_original' => 'images5.jpeg',                                                                                             'poids' => 7838,      'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/images6.jpeg',                                                                                             'nom_original' => 'images6.jpeg',                                                                                             'poids' => 10685,     'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/images7.jpeg',                                                                                             'nom_original' => 'images7.jpeg',                                                                                             'poids' => 6150,      'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/images8.jpeg',                                                                                             'nom_original' => 'images8.jpeg',                                                                                             'poids' => 8603,      'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/images9.jpeg',                                                                                             'nom_original' => 'images9.jpeg',                                                                                             'poids' => 6545,      'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/bfdcdc1f3a85.jpg',                                                                                         'nom_original' => 'bfdcdc1f3a85.jpg',                                                                                         'poids' => 83122,     'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/istock-2216546853-1b3884.jpg',                                                                             'nom_original' => 'istock-2216546853-1b3884.jpg',                                                                             'poids' => 57729,     'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/laundry-413688_640.jpg',                                                                                   'nom_original' => 'laundry-413688_640.jpg',                                                                                   'poids' => 92032,     'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/machine-laver-rangee-machines-laver-automatiques-dans-buanderie-concept-service-blanchisserie_64235-2213.avif', 'nom_original' => 'machine-laver-rangee-machines-laver-automatiques-dans-buanderie-concept-service-blanchisserie_64235-2213.avif', 'poids' => 27387,     'mime_type' => 'image/avif'],
+            ['emplacement' => '/fichiers/images/processus-lavage-vetements_1098-14493.avif',                                                               'nom_original' => 'processus-lavage-vetements_1098-14493.avif',                                                               'poids' => 27415,     'mime_type' => 'image/avif'],
+            ['emplacement' => '/fichiers/images/happy-man-arms-crossed-standing-260nw-2746368747.webp',                                                    'nom_original' => 'happy-man-arms-crossed-standing-260nw-2746368747.webp',                                                    'poids' => 28038,     'mime_type' => 'image/webp'],
+            ['emplacement' => '/fichiers/images/inside-washing-machine-wash-machine-details.jpg',                                                          'nom_original' => 'inside-washing-machine-wash-machine-details.jpg',                                                          'poids' => 7568525,   'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/washing-machine-minimal-laundry-room-interior-design.jpg',                                                 'nom_original' => 'washing-machine-minimal-laundry-room-interior-design.jpg',                                                 'poids' => 11360672,  'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/closeup-photo-fashionable-clothes-hangers-shop.jpg',                                                       'nom_original' => 'closeup-photo-fashionable-clothes-hangers-shop.jpg',                                                       'poids' => 9649608,   'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/Sans titre.jpeg',                                                                                          'nom_original' => 'Sans titre.jpeg',                                                                                          'poids' => 9414,      'mime_type' => 'image/jpeg'],
+            ['emplacement' => '/fichiers/images/Sans titre2.jpeg',                                                                                         'nom_original' => 'Sans titre2.jpeg',                                                                                         'poids' => 10685,     'mime_type' => 'image/jpeg'],
+        ];
+
+        $imageMedias = [];
+        foreach ($imageMediaData as $data) {
+            $media = new Media();
+            $media->setEmplacement($data['emplacement']);
+            $media->setNomOriginal($data['nom_original']);
+            $media->setPoids($data['poids']);
+            $media->setMimeType($data['mime_type']);
+            $manager->persist($media);
+            $imageMedias[] = $media;
+        }
 
 
 
@@ -358,10 +402,10 @@ class AppFixtures extends Fixture
         ];
 
         $laveries = [];
-        foreach ($laundryData as $data) {
+        foreach ($laundryData as $i => $data) {
             $laverie = new Laverie();
             $laverie->setProfessionnel($data['professionnel']); // setProfessionnelId & setAdresseId semble non créé/utilisé dans laverie.php
-            $laverie->setStatut($data['statut']); 
+            $laverie->setStatut($data['statut']);
             $laverie->setWiLineReference($data['wi_line_reference']);
             $laverie->setNomEtablissement($data['nom_etablissement']);
             $laverie->setContactEmail($data['contact_email']);
@@ -370,7 +414,7 @@ class AppFixtures extends Fixture
             $laverie->setDateAjout($data['date_ajout']);
             $laverie->setDateModification($data['date_modification']);
             $laverie->setSupprimeLe($data['supprimee_le']);
-            $laverie->setLogo($medias[0]);
+            $laverie->setLogo($logoMedias[$i]);
 
             $manager->persist($laverie);
             $laveries[] = $laverie;
@@ -507,27 +551,20 @@ class AppFixtures extends Fixture
 
 
          
-        // LAVERIE MEDIA
-        $laverieMediaData = [
-            [
-                'laverie'     => $laveries[0],
-                'media'       => $medias[0],
-                'description' => 'Logo',
-            ],
-            [
-                'laverie'     => $laveries[1],
-                'media'       => $medias[1],
-                'description' => 'Image logo',
-            ],
-        ];
-
-        foreach ($laverieMediaData as $data) {
-            $laverieMedia = new LaverieMedia();
-            $laverieMedia->setLaverie($data['laverie']);
-            $laverieMedia->setMedia($data['media']);
-            $laverieMedia->setDescription($data['description']);
-
-            $manager->persist($laverieMedia);
+        // LAVERIE MEDIA — galerie variable (1–8 images par laverie)
+        $lavImageCounts = [4, 6, 2, 3];
+        $descPool       = ['Intérieur laverie', 'Façade', 'Vue extérieure', 'Machines',
+                           'Entrée', 'Zone de séchage', 'Distributeurs', 'Parking'];
+        $imgOffset      = 0;
+        foreach ($laveries as $i => $lav) {
+            for ($j = 0; $j < $lavImageCounts[$i]; $j++) {
+                $lm = new LaverieMedia();
+                $lm->setLaverie($lav)
+                   ->setMedia($imageMedias[$imgOffset % 9 + 9])
+                   ->setDescription($descPool[$j % 8]);
+                $manager->persist($lm);
+                $imgOffset++;
+            }
         }
 
 
@@ -1338,7 +1375,7 @@ class AppFixtures extends Fixture
         ];
 
         $laveriesGeo = [];
-        foreach ($laveriesGeoData as $data) {
+        foreach ($laveriesGeoData as $i => $data) {
             $laverie = new Laverie();
             $laverie->setProfessionnel($data['professionnel']);
             $laverie->setStatut($data['statut']);
@@ -1350,6 +1387,7 @@ class AppFixtures extends Fixture
             $laverie->setDateAjout($data['date_ajout']);
             $laverie->setDateModification($data['date_modification']);
             $laverie->setSupprimeLe($data['supprimee_le']);
+            $laverie->setLogo($logoMedias[($i + 4) % 20]);
 
             $manager->persist($laverie);
             $laveriesGeo[] = $laverie;
@@ -1440,13 +1478,18 @@ class AppFixtures extends Fixture
             $manager->persist($n);
         }
 
-        $geoMedia3 = new LaverieMedia();
-        $geoMedia3->setLaverie($laveriesGeo[3])->setMedia($medias[0])->setDescription('Vue de la façade');
-        $manager->persist($geoMedia3);
-
-        $geoMedia9 = new LaverieMedia();
-        $geoMedia9->setLaverie($laveriesGeo[9])->setMedia($medias[1])->setDescription('Intérieur de la laverie');
-        $manager->persist($geoMedia9);
+        $geoImageCounts = [3, 5, 2, 8, 4, 1, 6, 3, 7, 2, 5, 1, 4, 8, 3, 6, 2, 5, 4, 1];
+        $imgOffset      = 0;
+        foreach ($laveriesGeo as $i => $lav) {
+            for ($j = 0; $j < $geoImageCounts[$i]; $j++) {
+                $geoMedia = new LaverieMedia();
+                $geoMedia->setLaverie($lav)
+                         ->setMedia($imageMedias[$imgOffset % 9 + 9])
+                         ->setDescription($descPool[$j % 8]);
+                $manager->persist($geoMedia);
+                $imgOffset++;
+            }
+        }
         // ─────────────────────────────────────────────────────────────────────
 
         // ── FAVORIS (laverie_favori) ──────────────────────────────────────────
@@ -1504,7 +1547,7 @@ class AppFixtures extends Fixture
         ];
 
         $senlisLaveries = [];
-        foreach ($senlisLaveriesData as $d) {
+        foreach ($senlisLaveriesData as $i => $d) {
             $l = new Laverie();
             $l->setProfessionnel($professionnels[0]);
             $l->setStatut(LaverieStatutEnum::VALIDE);
@@ -1513,7 +1556,7 @@ class AppFixtures extends Fixture
             $l->setContactEmail($d['email']);
             $l->setDescription($d['desc']);
             $l->setAdresse($d['adresse']);
-            $l->setLogo($medias[0]);
+            $l->setLogo($logoMedias[($i + 4) % 20]);
             $l->setDateAjout(new \DateTime($d['date']));
             $l->setDateModification(new \DateTime($d['date']));
             $l->setSupprimeLe(null);
@@ -1596,12 +1639,18 @@ class AppFixtures extends Fixture
             $manager->persist($n);
         }
 
-        // Médias — 1 par laverie en alternance
-        $mediaDescriptions = ['Façade principale', 'Intérieur machines', 'Entrée de la laverie', 'Vue extérieure', 'Salle principale'];
+        // Médias — galerie variable (1–8 images par laverie)
+        $senlisImageCounts = [5, 3, 7, 2, 4];
+        $imgOffset         = 0;
         foreach ($senlisLaveries as $i => $lav) {
-            $m = new LaverieMedia();
-            $m->setLaverie($lav)->setMedia($medias[$i % 2])->setDescription($mediaDescriptions[$i]);
-            $manager->persist($m);
+            for ($j = 0; $j < $senlisImageCounts[$i]; $j++) {
+                $m = new LaverieMedia();
+                $m->setLaverie($lav)
+                  ->setMedia($imageMedias[$imgOffset % 9 + 9])
+                  ->setDescription($descPool[$j % 8]);
+                $manager->persist($m);
+                $imgOffset++;
+            }
         }
 
         // Historique — 1 validation par laverie

@@ -5,6 +5,8 @@ import { useAuth } from "@/components/context/AuthContext";
 import axios from "axios";
 import CardMachine from "@/components/ui/cardMachine";
 import { Card, CardContent } from "@/components/ui/card";
+import { StatusBadge } from "@/components/utils/StatusBadge";
+import type { HoraireSlot } from "@/components/utils/type";
 import {
   Carousel,
   CarouselContent,
@@ -95,25 +97,10 @@ const StarRating = ({
   );
 };
 
-/** Badge Ouvert / Fermé */
-const StatusBadge = ({ isOpen }: { isOpen: boolean }) => (
-  <span
-    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${
-      isOpen ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"
-    }`}
-  >
-    <span
-      className={`w-1.5 h-1.5 rounded-full ${
-        isOpen ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
-      }`}
-    />
-    {isOpen ? "Ouvert" : "Fermé"}
-  </span>
-);
 
 /** Carte avis */
 const ReviewCard = ({ review }: { review: Review }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 shadow-sm">
+  <div className="bg-card rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 shadow-sm">
     <div className="flex items-center gap-3">
       <img
         src={review.avatar}
@@ -215,7 +202,7 @@ const ModalAvis = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-5">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-5">
  
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -284,6 +271,8 @@ const ModalAvis = ({
 
 
 
+
+const JOURS_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
 // COMPOSANT PRINCIPAL
 
@@ -445,8 +434,8 @@ function FicheLaverie() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="flex flex-col items-center gap-4 text-gray-500">
+      <div className="flex items-center justify-center min-h-screen bg-muted">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
           <div className="w-10 h-10 border-4 border-gray/30 border-t-gray-500 rounded-full animate-spin" />
           <p className="text-sm font-medium opacity-70">Chargement de la laverie…</p>
         </div>
@@ -456,8 +445,8 @@ function FicheLaverie() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center shadow-xl">
+      <div className="flex items-center justify-center min-h-screen bg-muted">
+        <div className="bg-card rounded-2xl p-8 max-w-sm mx-4 text-center shadow-xl">
           {/* <p className="text-4xl mb-3">⚠️</p> */}
           <h2 className="text-slate-800 font-bold text-lg mb-2">Une erreur est survenue</h2>
           <p className="text-slate-500 text-sm">{error}</p>
@@ -470,15 +459,22 @@ function FicheLaverie() {
     return null;
   }
 
-  
+  // Convertir les horaires de la fiche au format HoraireSlot[] pour le badge de statut
+  const fermeturesFiche: HoraireSlot[] = laverie.horaires.flatMap((h) => {
+    const jour = h.day.toLowerCase()
+    const slots: HoraireSlot[] = []
+    if (h.openAm && h.closeAm) slots.push({ jour, heureDebut: h.openAm, heureFin: h.closeAm })
+    if (h.openPm && h.closePm) slots.push({ jour, heureDebut: h.openPm, heureFin: h.closePm })
+    return slots
+  })
 
   return (
 
-    <div className="flex flex-col items-center p-4 min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center p-4 min-h-screen bg-muted">
       <div className="w-full max-w-5xl mx-auto space-y-6">
 
         {/* ── HERO INFO ── */}
-        <div className="bg-white rounded-lg border border-slate-100 shadow-sm p-5 w-full">
+        <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-5 w-full">
           <div className="flex items-start gap-4">
             <img
               src={laverie.logo}
@@ -516,7 +512,7 @@ function FicheLaverie() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <StatusBadge isOpen={laverie.isOpen} />
+                <StatusBadge fermetures={fermeturesFiche} />
                 <div className="flex items-center gap-1.5">
                   <StarRating rating={laverie.rating} />
                   <span className="text-sm font-bold text-slate-700">{laverie.rating}</span>
@@ -558,7 +554,7 @@ function FicheLaverie() {
         </div>
 
         {/* ── ADRESSE & NAVIGATION ── */}
-        <div className="bg-white rounded-lg border border-slate-100 shadow-sm p-4 w-full space-y-4">
+        <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-4 w-full space-y-4">
           <h3 className="text-slate-900 text-lg font-semibold"> Adresse & Itinéraire </h3>
 
           <div className="flex items-start gap-3">
@@ -569,7 +565,11 @@ function FicheLaverie() {
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-slate-800">{laverie.address} {laverie.rue}</p>
+              <p className="font-semibold text-slate-800">
+                {laverie.rue && !laverie.address.includes(laverie.rue)
+                  ? `${laverie.address} ${laverie.rue}`
+                  : laverie.address}
+              </p>
               <p className="text-slate-500 text-sm">{laverie.postalCode} {laverie.city}</p>
             </div>
           </div>
@@ -601,7 +601,7 @@ function FicheLaverie() {
         <div className="grid lg:grid-cols-2 grid-cols-1 gap-6">
 
           {/* Services */}
-          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-white">
+          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
             <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Services</h3>
 
             <div className="mt-4">
@@ -638,11 +638,13 @@ function FicheLaverie() {
           </div>
 
           {/* Horaires */}
-          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-white">
+          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
             <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Horaires</h3>
 
             <div className="mt-4 space-y-3">
-              {laverie.horaires.map((horaire) => (
+              {[...laverie.horaires]
+                .sort((a, b) => JOURS_ORDER.indexOf(a.day) - JOURS_ORDER.indexOf(b.day))
+                .map((horaire) => (
                 <div
                   key={horaire.day}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-slate-100 pb-2 last:border-0"
@@ -663,7 +665,7 @@ function FicheLaverie() {
         {/* LISTE MACHINES */}
         <div className="grid lg:grid-cols-1 sm:grid-cols-1 gap-6 mt-12 mx-auto w-full">
 
-          <div className="border border-gray-100 shadow-sm rounded-md bg-white p-6">
+          <div className="border border-border shadow-sm rounded-md bg-card p-6">
             <h3 className="text-slate-900 text-2xl font-semibold mb-4 text-center">Liste des machines</h3>
 
             {/* Liste Machines pour une laverie  */} 
@@ -685,7 +687,7 @@ function FicheLaverie() {
 
 
         {/* COMMENTAIRES */}
-        <div className="border border-gray-100 shadow-sm rounded-md p-6 bg-white">
+        <div className="border border-border shadow-sm rounded-md p-6 bg-card">
  
           
           <div className="flex items-center justify-between mb-4">

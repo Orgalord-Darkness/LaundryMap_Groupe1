@@ -11,10 +11,10 @@ lexik_jwt_authentication:
             enabled: false
     set_cookies:
         BEARER:
-            lifetime: null
+            lifetime: 3600
             samesite: strict
             path: /
             domain: null
             httpOnly: true
-            secure: false
+            secure: '%env(bool:COOKIE_SECURE)%'
             split: []

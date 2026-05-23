@@ -8,8 +8,6 @@ import { FilterModal } from "@/components/search/FilterModal"
 import { ActiveFilters } from "@/components/search/ActiveFilters"
 import { searchWithFilters, searchByLocation } from "@/components/utils/laverieService"
 import type { LaverieSearch, SearchFilters } from "@/components/utils/type"
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button" 
 
 // ─── HomePage — page d'accueil avec carte, recherche et filtres ───────────────
 // Carte vierge centrée sur Paris au chargement.
@@ -19,11 +17,33 @@ import { Button } from "@/components/ui/button"
 
 const EMPTY_FILTERS: SearchFilters = { openAt: "", services: [], payments: [] }
 
+// TODO(human): Déclarer la constante LAST_POSITION_KEY pour le localStorage,
+// et créer un hook/état savedCenter qui lit la position sauvegardée au premier rendu.
+// Placer cela juste avant la définition du composant HomePage.
+// Exemple de structure attendue pour la valeur stockée : { lat: number, lng: number }
+// La lecture doit être robuste (try/catch) et retourner null si rien n'est sauvegardé.
+
+const LAST_POSITION_KEY = "last_position"
+
+const getSavedCenter = (): [number, number] | null => {
+    try {
+        const raw = localStorage.getItem(LAST_POSITION_KEY)
+        if (!raw) {
+            return null
+        }
+        const pos = JSON.parse(raw)
+        return [pos.lat, pos.lng]
+    } catch {
+        return null; 
+    }
+}
+
 export default function HomePage() {
     const { t } = useTranslation()
     const [searchParams, setSearchParams] = useSearchParams()
 
     const initialQuery = searchParams.get("q") ?? ""
+
 
     // ─── État ─────────────────────────────────────────────────────────────────
     const [laveries, setLaveries] = useState<LaverieSearch[]>([])
@@ -35,13 +55,15 @@ export default function HomePage() {
     const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS)
     const [isFilterOpen, setIsFilterOpen] = useState(false)
     const [lastQuery, setLastQuery] = useState(initialQuery)
-    const [geoModalOpen, setGeoModalOpen] = useState(false)
     const [autoStartLocate, setAutoStartLocate] = useState(false)
     const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null)
     const [fitBoundsKey, setFitBoundsKey] = useState(0)
     const [searchClearKey, setSearchClearKey] = useState(0)
+    
+    const [savedCenter]= useState<[number, number] | null>(getSavedCenter)
 
     const lastSearchPosRef = useRef<{ lat: number; lng: number } | null>(null)
+    const isManualSearchActive = useRef(false)
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -55,8 +77,7 @@ export default function HomePage() {
         navigator.permissions.query({ name: "geolocation" }).then((result) => {
             if (result.state === 'granted') {
                 setAutoStartLocate(true)
-            } else if (result.state === 'prompt' && !localStorage.getItem('geo_modal_answered')) {
-                setGeoModalOpen(true)
+            } else if (result.state === 'prompt') {
             }
         })
     }, [])
@@ -66,25 +87,25 @@ export default function HomePage() {
         lastSearchPosRef.current = null
     }, [])
 
-    const handleAcceptGeo = useCallback(() => {
-        localStorage.setItem('geo_modal_answered', '1')
-        setGeoModalOpen(false)
-        setAutoStartLocate(true)
-    }, [])
-    const handleRefuseGeo = useCallback(() => {
-        localStorage.setItem('geo_modal_answered', '1')
-        setGeoModalOpen(false)
-    }, [])
-
-    const handleLocationFound = useCallback(async (pos: { lat: number; lng: number}) => {                                                                                                 
-        // Ne relance la recherche que si la position a changé de plus de ~100m                                                                                                           
-        if (lastSearchPosRef.current) {                                                                                                                                                   
-            const dLat = Math.abs(pos.lat - lastSearchPosRef.current.lat)                                                                                                                 
-            const dLng = Math.abs(pos.lng - lastSearchPosRef.current.lng)                                                                                                                 
-            if (dLat < 0.001 && dLng < 0.001) return                                                                                                                                      
-        }                                                                                                                                                                                 
-        lastSearchPosRef.current = pos
+    const handleLocationFound = useCallback(async (pos: { lat: number; lng: number}) => {
+        // Met toujours à jour la position (point bleu sur la carte)
         setUserPosition(pos)
+        localStorage.setItem(LAST_POSITION_KEY, JSON.stringify(pos))
+
+        if (isManualSearchActive.current) {
+            return
+        }
+
+        // Ne relance la recherche que si la position a changé de plus de ~100m
+        if (lastSearchPosRef.current) {
+            const dLat = Math.abs(pos.lat - lastSearchPosRef.current.lat)
+            const dLng = Math.abs(pos.lng - lastSearchPosRef.current.lng)
+            if (dLat < 0.001 && dLng < 0.001) {
+                return
+            }
+        }
+        lastSearchPosRef.current = pos
+        isManualSearchActive.current = false
         setLoading(true)
         setError(null)
         setSelectedId(null)
@@ -124,7 +145,11 @@ export default function HomePage() {
 
     // Déclenché par la SearchBar quand l'utilisateur valide une adresse
     const handleSearch = useCallback((query: string, coords?: { lat: number; lng: number }) => {
-        void coords  // coords transmises par SearchBar mais le centrage se fait via fitBounds sur les markers
+        // coords transmises par SearchBar mais le centrage se fait via fitBounds sur les markers
+        if (coords) {
+            localStorage.setItem(LAST_POSITION_KEY, JSON.stringify(coords))
+        } 
+        isManualSearchActive.current = true
         lastSearchPosRef.current = null  // Permet à la géoloc de relancer même si la position n'a pas changé
         setLastQuery(query)
         setSearchParams(prev => { prev.set("q", query); return prev })
@@ -169,7 +194,7 @@ export default function HomePage() {
     // ─── Rendu ────────────────────────────────────────────────────────────────
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-background">
             <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col gap-5">
 
                 {/* Barre de recherche + bouton filtres — z-10 pour passer au-dessus de la carte */}
@@ -199,6 +224,7 @@ export default function HomePage() {
                         userPosition={userPosition}
                         searchRadius={1000}
                         fitBoundsKey={fitBoundsKey}
+                        initialCenter={savedCenter}
                     />
                 </div>
 
@@ -206,7 +232,7 @@ export default function HomePage() {
                 <section aria-labelledby="list-title">
                     <h2
                         id="list-title"
-                        className="text-lg font-semibold text-gray-800 mb-4"
+                        className="text-lg font-semibold text-foreground mb-4"
                     >
                         {t("search_title")}
                         {hasSearched && laveries.length > 0 && (
@@ -235,15 +261,6 @@ export default function HomePage() {
                 filters={filters}
                 onFiltersChange={setFilters}
             />
-            <Dialog open={geoModalOpen} onOpenChange={setGeoModalOpen}>
-                <DialogContent>
-                    <DialogTitle>{t("geo_permission_title")}</DialogTitle>
-                    <DialogDescription>{t("geo_permission_desc")}</DialogDescription>
-                    <Button onClick={handleAcceptGeo}>{t("geo_permission_accept")}</Button>
-                    {/* <DialogClose className="ml-2">{t("geo_permission_decline")}</DialogClose> */}
-                    <Button variant={'secondary'}onClick={handleRefuseGeo}>{t("geo_permission_decline")}</Button>
-                </DialogContent>
-            </Dialog>
         </main>
     )
 }

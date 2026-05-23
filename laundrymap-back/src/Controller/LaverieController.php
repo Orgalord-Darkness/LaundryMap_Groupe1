@@ -267,6 +267,12 @@ class LaverieController extends AbstractController
         // ─────────────────────────────────────────────
         $adresse = $laverie->getAdresse();
 
+        // Capturer les valeurs actuelles avant modification pour détecter un vrai changement
+        $oldAdresse = $adresse->getAdresse();
+        $oldCp      = $adresse->getCodePostal();
+        $oldVille   = $adresse->getVille();
+        $oldPays    = $adresse->getPays();
+
         foreach (['ville', 'pays'] as $champ) {
             if (isset($donnees[$champ])) {
                 $setter = 'set' . ucfirst($champ);
@@ -277,16 +283,21 @@ class LaverieController extends AbstractController
         if (isset($donnees['code_postal'])) {
             $adresse->setCodePostal((int)$donnees['code_postal']);
         }
-        
+
         if (isset($donnees['adresse'])) {
             $adresse->setAdresse(htmlspecialchars($donnees['adresse']));
             $rue = preg_replace('/^\s*\d+\s*/', '', explode(',', $donnees['adresse'])[0]);
             $adresse->setRue($rue);
         }
 
-        $addressChanged = isset($donnees['adresse']) || isset($donnees['code_postal']) || isset($donnees['ville'])   || isset($donnees['pays']);
+        // Le frontend envoie toujours tous les champs — on vérifie si quelque chose a réellement changé
+        $addressActuallyChanged =
+            (isset($donnees['adresse'])     && trim($donnees['adresse'])     !== $oldAdresse) ||
+            (isset($donnees['code_postal']) && (int)$donnees['code_postal']  !== $oldCp)      ||
+            (isset($donnees['ville'])       && trim($donnees['ville'])        !== $oldVille)   ||
+            (isset($donnees['pays'])        && trim($donnees['pays'])         !== $oldPays);
 
-        if ($addressChanged) {
+        if ($addressActuallyChanged) {
             $fullAdresse = implode(' ', array_filter([
                 $adresse->getAdresse(),
                 (string) $adresse->getCodePostal(),   
@@ -302,12 +313,13 @@ class LaverieController extends AbstractController
             if ($coords !== null && isset($coords['lat'], $coords['lng'])) {
                 $adresse->setLatitude($coords['lat']);
                 $adresse->setLongitude($coords['lng']);
-            } else {
+            } elseif ($adresse->getLatitude() === null || $adresse->getLongitude() === null) {
                 return $this->json(
                     ['message' => 'Données invalides.', 'errors' => ['geolocation' => 'Impossible de géolocaliser l\'adresse fournie.']],
                     Response::HTTP_UNPROCESSABLE_ENTITY
                 );
             }
+            // Géocodage échoué mais coordonnées existantes — on conserve les coords actuelles
         }
 
         // ─────────────────────────────────────────────
@@ -862,6 +874,7 @@ class LaverieController extends AbstractController
         Request $request,
         LaverieRepository $laverieRepository,
         GeolocationService $geolocationService,
+        MethodePaiementRepository $methodePaiementRepository
     ): JsonResponse {
         // Lecture des paramètres de la requête
         $latParam    = $request->query->get('lat');
@@ -914,14 +927,19 @@ class LaverieController extends AbstractController
         }
 
         // Recherche des laveries dans le rayon
-        $laveries = $laverieRepository->findByLocation($lat, $lng, $radius);
+        $user = $this->getUser(); 
+        $laveries = $laverieRepository->findByLocation($lat, $lng, $radius, $user);
 
         if (empty($laveries)) {
             return $this->json(['message' => 'Aucune laverie trouvée dans ce périmètre. Essayez d\'augmenter le rayon de recherche.'], Response::HTTP_NOT_FOUND);
         }
 
+        $ids = array_column($laveries, 'id'); 
+        $paiementParLaverie = $methodePaiementRepository->findPaiementsByLaverieIds($ids);
+
         // Formatage de la réponse en camelCase
         $result = array_map(function (array $laverie) {
+     
             return [
                 'id'               => $laverie['id'],
                 'nomEtablissement' => $laverie['nomEtablissement'],
@@ -938,6 +956,8 @@ class LaverieController extends AbstractController
                 ],
                 'distanceMetres'   => (float) $laverie['distanceMetres'],
                 'logoUrl'          => $laverie['logoUrl'] ?? null,
+                'isFavorite' => (bool) ($laverie['isFavorite'] ?? false),
+                'paiements' => $paiementParLaverie[$laverie['id']] ?? []
             ];
         }, $laveries);
 
@@ -1052,6 +1072,7 @@ class LaverieController extends AbstractController
         Request $request,
         LaverieRepository $laverieRepository,
         GeolocationService $geolocationService,
+        MethodePaiementRepository $methodePaiementRepository,
     ): JsonResponse {
         // Lecture des paramètres de la requête
         $latParam    = $request->query->get('lat');
@@ -1103,6 +1124,8 @@ class LaverieController extends AbstractController
             return $this->json(['message' => 'Veuillez fournir une position GPS (lat + lng) ou une adresse (query).'], Response::HTTP_BAD_REQUEST);
         }
 
+        $user = $this->getUser();
+
         // Lecture des filtres optionnels
         $services   = $request->query->all('services');     // ex: ["wifi", "parking"]
         $payments   = $request->query->all('payments');     // ex: ["carte", "especes"]
@@ -1120,8 +1143,8 @@ class LaverieController extends AbstractController
 
         // Recherche avec ou sans filtres
         $laveries = $hasFilters
-            ? $laverieRepository->findByLocationAndFilters($lat, $lng, $radius, $filters)
-            : $laverieRepository->findByLocation($lat, $lng, $radius);
+            ? $laverieRepository->findByLocationAndFilters($lat, $lng, $radius, $filters, $user)
+            : $laverieRepository->findByLocation($lat, $lng, $radius, $this->getUser());
 
         if (empty($laveries)) {
             return $this->json(['message' => 'Aucune laverie trouvée. Essayez de modifier vos filtres ou d\'augmenter le rayon.'], Response::HTTP_NOT_FOUND);
@@ -1145,8 +1168,19 @@ class LaverieController extends AbstractController
                 ],
                 'distanceMetres'   => (float) $laverie['distanceMetres'],
                 'logoUrl'          => $laverie['logoUrl'] ?? null,
+                'isFavorite'       => (bool) ($laverie['isFavorite'] ?? false),
             ];
         }, $laveries);
+
+        // Attacher les créneaux horaires et les paiements (1 requête chacun)
+        $ids = array_column($result, 'id');
+        $fermeturesParLaverie = $laverieRepository->findFermeturesByLaverieIds($ids);
+        $paiementsParLaverie  = $methodePaiementRepository->findPaiementsByLaverieIds($ids);
+        $result = array_map(function (array $laverie) use ($fermeturesParLaverie, $paiementsParLaverie) {
+            $laverie['fermetures'] = $fermeturesParLaverie[$laverie['id']] ?? [];
+            $laverie['paiements']  = $paiementsParLaverie[$laverie['id']] ?? [];
+            return $laverie;
+        }, $result);
 
         return $this->json($result, Response::HTTP_OK);
     }

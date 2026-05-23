@@ -3,66 +3,36 @@ import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 export function Header() {
   return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "8px",
-        padding: "10px 12px",
-        background: "linear-gradient(90deg, #1ab3d8 0%, #4ecfee 100%)",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        minHeight: "72px",
-      }}
-    >
+    <header className="
+      flex items-center justify-between gap-2
+      px-3 py-2.5 min-h-[72px]
+      bg-gradient-to-r from-[#1ab3d8] to-[#4ecfee]
+      dark:from-gray-900 dark:to-gray-800
+      shadow-md sticky top-0 z-[100]
+    ">
       {/* Burger — taille fixe */}
-      <div style={{ flexShrink: 0 }}>
+      <div className="shrink-0">
         <BurgerMenu />
       </div>
 
       {/* Logo centré */}
-      <div style={{
-        flex: "1 1 0",
-        minWidth: 0,
-        display: "flex",
-        justifyContent: "center",
-      }}>
-        <div style={{
-          background: "#ffffff",
-          borderRadius: "12px",
-          padding: "8px 16px",
-          display: "flex",
-          alignItems: "center",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-          maxWidth: "220px",
-          width: "100%",
-          justifyContent: "center",
-          overflow: "hidden",
-        }}>
+      <div className="flex-1 min-w-0 flex justify-center">
+        <div className="
+          bg-white dark:bg-gray-800
+          rounded-xl px-4 py-2
+          flex items-center justify-center
+          shadow-sm max-w-[220px] w-full overflow-hidden
+        ">
           <img
-            src="/fichiers/logo/logo_titre.png"
-            alt="LaundryMap"
-            style={{
-              height: "52px",
-              width: "auto",
-              maxWidth: "100%",
-              display: "block",
-            }}
+                src={`${import.meta.env.VITE_API_BASE_URL}/fichiers/logo/logo_titre.png`}
+                alt="LaundryMap"
+            className="h-[52px] w-auto max-w-full block"
           />
         </div>
       </div>
 
-      
-
       {/* Language switcher */}
-      <div style={{
-        flexShrink: 10,
-        background: "#ffffff",
-        borderRadius: "8px",
-      }}>
+      <div className="shrink-0 bg-white dark:bg-gray-800 rounded-lg">
         <LanguageSwitcher />
       </div>
     </header>

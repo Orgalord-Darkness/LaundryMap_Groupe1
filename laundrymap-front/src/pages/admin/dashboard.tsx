@@ -11,9 +11,9 @@ function AdminDashboard() {
 
   return (
     <>
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <h1 className="font-bold text-2xl mt-6 text-center">Tableau de bord</h1>
-      <p className="text-gray-500 text-center mt-2"> Bienvenue dans votre espace administratif </p>
+      <p className="text-muted-foreground text-center mt-2"> Bienvenue dans votre espace administratif </p>
 
       {/* Cards stats */}
       <div className="grid grid-cols-2 md:grid-cols-2 md:mx-auto md:w-[500px] gap-4 mt-18">

@@ -14,29 +14,33 @@ interface Suggestion {
 }
 
 interface GeoFeature {
-    properties: { label: string; city: string; postcode: string }
+    properties: { name?: string; housenumber?: string; street?: string; city: string; postcode: string }
     geometry: { coordinates: [number, number] }  // GeoJSON : [lng, lat]
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Appel à l'API gouvernementale d'autocomplétion d'adresses françaises.
-// Gratuite, sans clé API, gère les accents et fautes de frappe.
 async function fetchSuggestions(query: string): Promise<Suggestion[]> {
-    if (query.trim().length < 2) return []
+    if (query.trim().length < 3) return []
 
-    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=fr`
     const response = await fetch(url)
     if (!response.ok) return []
 
     const data = await response.json()
-    return (data.features ?? []).map((f: GeoFeature) => ({
-        label: f.properties.label,
-        city: f.properties.city,
-        postcode: f.properties.postcode,
-        lat: f.geometry.coordinates[1],
-        lng: f.geometry.coordinates[0],
-    }))
+    return (data.features ?? []).map((f: GeoFeature) => {
+        const p = f.properties
+        const label = [p.housenumber, p.street ?? p.name, p.postcode, p.city]
+            .filter(Boolean)
+            .join(' ')
+        return {
+            label,
+            city:     p.city ?? '',
+            postcode: p.postcode ?? '',
+            lat:      f.geometry.coordinates[1],
+            lng:      f.geometry.coordinates[0],
+        }
+    })
 }
 
 // ─── SearchBar — champ de recherche avec autocomplétion ───────────────────────
@@ -78,7 +82,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
     useEffect(() => {
         if (debounceRef.current) clearTimeout(debounceRef.current)
 
-        if (value.trim().length < 2) {
+        if (value.trim().length < 3) {
             setSuggestions([])
             setShowDropdown(false)
             return
@@ -183,17 +187,17 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                     disabled={loading}
                     autoComplete="off"
                     className={`
-                        w-full rounded-xl border px-4 py-2.5 text-sm bg-white
+                        w-full rounded-xl border px-4 py-2.5 text-sm bg-card
                         shadow-sm outline-none transition-all duration-200
                         focus:ring-2 focus:ring-primary/40 focus:border-primary
                         disabled:opacity-50 disabled:cursor-not-allowed
-                        ${touched && value.trim() === "" ? "border-red-400" : "border-gray-200"}
+                        ${touched && value.trim() === "" ? "border-red-400 dark:border-red-700" : "border-border"}
                     `}
                 />
 
                 {/* Message de validation */}
                 {touched && value.trim() === "" && (
-                    <p className="text-xs text-red-500 mt-1 ml-1" role="alert">
+                    <p className="text-xs text-red-500 dark:text-red-400 mt-1 ml-1" role="alert">
                         Veuillez saisir une ville ou un code postal.
                     </p>
                 )}
@@ -204,7 +208,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                         id="search-suggestions"
                         role="listbox"
                         aria-label="Suggestions d'adresses"
-                        className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+                        className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden"
                     >
                         {suggestions.map((suggestion, index) => (
                             <li
@@ -219,7 +223,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                                     flex flex-col gap-0.5
                                     ${activeIndex === index
                                         ? "bg-primary/10 text-primary"
-                                        : "text-gray-700 hover:bg-gray-50"
+                                        : "text-foreground hover:bg-background"
                                     }
                                 `}
                             >
