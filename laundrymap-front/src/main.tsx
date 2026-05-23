@@ -10,6 +10,7 @@ import {Header} from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
 import { AuthProvider } from "@/components/context/AuthContext"
 import { PreferencesProvider } from "@/components/context/PreferencesContext"
+import ScrollToTop from "@/components/utils/ScrollToTop"
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -48,6 +49,7 @@ createRoot(document.getElementById('root')!).render(
         <ErrorBoundary>
             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
                 <BrowserRouter>
+                    <ScrollToTop />
                     <PreferencesProvider>
                         <AuthProvider>
                             <div className="min-h-screen flex flex-col">

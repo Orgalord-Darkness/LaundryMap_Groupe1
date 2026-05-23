@@ -8,24 +8,12 @@ export default function CGU() {
   const navigate = useNavigate();
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [hasRead, setHasRead] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [refused, setRefused] = useState(false);
+
 
   useEffect(() => {
     if (localStorage.getItem(CGU_READ_KEY) === "true") {
       setHasRead(true);
     }
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
-      setScrollProgress(progress);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -45,23 +33,6 @@ export default function CGU() {
 
   return (
     <>
-      {/* Barre de progression sticky */}
-      <div className="sticky top-0 z-50 bg-card shadow-sm print:hidden">
-        <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-3">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">Progression de lecture</span>
-          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-100"
-              style={{
-                width: `${scrollProgress}%`,
-                background: "linear-gradient(90deg, #1ab3d8, #4ecfee)",
-              }}
-            />
-          </div>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">{Math.round(scrollProgress)}%</span>
-        </div>
-      </div>
-
       <div className="min-h-screen bg-background py-10 px-4">
         <div className="max-w-4xl mx-auto bg-card rounded-2xl shadow-sm p-8 md:p-12">
 
@@ -301,46 +272,16 @@ export default function CGU() {
 
           {/* Boutons Accepter / Refuser */}
           <div className="mt-8 flex flex-col items-center gap-4 print:hidden">
-            <p className="text-sm text-muted-foreground text-center">
-              Avez-vous lu et acceptez-vous les présentes Conditions Générales d'Utilisation ?
-            </p>
-
-            {refused && (
-              <p role="alert" className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-2 text-center">
-                Vous avez refusé les CGU. Vous ne pourrez pas créer de compte sur LaundryMap.
-              </p>
-            )}
-
-            {hasRead && !refused && (
-              <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 border border-green-200 dark:border-green-800 rounded-lg px-4 py-2 text-center">
-                Vous avez lu les CGU. Vous pouvez maintenant cocher la case d'acceptation dans le formulaire d'inscription.
-              </p>
-            )}
-
             <div className="flex gap-4">
               <Button
-                type="button"
                 variant="outline"
-                onClick={() => {
-                  localStorage.removeItem(CGU_READ_KEY);
-                  setHasRead(false);
-                  setRefused(true);
-                }}
-                className="px-6"
-              >
-                Refuser
-              </Button>
-              <Button
                 type="button"
                 onClick={() => {
-                  localStorage.setItem(CGU_READ_KEY, "true");
-                  setHasRead(true);
-                  setRefused(false);
                   navigate(-1);
                 }}
                 className="px-6"
               >
-                Accepter
+                ← Retour
               </Button>
             </div>
           </div>
