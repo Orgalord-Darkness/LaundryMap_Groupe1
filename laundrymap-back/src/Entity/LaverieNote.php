@@ -8,10 +8,21 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Laverie;
+use App\Entity\Utilisateur;
+
 
 #[ORM\Entity(repositoryClass: LaverieNoteRepository::class)]
 class LaverieNote
 {
+    // Ajout de la propriété — le mapping pointe vers la propriété $laverie_note de LaverieNoteSignalement (pour erreur sur this->signalements)
+    #[ORM\OneToMany(
+        targetEntity: LaverieNoteSignalement::class,
+        mappedBy: 'laverie_note',
+        cascade: ['remove'],
+        orphanRemoval: true
+    )]
+    private Collection $signalements;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

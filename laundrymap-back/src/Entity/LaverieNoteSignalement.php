@@ -15,7 +15,11 @@ class LaverieNoteSignalement
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
+    // #[ORM\ManyToOne]
+    // #[ORM\JoinColumn(nullable: false)]
+    // private ?LaverieNote $laverie_note = null;
+
+    #[ORM\ManyToOne(inversedBy: 'signalements')]
     #[ORM\JoinColumn(nullable: false)]
     private ?LaverieNote $laverie_note = null;
 

@@ -15,7 +15,7 @@ export const TAB_ROUTES: Record<PersonalSpaceTab, string | null> = {
     Profil: "/user/informations",
     Favoris: "/user/favoris",
     Préférences: "/user/preferences",
-    Avis: null,
+    Avis: "/user/avis",
 }
 
 const TABS_HIDDEN_FOR_PRO: PersonalSpaceTab[] = ["Favoris", "Avis"]

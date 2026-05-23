@@ -191,6 +191,8 @@ export function BurgerMenu() {
               )}
               <button
                 onClick={() => handleItemClick(item.href, item.label)}
+                onMouseEnter={(event) => { event.currentTarget.style.background = "#e0f7fb"; }}
+                onMouseLeave={(event) => { event.currentTarget.style.background = isActive(item.href) ? "#e0f7fb" : "none"; }}
                 style={{
                   display: "flex", alignItems: "center", gap: "14px",
                   width: "100%", padding: "12px 24px",
