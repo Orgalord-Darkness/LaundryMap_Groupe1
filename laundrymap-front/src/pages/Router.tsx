@@ -60,6 +60,7 @@ import { FavorisList } from "./user/FavorisList";
 import FicheLaverie from "./user/ficheLaverie";
 import MentionsLegales from "./legal/MentionsLegales";
 import CGU from "./legal/CGU";
+import Review from "./user/review";
 
 
 function ProtectedRoute({
@@ -126,6 +127,12 @@ export default function Router() {
       <Route path="/user/favoris" element={
         <ProtectedRoute allowedRoles={["utilisateur"]}>
           <FavorisList />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/user/avis" element={
+        <ProtectedRoute allowedRoles={["utilisateur"]}>
+          <Review />
         </ProtectedRoute>
       } />
 
