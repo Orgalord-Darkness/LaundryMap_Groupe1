@@ -338,6 +338,43 @@ class LaverieRepository extends ServiceEntityRepository
         return $conn->executeQuery($sql, $params, $types)->fetchAllAssociative();
     }
 
+    /**
+     * Retourne les créneaux horaires groupés par laverie_id pour une liste d'IDs.
+     * Une seule requête SQL évite le problème N+1.
+     *
+     * @return array<int, list<array{jour: string, heureDebut: string, heureFin: string}>>
+     */
+    public function findFermeturesByLaverieIds(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $conn = $this->getEntityManager()->getConnection();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        $rows = $conn->fetchAllAssociative(
+            "SELECT laverie_id, jour,
+                    TIME_FORMAT(heure_debut, '%H:%i') AS heure_debut,
+                    TIME_FORMAT(heure_fin,   '%H:%i') AS heure_fin
+             FROM laverie_fermeture
+             WHERE laverie_id IN ({$placeholders})
+             ORDER BY FIELD(jour,'lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'), heure_debut",
+            array_values($ids)
+        );
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $grouped[(int) $row['laverie_id']][] = [
+                'jour'       => $row['jour'],
+                'heureDebut' => $row['heure_debut'],
+                'heureFin'   => $row['heure_fin'],
+            ];
+        }
+
+        return $grouped;
+    }
+
     public function findProfessionnalByLaverieId(int $laverieId): ?array
     {
         return $this->createQueryBuilder('l')

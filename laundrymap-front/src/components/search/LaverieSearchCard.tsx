@@ -1,9 +1,9 @@
-import { useTranslation } from "react-i18next"
 import { Card } from "@/components/ui/card"
-import { MapPin, Mail } from "lucide-react"
+import { MapPin } from "lucide-react"
 import type { LaverieSearch } from "@/components/utils/type"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
+import { StatusBadge } from "@/components/utils/StatusBadge"
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
@@ -23,8 +23,14 @@ interface LaverieSearchCardProps {
 }
 
 export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchCardProps) {
-    const { t } = useTranslation()
     const navigate = useNavigate()
+
+    function todayHours(fermetures: LaverieSearch["fermetures"]): string | null {
+        const currentDay = new Date().toLocaleDateString("fr-FR", { weekday: "long" }).toLowerCase()
+        const todaySlots = fermetures?.filter(slot => slot.jour === currentDay) ?? []
+        if (todaySlots.length === 0) return null
+        return todaySlots.map(slot => `${slot.heureDebut} - ${slot.heureFin}`).join(" / ")
+    }
 
     return (
         <Card
@@ -60,10 +66,8 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
                     </div>
                 )}
 
-                {/* Badge statut */}
-                <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 leading-tight">
-                    {t("search_open")}
-                </span>
+                {/* Badge statut dynamique */}
+                <StatusBadge fermetures={laverie.fermetures} className="absolute top-2 right-2" />
 
                 {/* Badge favori */}
                 {laverie.isFavorite && (
@@ -93,16 +97,15 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
                     {laverie.adresse.rue}, {laverie.adresse.codePostal} {laverie.adresse.ville}
                 </p>
 
-                {laverie.contactEmail && (
+                {laverie.fermetures && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                        <Mail className="w-3 h-3 shrink-0 text-gray-400" aria-hidden="true" />
-                        <span className="truncate">{laverie.contactEmail}</span>
+                        <span className="truncate">{todayHours(laverie.fermetures)}</span>
                     </p>
                 )}
 
-                {laverie.description && (
+                {laverie.paiements && (
                     <p className="text-xs text-gray-400 line-clamp-1">
-                        {laverie.description}
+                        {laverie.paiements.join(', ')}
                     </p>
                 )}
             </div>

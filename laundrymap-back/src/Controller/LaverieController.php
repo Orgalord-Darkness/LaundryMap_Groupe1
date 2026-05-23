@@ -874,6 +874,7 @@ class LaverieController extends AbstractController
         Request $request,
         LaverieRepository $laverieRepository,
         GeolocationService $geolocationService,
+        MethodePaiementRepository $methodePaiementRepository
     ): JsonResponse {
         // Lecture des paramètres de la requête
         $latParam    = $request->query->get('lat');
@@ -933,8 +934,12 @@ class LaverieController extends AbstractController
             return $this->json(['message' => 'Aucune laverie trouvée dans ce périmètre. Essayez d\'augmenter le rayon de recherche.'], Response::HTTP_NOT_FOUND);
         }
 
+        $ids = array_column($laveries, 'id'); 
+        $paiementParLaverie = $methodePaiementRepository->findPaiementsByLaverieIds($ids);
+
         // Formatage de la réponse en camelCase
         $result = array_map(function (array $laverie) {
+     
             return [
                 'id'               => $laverie['id'],
                 'nomEtablissement' => $laverie['nomEtablissement'],
@@ -952,6 +957,7 @@ class LaverieController extends AbstractController
                 'distanceMetres'   => (float) $laverie['distanceMetres'],
                 'logoUrl'          => $laverie['logoUrl'] ?? null,
                 'isFavorite' => (bool) ($laverie['isFavorite'] ?? false),
+                'paiements' => $paiementParLaverie[$laverie['id']] ?? []
             ];
         }, $laveries);
 
@@ -1066,6 +1072,7 @@ class LaverieController extends AbstractController
         Request $request,
         LaverieRepository $laverieRepository,
         GeolocationService $geolocationService,
+        MethodePaiementRepository $methodePaiementRepository,
     ): JsonResponse {
         // Lecture des paramètres de la requête
         $latParam    = $request->query->get('lat');
@@ -1164,6 +1171,16 @@ class LaverieController extends AbstractController
                 'isFavorite'       => (bool) ($laverie['isFavorite'] ?? false),
             ];
         }, $laveries);
+
+        // Attacher les créneaux horaires et les paiements (1 requête chacun)
+        $ids = array_column($result, 'id');
+        $fermeturesParLaverie = $laverieRepository->findFermeturesByLaverieIds($ids);
+        $paiementsParLaverie  = $methodePaiementRepository->findPaiementsByLaverieIds($ids);
+        $result = array_map(function (array $laverie) use ($fermeturesParLaverie, $paiementsParLaverie) {
+            $laverie['fermetures'] = $fermeturesParLaverie[$laverie['id']] ?? [];
+            $laverie['paiements']  = $paiementsParLaverie[$laverie['id']] ?? [];
+            return $laverie;
+        }, $result);
 
         return $this->json($result, Response::HTTP_OK);
     }
