@@ -12,10 +12,9 @@ git pull origin prod
 # ── Symfony (backend) ─────────────────────────────────────────────────────────
 cd laundrymap-back
 
-# Créer les répertoires d'upload et accorder les droits au process PHP-FPM
+# Créer les répertoires d'upload et les rendre accessibles en écriture au process PHP-FPM
 mkdir -p public/fichiers/images public/fichiers/logo
-chmod -R 775 public/fichiers/
-chown -R www-data:www-data public/fichiers/
+chmod -R 777 public/fichiers/
 
 composer install --no-dev --optimize-autoloader
 
