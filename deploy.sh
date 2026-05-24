@@ -12,6 +12,11 @@ git pull origin prod
 # ── Symfony (backend) ─────────────────────────────────────────────────────────
 cd laundrymap-back
 
+# Créer les répertoires d'upload et accorder les droits au process PHP-FPM
+mkdir -p public/fichiers/images public/fichiers/logo
+chmod -R 775 public/fichiers/
+chown -R www-data:www-data public/fichiers/
+
 composer install --no-dev --optimize-autoloader
 
 # Générer les clés JWT si absentes (exclues du git par .gitignore)
