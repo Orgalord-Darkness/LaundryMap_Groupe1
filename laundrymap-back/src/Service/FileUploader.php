@@ -26,12 +26,20 @@ class FileUploader
 
         $uploadDir = $this->frontendPublicDir . '/fichiers/' . $subfolder;
 
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            return null;
+        }
+
         $originalName = $file->getClientOriginalName();
         $mimeType     = $file->getMimeType() ?? 'application/octet-stream';
         $size         = $file->getSize();
         $newFilename  = uniqid('media_', true) . '.' . $file->guessExtension();
 
-        $file->move($uploadDir, $newFilename);
+        try {
+            $file->move($uploadDir, $newFilename);
+        } catch (\Exception) {
+            return null;
+        }
 
         $media = new Media();
         $media->setEmplacement('/fichiers/' . $subfolder . '/' . $newFilename);
