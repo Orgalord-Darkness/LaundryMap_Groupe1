@@ -40,4 +40,25 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function save(LaverieNoteSignalement $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function findIneSignalementByUserId(Utilisateur $utilisateur, LaverieNoteSignalement $laverieNoteSignalement): ?LaverieNoteSignalement
+    {
+        return $this->createQueryBuilder('l')
+            -> andWhere('l.utilisateur = :utilisateur')
+            ->andWhere('l.laverie_note = :laverieNoteSignalement')
+            -> setParameter('utilisateur', $utilisateur)
+            -> setParameter('laverieNoteSignalement', $laverieNoteSignalement)
+            -> getQuery()
+            -> getOneOrNullResult()
+        ;
+    }
 }
