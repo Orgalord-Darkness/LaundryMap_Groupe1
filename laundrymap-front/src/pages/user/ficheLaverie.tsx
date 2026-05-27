@@ -15,6 +15,8 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import SignalementForm from "@/components/layout/SignalementForm";
+import { LaverieActions } from "@/components/ui/optionsButton";
 
 
 // TYPES - à vérifier doublons dans un fichier types.ts / laundry.ts
