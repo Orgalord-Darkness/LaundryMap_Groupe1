@@ -33,6 +33,8 @@ class ProfessionnelController extends AbstractController
     public function __construct(
         #[Autowire('%env(bool:COOKIE_SECURE)%')]
         private readonly bool $cookieSecure,
+        #[Autowire('%kernel.environment%')]
+        private readonly string $appEnv,
     ) {}
 
     /**
@@ -142,11 +144,15 @@ class ProfessionnelController extends AbstractController
                 ->withSecure($this->cookieSecure)
                 ->withHttpOnly(true)
                 ->withSameSite('strict');
-            $response = $this->json([
+            $data = [
                 'message' => 'Connexion réussie',
                 'email'   => $utilisateur->getEmail(),
                 'role'    => $utilisateur->getRolePro()[0],
-            ], Response::HTTP_OK);
+            ];
+            if ($this->appEnv === 'dev') {
+                $data['token'] = $token;
+            }
+            $response = $this->json($data, Response::HTTP_OK);
             $response->headers->setCookie($cookie);
             return $response;
         } catch (\Throwable $e) {
