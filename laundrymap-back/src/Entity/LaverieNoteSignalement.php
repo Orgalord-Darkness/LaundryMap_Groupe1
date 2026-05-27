@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Enum\MotifEnum;
+use App\Enum\StatutSignalementEnum;
 use App\Repository\LaverieNoteSignalementRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,6 +36,9 @@ class LaverieNoteSignalement
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
+
+    #[ORM\Column(enumType: StatutSignalementEnum::class)]
+    private StatutSignalementEnum $statut = StatutSignalementEnum::PENDING;
 
     public function getId(): ?int
     {
@@ -97,6 +101,18 @@ class LaverieNoteSignalement
     public function setCommentaire(?string $commentaire): static
     {
         $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    public function getStatut(): StatutSignalementEnum
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(StatutSignalementEnum $statut): static
+    {
+        $this->statut = $statut;
 
         return $this;
     }

@@ -2,12 +2,10 @@
 
 namespace App\Enum; 
 
-enum MotifEnum: string {
-
-    case PROPOS_INJURIEUX = 'propos injurieux' ;
-    
-    case SPAM = 'spam';
-
-    case PUBLICITE = 'publicité non sollicité'; 
-
+enum MotifEnum: string
+{
+    case PROPOS_INJURIEUX = 'propos injurieux';
+    case SPAM             = 'spam';
+    case PUBLICITE        = 'publicité non sollicité';
+    case AUTRE            = 'autre';
 }
