@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import apiClient from "@/lib/apiClient";
@@ -97,14 +97,14 @@ export default function SignalementForm({ reviewId, open, onOpenChange }: Props)
                   placeholder="Précisez votre signalement..."
                 />
               </div>
-              <div className="flex gap-2 justify-center">
-                <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-                  Annuler
-                </Button>
-                <Button variant="danger" type="submit" disabled={isSubmitting}>
+              <DrawerFooter className="px-0 pt-2">
+                <Button variant="danger" type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? "Envoi…" : "Signaler"}
                 </Button>
-              </div>
+                <Button variant="outline" type="button" className="w-full" onClick={() => onOpenChange(false)}>
+                  Annuler
+                </Button>
+              </DrawerFooter>
             </form>
           )}
         </div>
