@@ -17,6 +17,13 @@ import {
 } from "@/components/ui/carousel";
 import SignalementForm from "@/components/layout/SignalementForm";
 import { LaverieActions } from "@/components/ui/optionsButton";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 
 // TYPES - à vérifier doublons dans un fichier types.ts / laundry.ts
@@ -101,7 +108,15 @@ const StarRating = ({
 
 
 /** Carte avis */
-const ReviewCard = ({ review }: { review: Review }) => (
+const ReviewCard = ({
+  review,
+  isConnected,
+  onSignal,
+}: {
+  review: Review;
+  isConnected: boolean;
+  onSignal: (id: number) => void;
+}) => (
   <div className="bg-card rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 shadow-sm">
     <div className="flex items-center gap-3">
       <img
@@ -119,6 +134,18 @@ const ReviewCard = ({ review }: { review: Review }) => (
         </svg>
         <span className="text-xs font-bold text-amber-600">{review.rating}</span>
       </div>
+      {isConnected && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">⋮</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onSignal(review.id)}>
+              Signaler ce commentaire
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
     <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
   </div>
@@ -297,6 +324,7 @@ function FicheLaverie() {
   const [submitSuccess,  setSubmitSuccess]  = useState<boolean>(false);
 
   const [userReview,     setUserReview]     = useState<{ note: number; commentaire: string } | null>(null);
+  const [signalementReviewId, setSignalementReviewId] = useState<number | null>(null);
 
   
   const { user } = useAuth();
@@ -722,7 +750,12 @@ function FicheLaverie() {
           {laverie.reviews.length > 0 ? (
             <div className="space-y-3">
               {laverie.reviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  isConnected={isConnected}
+                  onSignal={(id) => setSignalementReviewId(id)}
+                />
               ))}
             </div>
           ) : (
@@ -747,6 +780,15 @@ function FicheLaverie() {
           isSubmitting={isSubmitting}
           existingRating={userReview?.note ?? 0}
           existingComment={userReview?.commentaire ?? ""}
+        />
+      )}
+
+      {/* SIGNALEMENT */}
+      {signalementReviewId !== null && (
+        <SignalementForm
+          reviewId={signalementReviewId}
+          open={signalementReviewId !== null}
+          onOpenChange={(open) => { if (!open) setSignalementReviewId(null); }}
         />
       )}
 

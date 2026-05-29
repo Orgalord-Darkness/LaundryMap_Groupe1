@@ -37,7 +37,6 @@ class LaverieNoteSignalement
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
 
-    #[ORM\Column(enumType: StatutSignalementEnum::class)]
     private StatutSignalementEnum $statut = StatutSignalementEnum::PENDING;
 
     public function getId(): ?int
