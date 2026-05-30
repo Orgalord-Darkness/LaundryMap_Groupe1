@@ -80,6 +80,7 @@ class Laverie
     public function __construct()
     {
         $this->laverieHistoriqueInteractions = new ArrayCollection();
+        $this->laverieServices = new ArrayCollection();
         $this->services = new ArrayCollection();
         $this->favoris = new ArrayCollection();
         $this->methodePaiements = new ArrayCollection();
@@ -222,6 +223,9 @@ class Laverie
      */
     public function getLaverieServices(): Collection
     {
+        if (!isset($this->laverieServices)) {
+            $this->laverieServices = new ArrayCollection();
+        }
         return $this->laverieServices;
     }
 

@@ -16,7 +16,7 @@ use App\Repository\LaverieNoteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 
-#[Route('/api/v1/utilisateur', name: 'signalement_')]
+#[Route('/api/v1', name: 'signalement_')]
 final class SignalementController extends AbstractController
 {
     public function __construct(
@@ -31,7 +31,7 @@ final class SignalementController extends AbstractController
         private int $periodeHeures,
     ) {}
 
-    #[Route('/avis/{id}/signalement', name: 'app_add_signalement', methods: ['POST'])]
+    #[Route('/utilisateur/avis/{id}/signalement', name: 'app_add_signalement', methods: ['POST'])]
     #[OA\Tag(name: 'Signalement')]
     #[OA\RequestBody(
         description: 'Données pour créer un signalement',
@@ -112,6 +112,50 @@ final class SignalementController extends AbstractController
                 'laverie_note_id' => $note->getId(),
             ],
         ], Response::HTTP_CREATED);
+    }
+
+    #[Route('/admin/signalements', name: 'app_signalements', methods: ['GET'])]
+    #[OA\Tag(name: 'Signalement')]
+    public function getSignalements(): JsonResponse
+    {
+        return $this->json(
+            $this->laverieNoteSignalementRepository->getSignalements(), 
+            Response::HTTP_OK
+        ); 
+    } 
+
+    #[Route('/admin/signalements/{id}', name: 'admin_delete_signalements', methods: ['DELETE'])]
+    #[OA\Tag(name: 'Signalement')]
+    public function removeSignalement(int $id): JsonResponse
+    {
+        $signalement = $this->laverieNoteSignalementRepository->find($id);
+        if (!$signalement) {
+            return $this->json(
+                ['message' => 'Signalement non trouvé'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+        $this->entityManager->remove($signalement);
+        $this->entityManager->flush();
+
+        return $this->json(['message' => 'Signalement supprimé'], Response::HTTP_OK);
+    }
+
+    #[Route('/admin/avis/{id}', name: 'admin_delete_avis', methods: ['DELETE'])]
+    #[OA\Tag(name: 'Signalement')]
+    public function removeAvis(int $id): JsonResponse
+    {
+        $avis = $this->laverieNoteRepository->find($id);
+        if (!$avis) {
+            return $this->json(
+                ['message' => 'Commentaire non trouvé'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+        $this->entityManager->remove($avis);
+        $this->entityManager->flush();
+
+        return $this->json(['message' => 'Commentaire supprimé'], Response::HTTP_OK);
     }
 
 }
