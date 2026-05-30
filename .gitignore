@@ -26,6 +26,7 @@ docker-compose.prod.yml
 ##############################
 laundrymap-back/var/
 laundrymap-back/.env.local
+laundrymap-back/.env
 laundrymap-back/vendor/
 /var/
 /vendor/
@@ -49,6 +50,7 @@ deploy-secrets.sh
 laundrymap-front/dist/
 laundrymap-front/node_modules/
 laundrymap-front/.env.local
+laundrymap-front/.env
 node_modules/
 npm-debug.log
 yarn-debug.log

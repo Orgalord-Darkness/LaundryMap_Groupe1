@@ -221,4 +221,9 @@ class LaverieNote
         return $this;
     }
 
+    public function getSignalements(): Collection
+    {
+        return $this->signalements;
+    }
+
 }

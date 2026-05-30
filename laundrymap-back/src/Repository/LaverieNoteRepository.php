@@ -50,6 +50,7 @@ class LaverieNoteRepository extends ServiceEntityRepository
         $result = $this->createQueryBuilder('ln')
             ->select('AVG(ln.note) as moyenne')
             ->where('ln.laverie = :laverie')
+            ->andwhere('ln.motif IS NULL')
             ->setParameter('laverie', $laverie)
             ->getQuery()
             ->getSingleScalarResult();
