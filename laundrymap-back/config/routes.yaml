@@ -4,19 +4,13 @@ controllers:
         namespace: App\Controller
     type: attribute
 
-app.swagger_ui:
-    path: /api/doc
-    methods: GET
-    defaults: { _controller: nelmio_api_doc.controller.swagger_ui }
+when@dev:
+    app.swagger_ui:
+        path: /api/doc
+        methods: GET
+        defaults: { _controller: nelmio_api_doc.controller.swagger_ui }
 
-api_login_check:
-    path: /api/login_check
-
-api_pro_login_check:
-    path: /api/v1/professionnel/login_check
-    methods: [POST]
-
-
-api_admin_login_check:
-    path: /api/v1/admin/login_check
-    methods: [POST]
+    app.swagger:
+        path: /api/doc.json
+        methods: GET
+        defaults: { _controller: nelmio_api_doc.controller.swagger }

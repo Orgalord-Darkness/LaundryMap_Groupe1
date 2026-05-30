@@ -8,7 +8,7 @@ lexik_jwt_authentication:
             enabled: true
             name: BEARER
         authorization_header:
-            enabled: false
+            enabled: true
     set_cookies:
         BEARER:
             lifetime: 3600

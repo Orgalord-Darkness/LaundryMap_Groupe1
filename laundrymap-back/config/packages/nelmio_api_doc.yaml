@@ -36,40 +36,19 @@ nelmio_api_doc:
         security:
             - BearerAuth: []
 
-        # Déclaration manuelle des endpoints json_login (non détectés automatiquement)
         paths:
+            # Surcharge security : cadenas ouvert sur toutes les routes login
             /api/v1/admin/login_check:
                 post:
-                    tags:
-                        - Authentification Admin
-                    summary: Connexion administrateur
-                    security: []  
-                    requestBody:
-                        required: true
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    required: [email, password]
-                                    properties:
-                                        email:
-                                            type: string
-                                            example: admin@example.com
-                                        password:
-                                            type: string
-                                            example: Admin1234.
-                    responses:
-                        '200':
-                            description: Token JWT retourné
-                            content:
-                                application/json:
-                                    schema:
-                                        type: object
-                                        properties:
-                                            token:
-                                                type: string
-                        '401':
-                            description: Identifiants invalides
+                    security: []
+
+            /api/v1/utilisateur/login_check:
+                post:
+                    security: []
+
+            /api/v1/professionnel/login_check:
+                post:
+                    security: []
 
     areas:
         default:
