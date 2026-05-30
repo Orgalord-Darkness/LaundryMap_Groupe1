@@ -11,7 +11,6 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Entity\LaverieNoteSignalement;
 use App\Entity\Utilisateur;
 use App\Enum\MotifEnum;
-use App\Enum\StatutSignalementEnum;
 use App\Repository\LaverieNoteSignalementRepository;
 use App\Repository\LaverieNoteRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -90,7 +89,6 @@ final class SignalementController extends AbstractController
         $laverieNoteSignalement->setMotif($motif);
         $laverieNoteSignalement->setCommentaire($body['commentaire'] ?? null);
         $laverieNoteSignalement->setDate(new \DateTime());
-        $laverieNoteSignalement->setStatut(StatutSignalementEnum::PENDING);
 
         $this->entityManager->persist($laverieNoteSignalement);
         $this->entityManager->flush();
@@ -108,7 +106,6 @@ final class SignalementController extends AbstractController
             'signalement' => [
                 'id'             => $laverieNoteSignalement->getId(),
                 'motif'          => $laverieNoteSignalement->getMotif()->value,
-                'statut'         => $laverieNoteSignalement->getStatut()->value,
                 'commentaire'    => $laverieNoteSignalement->getCommentaire(),
                 'date'           => $laverieNoteSignalement->getDate()->format('Y-m-d H:i:s'),
                 'utilisateur_id' => $utilisateur->getId(),
