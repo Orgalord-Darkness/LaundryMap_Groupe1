@@ -140,7 +140,7 @@ class FicheLaverieController extends AbstractController
         //  affiche que les notes qui ont un commentaire non supprimé
         $reviews = [];
         foreach ($notes as $note) {
-            if ($note->getCommentaire() === null || $note->getCommentaireSupprimeMotif() !== null || !$note->getSignalements()->isEmpty()) {
+            if ($note->getCommentaire() === null || $note->getCommentaireSupprimeLe() !== null) {
                 continue;
             }
 

@@ -143,7 +143,16 @@ final class SignalementController extends AbstractController
 
     #[Route('/admin/avis/{id}', name: 'admin_delete_avis', methods: ['DELETE'])]
     #[OA\Tag(name: 'Signalement')]
-    public function removeAvis(int $id): JsonResponse
+    #[OA\RequestBody(
+        description: 'Motif de suppression du commentaire',
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'motif', type: 'string', example: 'Contenu inapproprié'),
+            ]
+        )
+    )]
+    public function removeAvis(int $id, Request $request): JsonResponse
     {
         $avis = $this->laverieNoteRepository->find($id);
         if (!$avis) {
@@ -152,10 +161,18 @@ final class SignalementController extends AbstractController
                 Response::HTTP_NOT_FOUND
             );
         }
-        $this->entityManager->remove($avis);
+
+        $body = json_decode($request->getContent(), true);
+        $motif = $body['motif'] ?? null;
+        if (!$motif) {
+            return $this->json(['message' => 'Le champ "motif" est requis'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $avis->setCommentaireSupprimeMotif($motif);
+        $avis->setCommentaireSupprimeLe(new \DateTime());
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Commentaire supprimé'], Response::HTTP_OK);
+        return $this->json(['message' => 'Commentaire masqué'], Response::HTTP_OK);
     }
 
 }
