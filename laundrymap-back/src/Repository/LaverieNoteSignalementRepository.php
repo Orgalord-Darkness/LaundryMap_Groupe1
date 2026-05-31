@@ -97,9 +97,14 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
                 'lns.date',
                 'ln.id AS laverie_note_id',
                 'ln.commentaire AS laverie_note_commentaire',
-                'ln.note'
+                'ln.note',
+                'u.prenom AS auteur_prenom',
+                'u.nom AS auteur_nom',
+                'l.nom_etablissement AS laverie_nom'
             )
             ->join('lns.laverie_note', 'ln')
+            ->join('ln.utilisateur', 'u')
+            ->join('ln.laverie', 'l')
             ->getQuery()
             ->getArrayResult();
     }
