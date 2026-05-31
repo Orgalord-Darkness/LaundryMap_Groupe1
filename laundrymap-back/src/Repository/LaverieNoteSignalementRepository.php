@@ -52,7 +52,7 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
         }
     }
 
-    public function findIneSignalementByUserId(Utilisateur $utilisateur, LaverieNoteSignalement $laverieNoteSignalement): ?LaverieNoteSignalement
+    public function findOneSignalementByUserId(Utilisateur $utilisateur, LaverieNoteSignalement $laverieNoteSignalement): ?LaverieNoteSignalement
     {
         return $this->createQueryBuilder('l')
             ->andWhere('l.utilisateur = :utilisateur')
@@ -86,5 +86,44 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult()
         ;
+    }
+
+    public function getSignalements(): array {
+        return $this->createQueryBuilder('lns')
+            ->select(
+                'lns.id',
+                'lns.motif',
+                'lns.commentaire',
+                'lns.date',
+                'ln.id AS laverie_note_id',
+                'ln.commentaire AS laverie_note_commentaire',
+                'ln.note'
+            )
+            ->join('lns.laverie_note', 'ln')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getSignalementById(int $id): array {
+        return $this->createQueryBuilder('lns')
+            ->select(
+                'lns.id',
+                'lns.motif',
+                'lns.commentaire',
+                'lns.date',
+                'ln.id AS laverie_note_id',
+                'ln.commentaire AS laverie_note_commentaire',
+                'ln.note'
+            )
+            ->join('lns.laverie_note', 'ln')
+            ->where('lns.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function deleteSignalements(LaverieNoteSignalement $laverieNoteSignalement): void {
+        $this->getEntityManager()->remove($laverieNoteSignalement);
+        $this->getEntityManager()->flush();
     }
 }
