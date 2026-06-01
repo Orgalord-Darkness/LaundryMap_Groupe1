@@ -32,23 +32,23 @@ function AdminDashboard() {
         <Link to="/admin/professionnel/validation" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
           <div>
             <p className="font-semibold">Comptes à valider</p>
-            <p className="text-sm text-gray-300"> Dernière demande il y a 48 min </p>
+            {/* <p className="text-sm text-gray-300"> Dernière demande il y a 48 min </p> */}
           </div>
           <p className="text-4xl font-bold">{stats.accountsToValidate}</p>
         </Link>
 
-        <Link to="/laveries-en-attente" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
+        <Link to="/admin/laveries/list" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
           <div>
             <p className="font-semibold">Laveries en attentes</p>
-            <p className="text-sm text-gray-300"> Dernière demande il y a 20 min </p>
+            {/* <p className="text-sm text-gray-300"> Dernière demande il y a 20 min </p> */}
           </div>
           <p className="text-4xl font-bold">{stats.pendingLaundries}</p>
         </Link>
 
-        <Link to="/commentaires-signales" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
+        <Link to="/admin/moderation" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
           <div>
             <p className="font-semibold">Commentaires signalés</p>
-            <p className="text-sm text-gray-300"> Dernier signalement il y a 5 min</p>
+            {/* <p className="text-sm text-gray-300"> Dernier signalement il y a 5 min</p> */}
           </div>
           <p className="text-4xl font-bold">{stats.reportedComments}</p>
         </Link>

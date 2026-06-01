@@ -61,7 +61,8 @@ import MesPreferences from "./user/preferences";
 import FicheLaverie from "./user/ficheLaverie";
 import MentionsLegales from "./legal/MentionsLegales";
 import CGU from "./legal/CGU";
-import Review from "./user/review";
+import Review from "./user/review"
+import { ModerationPage } from "./admin/moderation/commentaire";
 
 
 function ProtectedRoute({
@@ -210,6 +211,12 @@ export default function Router() {
       <Route path="/admin/professional/list" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <ProfessionnalAccountValidationList />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin/moderation" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <ModerationPage />
         </ProtectedRoute>
       } />
 

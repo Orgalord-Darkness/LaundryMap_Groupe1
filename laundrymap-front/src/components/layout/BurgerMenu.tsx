@@ -43,7 +43,7 @@ function getMenuItems(role: Role): MenuItem[] {
         { label: "Tableau de bord", href: "/admin/dashboard", icon: <Icon.Home /> },
         { label: "Laveries", href: "/admin/laveries/list", icon: <Icon.Laundry /> },
         { label: "Comptes", href: "/admin/professional/list", icon: <Icon.People /> },
-        { label: "Messages signalés", href: "/admin/messages", icon: <Icon.Flag /> },
+        { label: "Messages signalés", href: "/admin/moderation", icon: <Icon.Flag /> },
         { label: "Mes informations", href: "/admin/informations", icon: <Icon.Info />, separator: true },
         { label: "Mes préférences", href: "/admin/preferences", icon: <Icon.Sliders /> },
         { label: "Historique compte", href: "/admin/historique-compte", icon: <Icon.History />, separator: true },
