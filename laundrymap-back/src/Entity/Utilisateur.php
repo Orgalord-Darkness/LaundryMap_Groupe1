@@ -50,6 +50,9 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?\DateTime $date_derniere_connexion = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTime $blocked_until = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -198,6 +201,18 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRolePro(): array
     {
         return [RoleEnum::PRO->value];
+    }
+
+    public function getBlockedUntil(): ?\DateTime
+    {
+        return $this->blocked_until;
+    }
+
+    public function setBlockedUntil(?\DateTime $blocked_until): static
+    {
+        $this->blocked_until = $blocked_until;
+
+        return $this;
     }
 
 }
