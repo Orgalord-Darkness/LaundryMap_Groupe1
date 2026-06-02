@@ -119,9 +119,61 @@ final class SignalementController extends AbstractController
     public function getSignalements(): JsonResponse
     {
         return $this->json(
-            $this->laverieNoteSignalementRepository->getSignalements(), 
+            $this->laverieNoteSignalementRepository->getSignalements(),
             Response::HTTP_OK
-        ); 
+        );
+    }
+
+    #[Route('/admin/utilisateurs/signalements', name: 'app_utilisateurs_signalements', methods: ['GET'])]
+    #[OA\Tag(name: 'Signalement')]
+    #[OA\Response(response: 200, description: 'Utilisateurs avec leurs commentaires signalés')]
+    public function getUtilisateursSignales(): JsonResponse
+    {
+        $rows = $this->laverieNoteSignalementRepository->getUtilisateursSignales();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $userId = $row['user_id'];
+
+            if (!isset($result[$userId])) {
+                $result[$userId] = [
+                    'utilisateur' => [
+                        'id'     => $row['user_id'],
+                        'nom'    => $row['nom'],
+                        'prenom' => $row['prenom'],
+                        'email'  => $row['email'],
+                        'statut' => $row['statut'],
+                    ],
+                    'total_signalements'   => 0,
+                    'commentaires_signales' => [],
+                ];
+            }
+
+            $noteId = $row['note_id'];
+            $noteIndex = null;
+            foreach ($result[$userId]['commentaires_signales'] as $i => $c) {
+                if ($c['note_id'] === $noteId) {
+                    $noteIndex = $i;
+                    break;
+                }
+            }
+
+            if ($noteIndex === null) {
+                $result[$userId]['commentaires_signales'][] = [
+                    'note_id'          => $noteId,
+                    'commentaire'      => $row['note_commentaire'],
+                    'nb_signalements'  => 1,
+                ];
+            } else {
+                $result[$userId]['commentaires_signales'][$noteIndex]['nb_signalements']++;
+            }
+
+            $result[$userId]['total_signalements']++;
+        }
+
+        usort($result, fn($a, $b) => $b['total_signalements'] <=> $a['total_signalements']);
+
+        return $this->json(array_values($result), Response::HTTP_OK);
     } 
 
     #[Route('/admin/signalements/{id}', name: 'admin_delete_signalements', methods: ['DELETE'])]

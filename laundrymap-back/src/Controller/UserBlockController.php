@@ -27,26 +27,6 @@ final class UserBlockController extends AbstractController
         private UtilisateurHistoriqueInteractionRepository $historiqueRepository,
     ) {}
 
-    /**
-     * TODO(human) — Implémente cet endpoint.
-     *
-     * POST /api/v1/admin/users/{id}/block
-     * Bloque un utilisateur (temporairement ou définitivement).
-     *
-     * Étapes :
-     * 1. Récupérer l'admin connecté via getAdminOrNull() → 403 si null
-     * 2. Récupérer l'utilisateur cible par $id → 404 si absent
-     * 3. Décoder le body JSON : type ("TEMPORARY"|"PERMANENT"), reason, expires_at
-     * 4. Valider :
-     *    - reason absente ou vide → 400 (RG-234)
-     *    - type = "TEMPORARY" sans expires_at → 400
-     *    - expires_at dans le passé → 400
-     * 5. Appliquer le blocage :
-     *    - $user->setStatut(StatutEnum::BANNI)
-     *    - $user->setBlockedUntil($expiresAt ou null)
-     * 6. Créer une entrée UtilisateurHistoriqueInteraction (action=BANNI, motif=$reason)
-     * 7. persist + flush, retourner 201
-     */
     #[Route('/admin/users/{id}/block', name: 'block', methods: ['POST'])]
     #[OA\Tag(name: 'Modération utilisateur')]
     #[OA\RequestBody(
@@ -65,10 +45,44 @@ final class UserBlockController extends AbstractController
     #[OA\Response(response: 404, description: 'Utilisateur non trouvé')]
     public function blockAction(int $id, Request $request): JsonResponse
     {
-        // TODO(human) : implémenter cet endpoint
+        $admin = $this->getAdminOrNull();
+        if (!$admin) {
+            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+        }
+        $user = $this->utilisateurRepository->find($id);
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
+        }   
+        $data = json_decode($request->getContent(), true);
+        $type = $data['type'] ?? null;
+        $reason = $data['reason'] ?? null;
+        $expiresAtRaw = $data['expires_at'] ?? null;
+        $expiresAt = $expiresAtRaw ? new \DateTime($expiresAtRaw) : null;   
+
+        if (!$reason || trim($reason) === '') {
+            return $this->json(['message' => 'Le motif de blocage est requis.'], Response::HTTP_BAD_REQUEST);
+        }
+        if ($type === 'TEMPORARY' && !$expiresAt) {
+            return $this->json(['message' => 'La date d\'expiration est requise pour un blocage temporaire.'], Response::HTTP_BAD_REQUEST);
+        }
+        if ($expiresAt && $expiresAt < new \DateTime()) {
+            return $this->json(['message' => 'La date d\'expiration doit être dans le futur.'], Response::HTTP_BAD_REQUEST);
+        }
+        $user->setStatut(StatutEnum::BANNI);
+        $user->setBlockedUntil($expiresAt);
+        $historique = new UtilisateurHistoriqueInteraction();
+        $historique->setAdministrateur($admin);
+        $historique->setUtilisateur($user);
+        $historique->setAction(StatutEnum::BANNI);
+        $historique->setMotifAction($reason);
+        $historique->setDate(new \DateTime());
+        $this->entityManager->persist($historique);
+        $this->entityManager->flush();
+        return $this->json(['message' => 'Utilisateur bloqué avec succès.'], Response::HTTP_CREATED);
+        
     }
 
-    #[Route('/admin/users/{id}/block', name: 'unblock', methods: ['DELETE'])]
+    #[Route('/admin/users/{id}/unblock', name: 'unblock', methods: ['DELETE'])]
     #[OA\Tag(name: 'Modération utilisateur')]
     #[OA\Response(response: 200, description: 'Blocage levé')]
     #[OA\Response(response: 403, description: 'Accès refusé')]
@@ -159,10 +173,10 @@ final class UserBlockController extends AbstractController
     private function getAdminOrNull(): ?Administrateur
     {
         $user = $this->getUser();
-        if (!$user instanceof Utilisateur) {
-            return null;
+        if ($user instanceof Administrateur) {
+            return $user;
         }
 
-        return $this->administrateurRepository->findOneByEmail($user->getEmail());
+        return null;
     }
 }
