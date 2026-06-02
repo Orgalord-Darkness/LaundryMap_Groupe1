@@ -55,6 +55,10 @@ final class SignalementController extends AbstractController
             return $this->json(['message' => 'Vous devez être connecté pour signaler un avis'], Response::HTTP_UNAUTHORIZED);
         }
 
+        if ($utilisateur->getStatut() === StatutEnum::BANNI) {
+            return $this->json(['message' => 'Votre compte est actuellement bloqué. Vous ne pouvez pas signaler d\'avis.'], Response::HTTP_FORBIDDEN);
+        }
+
         $body = json_decode($request->getContent(), true);
 
         $motifValue = $body['motif'] ?? null;
