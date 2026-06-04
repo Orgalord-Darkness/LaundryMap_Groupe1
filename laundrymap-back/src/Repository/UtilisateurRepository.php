@@ -164,4 +164,37 @@ class UtilisateurRepository extends ServiceEntityRepository
         $em->persist($utilisateur);
         $em->flush();
     }
+
+    public function findAllBannis(?string $type = null, ?\DateTime $expiresBefore = null): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->andWhere('u.statut = :statut')
+            ->setParameter('statut', StatutEnum::BANNI);
+
+        if ($type === 'TEMPORARY') {
+            $qb->andWhere('u.blocked_until IS NOT NULL');
+        } elseif ($type === 'PERMANENT') {
+            $qb->andWhere('u.blocked_until IS NULL');
+        }
+
+        if ($expiresBefore !== null) {
+            $qb->andWhere('u.blocked_until IS NOT NULL')
+               ->andWhere('u.blocked_until <= :expiresBefore')
+               ->setParameter('expiresBefore', $expiresBefore);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function findExpiredBans(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.statut = :statut')
+            ->andWhere('u.blocked_until IS NOT NULL')
+            ->andWhere('u.blocked_until <= :now')
+            ->setParameter('statut', StatutEnum::BANNI)
+            ->setParameter('now', new \DateTime())
+            ->getQuery()
+            ->getResult();
+    }
 }

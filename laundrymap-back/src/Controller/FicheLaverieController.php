@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\LaverieNote;
+use App\Enum\StatutEnum;
 
 
 #[Route('/api/v1')]
@@ -300,6 +301,10 @@ class FicheLaverieController extends AbstractController
  
         /** @var \App\Entity\Utilisateur $currentUser */
         $currentUser = $this->getUser();
+
+        if($currentUser->getStatut() === StatutEnum::BANNI) {
+            return $this->json(['message' => 'Votre compte est actuellement bloqué. Vous ne pouvez pas publier d\'avis.'], JsonResponse::HTTP_FORBIDDEN);
+        }
  
         // Validation du corps JSON 
         $body = json_decode($request->getContent(), true);

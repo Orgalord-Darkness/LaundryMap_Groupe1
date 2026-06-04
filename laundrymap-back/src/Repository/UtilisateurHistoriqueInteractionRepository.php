@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Utilisateur;
 use App\Entity\UtilisateurHistoriqueInteraction;
+use App\Enum\StatutEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -31,13 +33,15 @@ class UtilisateurHistoriqueInteractionRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?UtilisateurHistoriqueInteraction
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findBlocagesByUtilisateur(Utilisateur $user): array
+    {
+        return $this->createQueryBuilder('h')
+            ->andWhere('h.utilisateur = :user')
+            ->andWhere('h.action = :action')
+            ->setParameter('user', $user)
+            ->setParameter('action', StatutEnum::BANNI)
+            ->orderBy('h.date', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
