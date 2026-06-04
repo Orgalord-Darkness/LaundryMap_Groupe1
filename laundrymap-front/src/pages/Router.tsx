@@ -63,6 +63,7 @@ import MentionsLegales from "./legal/MentionsLegales";
 import CGU from "./legal/CGU";
 import Review from "./user/review"
 import { ModerationPage } from "./admin/moderation/commentaire";
+import { FicheUtilisateur } from "./admin/utilisateurs/ficheUtilisateur";
 
 
 function ProtectedRoute({
@@ -217,6 +218,12 @@ export default function Router() {
       <Route path="/admin/moderation" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <ModerationPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin/utilisateurs/:id" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <FicheUtilisateur />
         </ProtectedRoute>
       } />
 

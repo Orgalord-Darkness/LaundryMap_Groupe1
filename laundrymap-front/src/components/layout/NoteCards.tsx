@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import apiClient from "@/lib/apiClient"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +13,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -29,17 +31,21 @@ import {
   MoreVertical,
   Trash2,
   ShieldCheck,
+  ShieldBan,
+  UserSearch,
   Store,
   Flag,
   Calendar,
   AlertTriangle,
 } from "lucide-react"
+import { BlockDrawer } from "@/components/layout/BlockDrawer"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ModerationComment {
   avisId: number           // laverie_note_id — identifiant unique du commentaire
   signalementIds: number[] // IDs de tous les signalements associés
+  authorId: number         // ID de l'auteur — pour navigation vers la fiche
   author: {
     name: string
     initials: string
@@ -89,6 +95,7 @@ function getReportSeverity(count: number) {
 
 export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardProps) {
   const [deleteDrawerOpen, setDeleteDrawerOpen] = useState(false)
+  const [blockDrawerOpen, setBlockDrawerOpen]   = useState(false)
   const [deleteMotif, setDeleteMotif] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -176,6 +183,23 @@ export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardPro
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                   Supprimer le commentaire
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="gap-2 text-destructive focus:text-destructive"
+                  onClick={() => setBlockDrawerOpen(true)}
+                >
+                  <ShieldBan className="h-4 w-4" aria-hidden="true" />
+                  Bloquer l&apos;utilisateur
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2" asChild>
+                  <Link
+                    to={`/admin/utilisateurs/${comment.authorId}`}
+                    state={{ nom: comment.author.name.split(" ").slice(1).join(" "), prenom: comment.author.name.split(" ")[0] }}
+                  >
+                    <UserSearch className="h-4 w-4" aria-hidden="true" />
+                    Voir le profil
+                  </Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -258,6 +282,15 @@ export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardPro
           </Button>
         </CardFooter>
       </Card>
+
+      {/* ── Drawer de blocage utilisateur ── */}
+      <BlockDrawer
+        userId={comment.authorId}
+        userName={comment.author.name}
+        open={blockDrawerOpen}
+        onOpenChange={setBlockDrawerOpen}
+        onSuccess={() => setBlockDrawerOpen(false)}
+      />
 
       {/* ── Drawer de confirmation avec motif (mobile-first) ── */}
       <Drawer open={deleteDrawerOpen} onOpenChange={handleDrawerChange}>

@@ -57,6 +57,7 @@ export function ModerationPage() {
             grouped.set(s.laverie_note_id, {
               avisId:         s.laverie_note_id,
               signalementIds: [s.id],
+              authorId:       s.utilisateur_id,
               author: {
                 name:     `${prenom} ${nom}`.trim(),
                 initials: ((prenom[0] ?? "") + (nom[0] ?? "")).toUpperCase(),
