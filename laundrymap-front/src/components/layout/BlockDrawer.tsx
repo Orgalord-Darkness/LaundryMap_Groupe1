@@ -27,7 +27,7 @@ import apiClient from "@/lib/apiClient"
 const blockSchema = z
   .object({
     type: z.enum(["TEMPORARY", "PERMANENT"], {
-      required_error: "Le type de blocage est obligatoire",
+      error: "Le type de blocage est obligatoire",
     }),
     reason: z
       .string()
@@ -106,15 +106,21 @@ export function BlockDrawer({
     setErrors({})
     setLoading(true)
 
-    // TODO(human): Construire le payload et appeler l'API de blocage
-    // À implémenter :
-    //   1. Construire le body JSON : { type, reason } + ajouter expires_at converti
-    //      en ISO 8601 uniquement si le type est "TEMPORARY"
-    //   2. Appeler apiClient.post(`/admin/users/${userId}/block`, body)
-    //   3. En cas de succès (try) : appeler onSuccess() puis reset()
-    //   4. En cas d'erreur API (catch) : extraire le message et appeler
-    //      setErrors({ root: message }) sans fermer le Drawer
-    //   5. Dans tous les cas (finally) : setLoading(false)
+    try {
+      const payload = {
+        type, reason, expires_at: type === "TEMPORARY" ? new Date(expiresAt).toISOString() : undefined
+      }
+
+      await apiClient.post(`/admin/users/${userId}/block`, payload)
+      onSuccess()
+      reset()
+    } catch (err: any) {
+      setErrors({ root: err?.response?.data?.message ?? "Une erreur est survenue." })
+    } finally {
+      setLoading(false)
+    }
+
+
   }
 
   return (

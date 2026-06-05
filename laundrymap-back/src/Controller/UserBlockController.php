@@ -27,7 +27,7 @@ final class UserBlockController extends AbstractController
         private UtilisateurHistoriqueInteractionRepository $historiqueRepository,
     ) {}
 
-    #[Route('/admin/users/{id}/block', name: 'block', methods: ['POST'])]
+    #[Route('/admin/users/{id}/block', name: 'block', methods: ['POST'], requirements: ['id' => '\d+'])]  
     #[OA\Tag(name: 'Modération utilisateur')]
     #[OA\RequestBody(
         required: true,
@@ -82,7 +82,7 @@ final class UserBlockController extends AbstractController
         
     }
 
-    #[Route('/admin/users/{id}/unblock', name: 'unblock', methods: ['DELETE'])]
+    #[Route('/admin/users/{id}/unblock', name: 'unblock', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     #[OA\Tag(name: 'Modération utilisateur')]
     #[OA\Response(response: 200, description: 'Blocage levé')]
     #[OA\Response(response: 403, description: 'Accès refusé')]
@@ -115,7 +115,7 @@ final class UserBlockController extends AbstractController
         return $this->json(['message' => 'Blocage levé avec succès.'], Response::HTTP_OK);
     }
 
-    #[Route('/admin/users/{id}/blocks', name: 'history', methods: ['GET'])]
+    #[Route('/admin/users/{id}/blocks', name: 'history', methods: ['GET'], requirements: ['id' => '\d+'])]
     #[OA\Tag(name: 'Modération utilisateur')]
     #[OA\Response(response: 200, description: 'Historique des blocages')]
     #[OA\Response(response: 403, description: 'Accès refusé')]

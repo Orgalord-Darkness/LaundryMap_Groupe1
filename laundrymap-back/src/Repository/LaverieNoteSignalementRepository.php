@@ -98,6 +98,7 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
                 'ln.id AS laverie_note_id',
                 'ln.commentaire AS laverie_note_commentaire',
                 'ln.note',
+                'u.id AS utilisateur_id',
                 'u.prenom AS auteur_prenom',
                 'u.nom AS auteur_nom',
                 'l.nom_etablissement AS laverie_nom'
