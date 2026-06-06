@@ -18,11 +18,12 @@ const SEVERITY_TABS = [
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ModerationPage() {
-  const [comments, setComments]   = useState<ModerationComment[]>([])
-  const [filter, setFilter]       = useState<SeverityFilter>("TOUS")
-  const [loading, setLoading]     = useState(true)
-  const [error, setError]         = useState<string | null>(null)
-  const [statusMsg, setStatusMsg] = useState("")
+  const [comments, setComments]       = useState<ModerationComment[]>([])
+  const [filter, setFilter]           = useState<SeverityFilter>("TOUS")
+  const [loading, setLoading]         = useState(true)
+  const [error, setError]             = useState<string | null>(null)
+  const [statusMsg, setStatusMsg]     = useState("")
+  const [blockedUserIds, setBlockedUserIds] = useState<Set<number>>(new Set())
 
   const sortLabelId = useId()
 
@@ -43,8 +44,12 @@ export function ModerationPage() {
         const data: any[] = res.data
 
         // Group by avisId — une card par commentaire, pas par signalement
-        const grouped = new Map<number, ModerationComment>()
+        const grouped  = new Map<number, ModerationComment>()
+        const bannedIds = new Set<number>()
+
         data.forEach((s) => {
+          if (s.auteur_statut === "banni") bannedIds.add(s.utilisateur_id)
+
           const existing = grouped.get(s.laverie_note_id)
           if (existing) {
             existing.signalementIds.push(s.id)
@@ -62,17 +67,19 @@ export function ModerationPage() {
                 name:     `${prenom} ${nom}`.trim(),
                 initials: ((prenom[0] ?? "") + (nom[0] ?? "")).toUpperCase(),
               },
-              content:       s.laverie_note_commentaire ?? "",
-              postedAt:      date.toLocaleDateString("fr-FR"),
-              postedAtIso:   date.toISOString(),
-              laundry:       s.laverie_nom ?? "",
-              reportCount:   1,
-              reportReason:  s.motif ?? "",
-              reportComment: s.commentaire ?? undefined,
-              postedDate:    date.toLocaleDateString("fr-FR"),
+              content:        s.laverie_note_commentaire ?? "",
+              postedAt:       date.toLocaleDateString("fr-FR"),
+              postedAtIso:    date.toISOString(),
+              laundry:        s.laverie_nom ?? "",
+              reportCount:    1,
+              reportReason:   s.motif ?? "",
+              reportComment:  s.commentaire ?? undefined,
+              postedDate:     date.toLocaleDateString("fr-FR"),
+              isAuthorBanned: s.auteur_statut === "banni",
             })
           }
         })
+        setBlockedUserIds(bannedIds)
         setComments(Array.from(grouped.values()))
       })
       .catch(() => setError("Impossible de charger les signalements."))
@@ -150,8 +157,10 @@ export function ModerationPage() {
                 <li key={comment.avisId}>
                   <ModerationCard
                     comment={comment}
+                    isAuthorBlocked={blockedUserIds.has(comment.authorId)}
                     onKept={() => remove(comment.avisId, "conservé et retiré de la file")}
                     onDeleted={() => remove(comment.avisId, "masqué par l'administrateur")}
+                    onUserBlocked={(id) => setBlockedUserIds((prev) => new Set(prev).add(id))}
                   />
                 </li>
               ))}

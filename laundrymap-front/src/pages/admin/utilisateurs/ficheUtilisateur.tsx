@@ -20,13 +20,22 @@ interface BlockedUser {
   type: "TEMPORARY" | "PERMANENT"
 }
 
+interface UserInfo {
+  id: number
+  nom: string
+  prenom: string
+  email: string
+  statut: string
+}
+
 interface HistoryEntry {
   id: number
-  action: string   // "banni" | "validé"
+  action: string
   motif: string
   admin_id: number
   date: string
 }
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -58,12 +67,13 @@ export function FicheUtilisateur() {
   // Nom passé en état de navigation depuis ModerationCard (optionnel)
   const stateUser = location.state as { nom?: string; prenom?: string; email?: string } | null
 
-  const [blockedUser, setBlockedUser]   = useState<BlockedUser | null>(null)
-  const [history, setHistory]           = useState<HistoryEntry[]>([])
-  const [loading, setLoading]           = useState(true)
-  const [error, setError]               = useState<string | null>(null)
+  const [blockedUser, setBlockedUser]         = useState<BlockedUser | null>(null)
+  const [userInfo, setUserInfo]               = useState<UserInfo | null>(null)
+  const [history, setHistory]                 = useState<HistoryEntry[]>([])
+  const [loading, setLoading]                 = useState(true)
+  const [error, setError]                     = useState<string | null>(null)
   const [blockDrawerOpen, setBlockDrawerOpen] = useState(false)
-  const [statusMsg, setStatusMsg]       = useState("")
+  const [statusMsg, setStatusMsg]             = useState("")
 
   const announce = (msg: string) => {
     setStatusMsg("")
@@ -76,11 +86,13 @@ export function FicheUtilisateur() {
     Promise.all([
       apiClient.get<BlockedUser[]>("/admin/blocks"),
       apiClient.get<HistoryEntry[]>(`/admin/users/${userId}/blocks`),
+      apiClient.get<UserInfo>(`/admin/users/${userId}`),
     ])
-      .then(([blocksRes, historyRes]) => {
+      .then(([blocksRes, historyRes, userRes]) => {
         const found = blocksRes.data.find((u) => u.id === userId) ?? null
         setBlockedUser(found)
         setHistory(historyRes.data)
+        setUserInfo(userRes.data)
       })
       .catch(() => setError("Impossible de charger les informations de l'utilisateur."))
       .finally(() => setLoading(false))
@@ -88,10 +100,9 @@ export function FicheUtilisateur() {
 
   useEffect(() => { loadData() }, [userId])
 
-  // Infos d'affichage : depuis router state ou depuis la liste des bloqués
-  const nom    = stateUser?.nom    ?? blockedUser?.nom    ?? "—"
-  const prenom = stateUser?.prenom ?? blockedUser?.prenom ?? "—"
-  const email  = stateUser?.email  ?? blockedUser?.email  ?? "—"
+  const nom    = userInfo?.nom    ?? stateUser?.nom    ?? blockedUser?.nom    ?? "—"
+  const prenom = userInfo?.prenom ?? stateUser?.prenom ?? blockedUser?.prenom ?? "—"
+  const email  = userInfo?.email  ?? stateUser?.email  ?? blockedUser?.email  ?? "—"
   const initials = ((prenom[0] ?? "") + (nom[0] ?? "")).toUpperCase()
   const colorClass = getInitialsColor(initials)
 
@@ -277,6 +288,7 @@ export function FicheUtilisateur() {
                 )}
               </CardContent>
             </Card>
+
           </div>
         )}
       </main>
