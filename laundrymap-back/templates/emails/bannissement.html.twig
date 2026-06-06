@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Votre compte a été suspendu</title>
+        <style>
+            body { background: #f0f4ff; font-family: Arial, sans-serif; margin: 0; padding: 40px 0; }
+            .card { background: #ffffff; padding: 40px; border-radius: 20px; text-align: center; max-width: 480px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+            h1 { color: #991b1b; margin-bottom: 16px; font-size: 22px; }
+            p { color: #4b5563; font-size: 15px; margin-bottom: 16px; line-height: 1.6; }
+            .reason { background: #fef2f2; border-left: 4px solid #fca5a5; padding: 12px 16px; border-radius: 8px; text-align: left; color: #7f1d1d; margin: 16px 0; }
+            .badge-permanent { display: inline-block; background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 16px; }
+            .badge-temporary { display: inline-block; background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 16px; }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>Votre compte a été suspendu</h1>
+            {% if expires_at %}
+                <span class="badge-temporary">Suspension temporaire — jusqu'au {{ expires_at|date('d/m/Y') }}</span>
+            {% else %}
+                <span class="badge-permanent">Suspension permanente</span>
+            {% endif %}
+            <p>Suite à un manquement à nos conditions d'utilisation, votre compte LaundryMap a été suspendu.</p>
+            <div class="reason"><strong>Motif :</strong> {{ reason }}</div>
+            {% if expires_at %}
+                <p>Votre accès sera automatiquement rétabli le <strong>{{ expires_at|date('d/m/Y') }}</strong>.</p>
+            {% else %}
+                <p>Cette suspension est permanente. Contactez notre support si vous souhaitez contester cette décision.</p>
+            {% endif %}
+        </div>
+    </body>
+</html>
