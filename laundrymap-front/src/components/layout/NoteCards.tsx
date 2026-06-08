@@ -38,7 +38,6 @@ import {
   Calendar,
   AlertTriangle,
 } from "lucide-react"
-import { BlockDrawer } from "@/components/layout/BlockDrawer"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,7 +68,6 @@ interface ModerationCardProps {
   isAuthorBlocked?: boolean
   onKept?: () => void
   onDeleted?: () => void
-  onUserBlocked?: (userId: number) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -93,9 +91,8 @@ function getReportSeverity(count: number) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDeleted, onUserBlocked }: ModerationCardProps) {
+export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDeleted }: ModerationCardProps) {
   const [deleteDrawerOpen, setDeleteDrawerOpen] = useState(false)
-  const [blockDrawerOpen, setBlockDrawerOpen]   = useState(false)
   const [deleteMotif, setDeleteMotif] = useState("")
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -198,13 +195,6 @@ export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDel
                   Supprimer le commentaire
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="gap-2 text-destructive focus:text-destructive"
-                  onClick={() => setBlockDrawerOpen(true)}
-                >
-                  <ShieldBan className="h-4 w-4" aria-hidden="true" />
-                  Bloquer l&apos;utilisateur
-                </DropdownMenuItem>
                 <DropdownMenuItem className="gap-2" asChild>
                   <Link
                     to={`/admin/utilisateurs/${comment.authorId}`}
@@ -296,18 +286,6 @@ export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDel
           </Button>
         </CardFooter>
       </Card>
-
-      {/* ── Drawer de blocage utilisateur ── */}
-      <BlockDrawer
-        userId={comment.authorId}
-        userName={comment.author.name}
-        open={blockDrawerOpen}
-        onOpenChange={setBlockDrawerOpen}
-        onSuccess={() => {
-          setBlockDrawerOpen(false)
-          onUserBlocked?.(comment.authorId)
-        }}
-      />
 
       {/* ── Drawer de confirmation avec motif (mobile-first) ── */}
       <Drawer open={deleteDrawerOpen} onOpenChange={handleDrawerChange}>

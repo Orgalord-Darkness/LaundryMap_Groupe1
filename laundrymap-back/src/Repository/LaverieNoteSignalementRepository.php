@@ -212,10 +212,9 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
 
     public function getUtilisateursSignales(): array
     {
-        // TODO(human) : construire le QueryBuilder ici
         return $this->createQueryBuilder('lns')
         ->select(
-            'u.id AS user_id', 
+            'u.id AS user_id',
             'u.nom',
             'u.prenom',
             'u.email',
@@ -225,6 +224,7 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
         )
         ->join('lns.laverie_note', 'ln')
         ->join('ln.utilisateur', 'u')
+        ->andWhere('ln.commentaire_supprime_le IS NULL')
         ->orderBy('u.id', 'ASC')
         ->getQuery()
         ->getArrayResult();

@@ -32,6 +32,8 @@ final class SignalementController extends AbstractController
         private int $limiteUtilisateur,
         #[Autowire(env: 'int:SIGNALEMENT_PERIODE_HEURES')]
         private int $periodeHeures,
+        #[Autowire(env: 'int:SIGNALEMENT_SEUIL_BANNISSEMENT')]
+        private int $seuilBannissement,
     ) {}
 
     #[Route('/utilisateur/avis/{id}/signalement', name: 'app_add_signalement', methods: ['POST'])]
@@ -187,6 +189,13 @@ final class SignalementController extends AbstractController
 
             $result[$userId]['total_signalements']++;
         }
+
+        // RG-211 : un utilisateur est signalé pour bannissement quand le total de
+        // signalements cumulés sur ses commentaires atteint le seuil configuré
+        foreach ($result as &$entry) {
+            $entry['depasse_seuil_bannissement'] = $entry['total_signalements'] >= $this->seuilBannissement;
+        }
+        unset($entry);
 
         usort($result, fn($a, $b) => $b['total_signalements'] <=> $a['total_signalements']);
 

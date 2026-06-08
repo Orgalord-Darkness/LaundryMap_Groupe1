@@ -1,4 +1,5 @@
 import { useState, useMemo, useId, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
 import { FilterTabs } from "@/components/layout/Filter"
 import { ModerationCard, type ModerationComment } from "@/components/layout/NoteCards"
@@ -104,6 +105,22 @@ export function ModerationPage() {
       </div>
 
       <main className="max-w-2xl mx-auto px-4 py-6">
+        {/* ── Navigation entre les deux volets de modération ── */}
+        <nav aria-label="Sections de modération" className="flex gap-2 mb-5">
+          <span
+            aria-current="page"
+            className="px-3 py-1.5 rounded-full text-sm font-medium bg-foreground text-background"
+          >
+            Commentaires signalés
+          </span>
+          <Link
+            to="/admin/moderation/utilisateurs"
+            className="px-3 py-1.5 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            Utilisateurs à modérer
+          </Link>
+        </nav>
+
         <h1 className="text-2xl font-semibold text-foreground mb-1">
           Modération des commentaires
         </h1>
@@ -160,7 +177,6 @@ export function ModerationPage() {
                     isAuthorBlocked={blockedUserIds.has(comment.authorId)}
                     onKept={() => remove(comment.avisId, "conservé et retiré de la file")}
                     onDeleted={() => remove(comment.avisId, "masqué par l'administrateur")}
-                    onUserBlocked={(id) => setBlockedUserIds((prev) => new Set(prev).add(id))}
                   />
                 </li>
               ))}
