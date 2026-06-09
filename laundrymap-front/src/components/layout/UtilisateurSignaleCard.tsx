@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -58,6 +59,7 @@ function getInitialsColor(initials: string): string {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function UtilisateurSignaleCard({ utilisateur, onBlocked }: UtilisateurSignaleCardProps) {
+  const { t } = useTranslation()
   const [blockDrawerOpen, setBlockDrawerOpen] = useState(false)
 
   const fullName           = `${utilisateur.prenom} ${utilisateur.nom}`.trim()
@@ -93,7 +95,7 @@ export function UtilisateurSignaleCard({ utilisateur, onBlocked }: UtilisateurSi
                     aria-label="Utilisateur bloqué"
                   >
                     <ShieldBan className="h-3 w-3" aria-hidden="true" />
-                    Utilisateur bloqué
+                    {t('moderation_utilisateur_bloque')}
                   </Badge>
                 )}
               </div>
@@ -120,13 +122,13 @@ export function UtilisateurSignaleCard({ utilisateur, onBlocked }: UtilisateurSi
           <dl className="space-y-2">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
-              <dt className="text-sm font-semibold w-56 flex-shrink-0">Signalements cumulés&nbsp;:</dt>
+              <dt className="text-sm font-semibold w-56 flex-shrink-0">{t('moderation_signalements_cumules')}&nbsp;:</dt>
               <dd className="text-sm">{utilisateur.totalSignalements}</dd>
             </div>
 
             <div className="flex items-center gap-2">
               <MessageSquareWarning className="h-4 w-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
-              <dt className="text-sm font-semibold w-56 flex-shrink-0">Commentaires concernés&nbsp;:</dt>
+              <dt className="text-sm font-semibold w-56 flex-shrink-0">{t('moderation_commentaires_concernes')}&nbsp;:</dt>
               <dd className="text-sm">{utilisateur.commentairesSignales.length}</dd>
             </div>
           </dl>
@@ -139,10 +141,10 @@ export function UtilisateurSignaleCard({ utilisateur, onBlocked }: UtilisateurSi
           <Button variant="outline" size="sm" className="gap-1.5" asChild>
             <Link
               to={`/admin/utilisateurs/${utilisateur.id}`}
-              state={{ nom: utilisateur.nom, prenom: utilisateur.prenom, email: utilisateur.email }}
+              state={{ nom: utilisateur.nom, prenom: utilisateur.prenom, email: utilisateur.email, from: "moderation-utilisateurs" }}
             >
               <UserSearch className="h-4 w-4" aria-hidden="true" />
-              Voir le profil
+              {t('moderation_voir_profil')}
             </Link>
           </Button>
 
@@ -155,7 +157,7 @@ export function UtilisateurSignaleCard({ utilisateur, onBlocked }: UtilisateurSi
               aria-label={`Bloquer ${fullName}`}
             >
               <ShieldBan className="h-4 w-4" aria-hidden="true" />
-              Bloquer
+              {t('moderation_bloquer')}
             </Button>
           )}
         </CardFooter>

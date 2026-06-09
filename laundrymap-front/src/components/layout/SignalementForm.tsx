@@ -9,7 +9,6 @@ interface Props {
   reviewId: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (reviewId: number) => void;
 }
 
 interface FormData {
@@ -17,7 +16,7 @@ interface FormData {
   commentaire: string;
 }
 
-export default function SignalementForm({ reviewId, open, onOpenChange, onSuccess }: Props) {
+export default function SignalementForm({ reviewId, open, onOpenChange }: Props) {
   const { register, handleSubmit, reset } = useForm<FormData>({
     defaultValues: { motif: "propos injurieux", commentaire: "" },
   });
@@ -42,10 +41,7 @@ export default function SignalementForm({ reviewId, open, onOpenChange, onSucces
         ...(data.commentaire ? { commentaire: data.commentaire } : {}),
       });
       setSuccess(true);
-      setTimeout(() => {
-        onOpenChange(false);
-        onSuccess?.(reviewId);
-      }, 1500);
+      setTimeout(() => onOpenChange(false), 1500);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;

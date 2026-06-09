@@ -1,5 +1,5 @@
 import { useState, useMemo, useId, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { FilterTabs } from "@/components/layout/Filter"
 import { UtilisateurSignaleCard, type UtilisateurSignale } from "@/components/layout/UtilisateurSignaleCard"
@@ -8,11 +8,6 @@ import apiClient from "@/lib/apiClient"
 // ─── Filtrage : tous / à examiner ──────────────────────────────────────────────
 
 type ReviewFilter = "TOUS" | "A_EXAMINER"
-
-const REVIEW_TABS = [
-  { label: "Tous",       value: "TOUS"       as ReviewFilter },
-  { label: "À examiner", value: "A_EXAMINER" as ReviewFilter },
-]
 
 // ─── Forme de la réponse API ───────────────────────────────────────────────────
 
@@ -32,6 +27,13 @@ interface UtilisateurSignaleApi {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ModerationUtilisateursPage() {
+  const { t } = useTranslation()
+
+  const REVIEW_TABS = [
+    { label: t('moderation_filter_tous'),      value: "TOUS"       as ReviewFilter },
+    { label: t('moderation_filter_a_examiner'), value: "A_EXAMINER" as ReviewFilter },
+  ]
+
   const [utilisateurs, setUtilisateurs] = useState<UtilisateurSignale[]>([])
   const [filter, setFilter]             = useState<ReviewFilter>("TOUS")
   const [loading, setLoading]           = useState(true)
@@ -85,27 +87,11 @@ export function ModerationUtilisateursPage() {
       </div>
 
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {/* ── Navigation entre les deux volets de modération ── */}
-        <nav aria-label="Sections de modération" className="flex gap-2 mb-5">
-          <Link
-            to="/admin/moderation"
-            className="px-3 py-1.5 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            Commentaires signalés
-          </Link>
-          <span
-            aria-current="page"
-            className="px-3 py-1.5 rounded-full text-sm font-medium bg-foreground text-background"
-          >
-            Utilisateurs à modérer
-          </span>
-        </nav>
-
         <h1 className="text-2xl font-semibold text-foreground mb-1">
-          Modération des utilisateurs
+          {t('moderation_utilisateurs_titre')}
         </h1>
         <p className="text-sm text-muted-foreground mb-5">
-          Repérez les comptes au comportement récurrent et décidez d&apos;un éventuel bannissement
+          {t('moderation_utilisateurs_sous_titre')}
         </p>
 
         <FilterTabs tabs={REVIEW_TABS} active={filter} onChange={setFilter} />
@@ -143,8 +129,8 @@ export function ModerationUtilisateursPage() {
         {!loading && !error && visibleUtilisateurs.length === 0 && (
           <p className="text-center text-muted-foreground py-12 text-sm">
             {filter === "A_EXAMINER"
-              ? "Aucun utilisateur ne dépasse le seuil de signalements pour le moment."
-              : "Aucun utilisateur signalé pour le moment."}
+              ? t('moderation_vide_a_examiner')
+              : t('moderation_vide_tous')}
           </p>
         )}
 

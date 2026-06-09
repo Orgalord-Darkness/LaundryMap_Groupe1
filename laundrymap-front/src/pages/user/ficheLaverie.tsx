@@ -789,13 +789,6 @@ function FicheLaverie() {
           reviewId={signalementReviewId}
           open={signalementReviewId !== null}
           onOpenChange={(open) => { if (!open) setSignalementReviewId(null); }}
-          onSuccess={(id) => {
-            setLaverie((prev) => prev
-              ? { ...prev, reviews: prev.reviews.filter((r) => r.id !== id) }
-              : prev
-            );
-            setSignalementReviewId(null);
-          }}
         />
       )}
 

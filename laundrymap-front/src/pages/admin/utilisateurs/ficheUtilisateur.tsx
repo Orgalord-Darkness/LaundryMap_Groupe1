@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useParams, useLocation, Link } from "react-router-dom"
-import { ArrowLeft, ShieldBan, User } from "lucide-react"
+import { AlertTriangle, ArrowLeft, Flag, ShieldBan, User } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -36,6 +37,18 @@ interface HistoryEntry {
   date: string
 }
 
+interface CommentaireSignale {
+  note_id: number
+  commentaire: string
+  nb_signalements: number
+}
+
+interface SignalementEntry {
+  total_signalements: number
+  depasse_seuil_bannissement: boolean
+  commentaires_signales: CommentaireSignale[]
+}
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -60,20 +73,30 @@ function getInitialsColor(initials: string): string {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function FicheUtilisateur() {
+  const { t }        = useTranslation()
   const { id }       = useParams<{ id: string }>()
   const location     = useLocation()
   const userId       = parseInt(id ?? "0", 10)
 
-  // Nom passé en état de navigation depuis ModerationCard (optionnel)
-  const stateUser = location.state as { nom?: string; prenom?: string; email?: string } | null
+  const stateUser = location.state as { nom?: string; prenom?: string; email?: string; from?: string } | null
+  const fromUtilisateurs = stateUser?.from === "moderation-utilisateurs"
 
   const [blockedUser, setBlockedUser]         = useState<BlockedUser | null>(null)
   const [userInfo, setUserInfo]               = useState<UserInfo | null>(null)
   const [history, setHistory]                 = useState<HistoryEntry[]>([])
+  const [signalement, setSignalement]         = useState<SignalementEntry | null>(null)
+  const [expandedNotes, setExpandedNotes]     = useState<Set<number>>(new Set())
   const [loading, setLoading]                 = useState(true)
   const [error, setError]                     = useState<string | null>(null)
   const [blockDrawerOpen, setBlockDrawerOpen] = useState(false)
   const [statusMsg, setStatusMsg]             = useState("")
+
+  const toggleNote = (noteId: number) =>
+    setExpandedNotes((prev) => {
+      const next = new Set(prev)
+      next.has(noteId) ? next.delete(noteId) : next.add(noteId)
+      return next
+    })
 
   const announce = (msg: string) => {
     setStatusMsg("")
@@ -87,12 +110,15 @@ export function FicheUtilisateur() {
       apiClient.get<BlockedUser[]>("/admin/blocks"),
       apiClient.get<HistoryEntry[]>(`/admin/users/${userId}/blocks`),
       apiClient.get<UserInfo>(`/admin/users/${userId}`),
+      apiClient.get<{ utilisateur: { id: number }; total_signalements: number; depasse_seuil_bannissement: boolean; commentaires_signales: CommentaireSignale[] }[]>("/admin/utilisateurs/signalements"),
     ])
-      .then(([blocksRes, historyRes, userRes]) => {
+      .then(([blocksRes, historyRes, userRes, signalementsRes]) => {
         const found = blocksRes.data.find((u) => u.id === userId) ?? null
         setBlockedUser(found)
         setHistory(historyRes.data)
         setUserInfo(userRes.data)
+        const sig = signalementsRes.data.find((s) => s.utilisateur.id === userId) ?? null
+        setSignalement(sig)
       })
       .catch(() => setError("Impossible de charger les informations de l'utilisateur."))
       .finally(() => setLoading(false))
@@ -119,18 +145,18 @@ export function FicheUtilisateur() {
       <main className="max-w-2xl mx-auto px-4 py-6">
         {/* Retour */}
         <Link
-          to="/admin/moderation"
+          to={fromUtilisateurs ? "/admin/moderation/utilisateurs" : "/admin/moderation"}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Retour à la modération
+          {fromUtilisateurs ? t('fiche_retour_moderation_utilisateurs') : t('fiche_retour_moderation_commentaires')}
         </Link>
 
         <h1 className="text-2xl font-semibold text-foreground mb-1">
-          Fiche utilisateur
+          {t('fiche_utilisateur_titre')}
         </h1>
         <p className="text-sm text-muted-foreground mb-5">
-          Gestion du blocage et historique des actions administratives
+          {t('fiche_utilisateur_description')}
         </p>
 
         {/* Chargement */}
@@ -214,6 +240,62 @@ export function FicheUtilisateur() {
                 </>
               )}
             </Card>
+
+            {/* ── Commentaires signalés ── */}
+            {signalement && signalement.total_signalements > 0 && (
+              <Card className="rounded-2xl shadow-sm">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <h2 className="text-base font-semibold">{t('fiche_commentaires_signales_titre')}</h2>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {signalement.total_signalements} signalement{signalement.total_signalements > 1 ? "s" : ""} cumulé{signalement.total_signalements > 1 ? "s" : ""}
+                      </Badge>
+                      {signalement.depasse_seuil_bannissement && (
+                        <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 text-xs gap-1">
+                          <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+                          {t('moderation_a_examiner')}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <Separator />
+                <CardContent className="pt-0 pb-0 divide-y divide-border">
+                  {signalement.commentaires_signales.map((c) => {
+                    const isLong     = c.commentaire.length > 120
+                    const isExpanded = expandedNotes.has(c.note_id)
+                    const severity   = c.nb_signalements >= 10
+                      ? "bg-red-100 text-red-700 border-red-200"
+                      : c.nb_signalements >= 5
+                      ? "bg-orange-100 text-orange-700 border-orange-200"
+                      : "bg-yellow-100 text-yellow-700 border-yellow-200"
+
+                    return (
+                      <div key={c.note_id} className="py-3 px-6 space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <Flag className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                          <Badge variant="outline" className={`text-xs px-1.5 py-0 ${severity}`}>
+                            {c.nb_signalements} signalement{c.nb_signalements > 1 ? "s" : ""}
+                          </Badge>
+                        </div>
+                        <p className={`text-sm text-foreground leading-snug ${isExpanded || !isLong ? "" : "line-clamp-2"}`}>
+                          {c.commentaire}
+                        </p>
+                        {isLong && (
+                          <button
+                            onClick={() => toggleNote(c.note_id)}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            {isExpanded ? t('fiche_commentaires_voir_moins') : t('fiche_commentaires_voir_plus')}
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </CardContent>
+              </Card>
+            )}
 
             {/* ── Historique des blocages ── */}
             <Card className="rounded-2xl shadow-sm">
