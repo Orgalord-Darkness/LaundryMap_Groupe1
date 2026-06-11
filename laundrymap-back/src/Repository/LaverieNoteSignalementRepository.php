@@ -135,23 +135,6 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
     }
 
-    /**
-     * TODO(human) — Implémente cette méthode.
-     *
-     * Retourne toutes les lignes (signalement, note, auteur) pour les commentaires signalés.
-     * Chaque ligne représente UN signalement sur UNE note d'UN auteur.
-     * Le controller se chargera d'agréger ces lignes par utilisateur.
-     *
-     * Indices :
-     * - Modèle : regarde getSignalements() juste au-dessus — mêmes jointures de base
-     * - Jointures nécessaires :
-     *     ->join('lns.laverie_note', 'ln')   ← le commentaire
-     *     ->join('ln.utilisateur', 'u')      ← l'AUTEUR du commentaire (pas le reporter !)
-     * - SELECT à construire : user_id, nom, prenom, email, statut, note_id, note_commentaire
-     *   Plus besoin de groupBy ici — on retourne toutes les lignes brutes
-     * - Trier par u.id pour faciliter l'agrégation PHP côté controller
-     */
-
     public function findSignalementsRecusByUtilisateur(Utilisateur $user): array
     {
         return $this->createQueryBuilder('lns')

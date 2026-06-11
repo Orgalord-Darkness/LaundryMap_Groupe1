@@ -60,7 +60,12 @@ final class UserBlockController extends AbstractController
         $type = $data['type'] ?? null;
         $reason = $data['reason'] ?? null;
         $expiresAtRaw = $data['expires_at'] ?? null;
-        $expiresAt = $expiresAtRaw ? new \DateTime($expiresAtRaw) : null;   
+
+        try {
+            $expiresAt = $expiresAtRaw ? new \DateTime($expiresAtRaw) : null;
+        } catch (\Exception $e) {
+            return $this->json(['message' => 'Format de date d\'expiration invalide.'], Response::HTTP_BAD_REQUEST);
+        }
 
         if (!$reason || trim($reason) === '') {
             return $this->json(['message' => 'Le motif de blocage est requis.'], Response::HTTP_BAD_REQUEST);

@@ -102,17 +102,6 @@ export function UtilisateurSignaleCard({ utilisateur, onBlocked }: UtilisateurSi
             </div>
           </div>
 
-          {/*
-            TODO(human) : indicateur visuel "à examiner pour bannissement"
-
-            Affiche un signal clair quand `utilisateur.depasseSeuil` est vrai (RG-211 —
-            l'utilisateur a cumulé assez de signalements pour justifier une revue de
-            bannissement). C'est la traduction visuelle de la règle métier au cœur de
-            cette fonctionnalité : à toi de décider comment la rendre lisible d'un
-            coup d'œil (badge ? bandeau coloré ? icône MessageSquareWarning déjà
-            importée ?) sans pour autant donner l'impression d'une sanction déjà
-            prononcée — l'humain garde la décision finale (cf. F-15 du CDC).
-          */}
         </CardHeader>
 
         <Separator />
