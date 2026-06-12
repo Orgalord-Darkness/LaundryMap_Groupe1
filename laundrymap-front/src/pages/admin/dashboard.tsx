@@ -1,6 +1,18 @@
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import apiClient from '@/lib/apiClient';
 
 function AdminDashboard() {
+  const { t } = useTranslation();
+  const [usersToReview, setUsersToReview] = useState<number | null>(null);
+
+  useEffect(() => {
+    apiClient.get<{ depasse_seuil_bannissement: boolean }[]>('/admin/utilisateurs/signalements')
+      .then((res) => setUsersToReview(res.data.filter((u) => u.depasse_seuil_bannissement).length))
+      .catch(() => setUsersToReview(null));
+  }, []);
+
   const stats = {
     laundries: 72,
     users: 109,
@@ -28,19 +40,17 @@ function AdminDashboard() {
       </div>
 
       {/* Sections grises */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link to="/admin/professionnel/validation" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
           <div>
             <p className="font-semibold">Comptes à valider</p>
-            {/* <p className="text-sm text-gray-300"> Dernière demande il y a 48 min </p> */}
           </div>
           <p className="text-4xl font-bold">{stats.accountsToValidate}</p>
         </Link>
 
         <Link to="/admin/laveries/list" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
           <div>
-            <p className="font-semibold">Laveries en attentes</p>
-            {/* <p className="text-sm text-gray-300"> Dernière demande il y a 20 min </p> */}
+            <p className="font-semibold">Laveries en attente</p>
           </div>
           <p className="text-4xl font-bold">{stats.pendingLaundries}</p>
         </Link>
@@ -48,9 +58,15 @@ function AdminDashboard() {
         <Link to="/admin/moderation" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
           <div>
             <p className="font-semibold">Commentaires signalés</p>
-            {/* <p className="text-sm text-gray-300"> Dernier signalement il y a 5 min</p> */}
           </div>
           <p className="text-4xl font-bold">{stats.reportedComments}</p>
+        </Link>
+
+        <Link to="/admin/moderation/utilisateurs" className="bg-gray-800 text-white p-6 rounded-lg shadow-md h-32 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors block" >
+          <div>
+            <p className="font-semibold">{t('admin_dashboard_utilisateurs_a_moderer')}</p>
+          </div>
+          <p className="text-4xl font-bold">{usersToReview ?? '—'}</p>
         </Link>
       </div>
     </div>

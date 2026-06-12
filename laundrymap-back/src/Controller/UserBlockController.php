@@ -3,12 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Administrateur;
-use App\Entity\Utilisateur;
 use App\Entity\UtilisateurHistoriqueInteraction;
 use App\Enum\StatutEnum;
 use App\Repository\AdministrateurRepository;
+use App\Repository\LaverieNoteSignalementRepository;
 use App\Repository\UtilisateurHistoriqueInteractionRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\SendEmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,9 +26,11 @@ final class UserBlockController extends AbstractController
         private UtilisateurRepository $utilisateurRepository,
         private AdministrateurRepository $administrateurRepository,
         private UtilisateurHistoriqueInteractionRepository $historiqueRepository,
+        private LaverieNoteSignalementRepository $signalementRepository,
+        private SendEmailService $sendEmailService,
     ) {}
 
-    #[Route('/admin/users/{id}/block', name: 'block', methods: ['POST'])]
+    #[Route('/admin/users/{id}/block', name: 'block', methods: ['POST'], requirements: ['id' => '\d+'])]  
     #[OA\Tag(name: 'Modération utilisateur')]
     #[OA\RequestBody(
         required: true,
@@ -57,7 +60,12 @@ final class UserBlockController extends AbstractController
         $type = $data['type'] ?? null;
         $reason = $data['reason'] ?? null;
         $expiresAtRaw = $data['expires_at'] ?? null;
-        $expiresAt = $expiresAtRaw ? new \DateTime($expiresAtRaw) : null;   
+
+        try {
+            $expiresAt = $expiresAtRaw ? new \DateTime($expiresAtRaw) : null;
+        } catch (\Exception $e) {
+            return $this->json(['message' => 'Format de date d\'expiration invalide.'], Response::HTTP_BAD_REQUEST);
+        }
 
         if (!$reason || trim($reason) === '') {
             return $this->json(['message' => 'Le motif de blocage est requis.'], Response::HTTP_BAD_REQUEST);
@@ -78,11 +86,18 @@ final class UserBlockController extends AbstractController
         $historique->setDate(new \DateTime());
         $this->entityManager->persist($historique);
         $this->entityManager->flush();
+
+        $this->sendEmailService->sendBannissementNotification(
+            $user->getEmail(),
+            $reason,
+            $expiresAt,
+        );
+
         return $this->json(['message' => 'Utilisateur bloqué avec succès.'], Response::HTTP_CREATED);
         
     }
 
-    #[Route('/admin/users/{id}/unblock', name: 'unblock', methods: ['DELETE'])]
+    #[Route('/admin/users/{id}/unblock', name: 'unblock', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     #[OA\Tag(name: 'Modération utilisateur')]
     #[OA\Response(response: 200, description: 'Blocage levé')]
     #[OA\Response(response: 403, description: 'Accès refusé')]
@@ -115,7 +130,32 @@ final class UserBlockController extends AbstractController
         return $this->json(['message' => 'Blocage levé avec succès.'], Response::HTTP_OK);
     }
 
-    #[Route('/admin/users/{id}/blocks', name: 'history', methods: ['GET'])]
+    #[Route('/admin/users/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[OA\Tag(name: 'Modération utilisateur')]
+    #[OA\Response(response: 200, description: 'Informations de l\'utilisateur')]
+    #[OA\Response(response: 403, description: 'Accès refusé')]
+    #[OA\Response(response: 404, description: 'Utilisateur non trouvé')]
+    public function showAction(int $id): JsonResponse
+    {
+        if (!$this->getAdminOrNull()) {
+            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $user = $this->utilisateurRepository->find($id);
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json([
+            'id' => $user->getId(), 
+            'nom'=> $user->getNom(),
+            'prenom' => $user->getPrenom(),
+            'email' => $user->getEmail(), 
+            'statut' => $user->getStatut()?->value
+        ], Response::HTTP_OK);  
+    }
+
+    #[Route('/admin/users/{id}/blocks', name: 'history', methods: ['GET'], requirements: ['id' => '\d+'])]
     #[OA\Tag(name: 'Modération utilisateur')]
     #[OA\Response(response: 200, description: 'Historique des blocages')]
     #[OA\Response(response: 403, description: 'Accès refusé')]
@@ -168,6 +208,60 @@ final class UserBlockController extends AbstractController
             'blocked_until' => $u->getBlockedUntil()?->format(\DateTime::ATOM),
             'type'          => $u->getBlockedUntil() !== null ? 'TEMPORARY' : 'PERMANENT',
         ], $users), Response::HTTP_OK);
+    }
+
+    #[Route('/admin/users/{id}/reported-comments', name: 'reported_comments', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[OA\Tag(name: 'Modération utilisateur')]
+    #[OA\Response(response: 200, description: 'Commentaires signalés de l\'utilisateur')]
+    #[OA\Response(response: 403, description: 'Accès refusé')]
+    #[OA\Response(response: 404, description: 'Utilisateur non trouvé')]
+    public function reportedCommentsAction(int $id): JsonResponse
+    {
+        if (!$this->getAdminOrNull()) {
+            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+        }
+        $user = $this->utilisateurRepository->find($id);
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
+        }
+        $rows = $this->signalementRepository->findSignalementsRecusByUtilisateur($user);
+        return $this->json(array_map(fn($r) => [
+            'id'                   => $r['id'],
+            'motif'                => $r['motif'] instanceof \BackedEnum ? $r['motif']->value : (string) $r['motif'],
+            'signalement_commentaire' => $r['signalement_commentaire'],
+            'date'                 => $r['date'] instanceof \DateTime ? $r['date']->format(\DateTime::ATOM) : $r['date'],
+            'note_id'              => $r['note_id'],
+            'note_commentaire'     => $r['note_commentaire'],
+            'laverie_nom'          => $r['laverie_nom'],
+        ], $rows), Response::HTTP_OK);
+    }
+
+    #[Route('/admin/users/{id}/reports-made', name: 'reports_made', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[OA\Tag(name: 'Modération utilisateur')]
+    #[OA\Response(response: 200, description: 'Signalements effectués par l\'utilisateur')]
+    #[OA\Response(response: 403, description: 'Accès refusé')]
+    #[OA\Response(response: 404, description: 'Utilisateur non trouvé')]
+    public function reportsMadeAction(int $id): JsonResponse
+    {
+        if (!$this->getAdminOrNull()) {
+            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+        }
+        $user = $this->utilisateurRepository->find($id);
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
+        }
+        $rows = $this->signalementRepository->findSignalementsFaitsByUtilisateur($user);
+        return $this->json(array_map(fn($r) => [
+            'id'                   => $r['id'],
+            'motif'                => $r['motif'] instanceof \BackedEnum ? $r['motif']->value : (string) $r['motif'],
+            'signalement_commentaire' => $r['signalement_commentaire'] ?? null,
+            'date'                 => $r['date'] instanceof \DateTime ? $r['date']->format(\DateTime::ATOM) : $r['date'],
+            'note_id'              => $r['note_id'],
+            'note_commentaire'     => $r['note_commentaire'],
+            'laverie_nom'          => $r['laverie_nom'],
+            'auteur_nom'           => $r['auteur_nom'] ?? null,
+            'auteur_prenom'        => $r['auteur_prenom'] ?? null,
+        ], $rows), Response::HTTP_OK);
     }
 
     private function getAdminOrNull(): ?Administrateur
