@@ -98,13 +98,16 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
                 'ln.id AS laverie_note_id',
                 'ln.commentaire AS laverie_note_commentaire',
                 'ln.note',
+                'u.id AS utilisateur_id',
                 'u.prenom AS auteur_prenom',
                 'u.nom AS auteur_nom',
+                'u.statut AS auteur_statut',
                 'l.nom_etablissement AS laverie_nom'
             )
             ->join('lns.laverie_note', 'ln')
             ->join('ln.utilisateur', 'u')
             ->join('ln.laverie', 'l')
+            ->andWhere('ln.commentaire_supprime_le IS NULL')
             ->getQuery()
             ->getArrayResult();
     }
@@ -132,28 +135,69 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
     }
 
-    /**
-     * TODO(human) — Implémente cette méthode.
-     *
-     * Retourne toutes les lignes (signalement, note, auteur) pour les commentaires signalés.
-     * Chaque ligne représente UN signalement sur UNE note d'UN auteur.
-     * Le controller se chargera d'agréger ces lignes par utilisateur.
-     *
-     * Indices :
-     * - Modèle : regarde getSignalements() juste au-dessus — mêmes jointures de base
-     * - Jointures nécessaires :
-     *     ->join('lns.laverie_note', 'ln')   ← le commentaire
-     *     ->join('ln.utilisateur', 'u')      ← l'AUTEUR du commentaire (pas le reporter !)
-     * - SELECT à construire : user_id, nom, prenom, email, statut, note_id, note_commentaire
-     *   Plus besoin de groupBy ici — on retourne toutes les lignes brutes
-     * - Trier par u.id pour faciliter l'agrégation PHP côté controller
-     */
+    public function findSignalementsRecusByUtilisateur(Utilisateur $user): array
+    {
+        return $this->createQueryBuilder('lns')
+            ->select(
+                'lns.id',
+                'lns.motif',
+                'lns.commentaire AS signalement_commentaire',
+                'lns.date',
+                'ln.id AS note_id',
+                'ln.commentaire AS note_commentaire',
+                'l.nom_etablissement AS laverie_nom'
+            )
+            ->join('lns.laverie_note', 'ln')
+            ->join('ln.utilisateur', 'u')
+            ->join('ln.laverie', 'l')
+            ->where('u = :user')
+            ->setParameter('user', $user)
+            ->orderBy('lns.date', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function findSignalementsFaitsByUtilisateur(Utilisateur $user): array
+    {
+        return $this->createQueryBuilder('lns')
+            ->select(
+                'lns.id',
+                'lns.motif',
+                'lns.commentaire AS signalement_commentaire',
+                'lns.date',
+                'ln.id AS note_id',
+                'ln.commentaire AS note_commentaire',
+                'l.nom_etablissement AS laverie_nom',
+                'u_auteur.prenom AS auteur_prenom',
+                'u_auteur.nom AS auteur_nom'
+            )
+            ->join('lns.laverie_note', 'ln')
+            ->join('ln.utilisateur', 'u_auteur')
+            ->join('ln.laverie', 'l')
+            ->where('lns.utilisateur = :user')
+            ->setParameter('user', $user)
+            ->orderBy('lns.date', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function findSignaledNoteIdsByUtilisateur(Utilisateur $utilisateur): array
+    {
+        $rows = $this->createQueryBuilder('lns')
+            ->select('IDENTITY(lns.laverie_note) AS note_id')
+            ->andWhere('lns.utilisateur = :utilisateur')
+            ->setParameter('utilisateur', $utilisateur)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_column($rows, 'note_id');
+    }
+
     public function getUtilisateursSignales(): array
     {
-        // TODO(human) : construire le QueryBuilder ici
         return $this->createQueryBuilder('lns')
         ->select(
-            'u.id AS user_id', 
+            'u.id AS user_id',
             'u.nom',
             'u.prenom',
             'u.email',
@@ -163,6 +207,7 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
         )
         ->join('lns.laverie_note', 'ln')
         ->join('ln.utilisateur', 'u')
+        ->andWhere('ln.commentaire_supprime_le IS NULL')
         ->orderBy('u.id', 'ASC')
         ->getQuery()
         ->getArrayResult();

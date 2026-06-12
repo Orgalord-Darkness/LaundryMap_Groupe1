@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/context/AuthContext";
 import { Icon } from "@/components/ui/icons";
 
@@ -12,7 +13,7 @@ interface MenuItem {
   separator?: boolean;
 }
 
-function getMenuItems(role: Role): MenuItem[] {
+function getMenuItems(role: Role, t: (key: string) => string): MenuItem[] {
   switch (role) {
     case "guest":
       return [
@@ -43,11 +44,12 @@ function getMenuItems(role: Role): MenuItem[] {
         { label: "Tableau de bord", href: "/admin/dashboard", icon: <Icon.Home /> },
         { label: "Laveries", href: "/admin/laveries/list", icon: <Icon.Laundry /> },
         { label: "Comptes", href: "/admin/professional/list", icon: <Icon.People /> },
-        { label: "Messages signalés", href: "/admin/moderation", icon: <Icon.Flag /> },
         { label: "Mes informations", href: "/admin/informations", icon: <Icon.Info />, separator: true },
         { label: "Mes préférences", href: "/admin/preferences", icon: <Icon.Sliders /> },
         { label: "Historique compte", href: "/admin/historique-compte", icon: <Icon.History />, separator: true },
         { label: "Historique laverie", href: "/admin/historique-laverie", icon: <Icon.History /> },
+        { label: t('admin_nav_messages_signales'), href: "/admin/moderation", icon: <Icon.Flag /> },
+        { label: t('admin_nav_utilisateurs_a_moderer'), href: "/admin/moderation/utilisateurs", icon: <Icon.UserX /> },
         { label: "Mots interdits", href: "/admin/mots-interdits", icon: <Icon.Ban /> },
         { label: "Déconnexion", href: "/logout", icon: <Icon.Logout />, separator: true },
       ];
@@ -62,6 +64,7 @@ const badgeConfig: Record<Role, { label: string; bg: string; color: string }> = 
 };
 
 export function BurgerMenu() {
+  const { t } = useTranslation();
   const { role, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -85,7 +88,7 @@ export function BurgerMenu() {
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
-  const menuItems = getMenuItems(role as Role);
+  const menuItems = getMenuItems(role as Role, t);
   const badge = badgeConfig[role as Role] ?? badgeConfig.guest;
 
   const isActive = (href: string) =>

@@ -64,6 +64,8 @@ import CGU from "./legal/CGU";
 import Review from "./user/review"
 import { ModerationPage } from "./admin/moderation/commentaire";
 import MotsInterdits from "./admin/MotsInterdits";
+import { ModerationUtilisateursPage } from "./admin/moderation/utilisateur";
+import { FicheUtilisateur } from "./admin/utilisateurs/ficheUtilisateur";
 
 
 function ProtectedRoute({
@@ -228,6 +230,17 @@ export default function Router() {
       } />
 
 
+      <Route path="/admin/moderation/utilisateurs" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <ModerationUtilisateursPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin/utilisateurs/:id" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <FicheUtilisateur />
+        </ProtectedRoute>
+      } />
 
       {/* ── Fallback 404 → accueil ── */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Votre commentaire a été signalé</title>
+        <style>
+            body { background: #f0f4ff; font-family: Arial, sans-serif; margin: 0; padding: 40px 0; }
+            .card { background: #ffffff; padding: 40px; border-radius: 20px; text-align: center; max-width: 480px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+            h1 { color: #1e3a8a; margin-bottom: 16px; font-size: 22px; }
+            p { color: #4b5563; font-size: 15px; margin-bottom: 16px; line-height: 1.6; }
+            .quote { background: #f8fafc; border-left: 4px solid #e2e8f0; padding: 12px 16px; border-radius: 8px; text-align: left; color: #64748b; font-style: italic; margin: 16px 0; }
+            .badge { display: inline-block; background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 16px; }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>Votre commentaire a été signalé</h1>
+            <span class="badge">Motif : {{ motif }}</span>
+            <p>Un de vos commentaires sur LaundryMap a été signalé par un autre utilisateur.</p>
+            <div class="quote">« {{ commentaire }} »</div>
+            <p>Notre équipe de modération va examiner ce signalement. Si votre commentaire ne respecte pas nos règles d'utilisation, il pourra être retiré.</p>
+            <p style="color:#9ca3af; font-size:13px;">Si vous pensez qu'il s'agit d'une erreur, vous pouvez contacter notre support.</p>
+        </div>
+    </body>
+</html>
