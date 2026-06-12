@@ -63,6 +63,7 @@ import MentionsLegales from "./legal/MentionsLegales";
 import CGU from "./legal/CGU";
 import Review from "./user/review"
 import { ModerationPage } from "./admin/moderation/commentaire";
+import MotsInterdits from "./admin/MotsInterdits";
 
 
 function ProtectedRoute({
@@ -219,6 +220,14 @@ export default function Router() {
           <ModerationPage />
         </ProtectedRoute>
       } />
+
+      <Route path="/admin/mots-interdits" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <MotsInterdits />
+        </ProtectedRoute>
+      } />
+
+
 
       {/* ── Fallback 404 → accueil ── */}
       <Route path="*" element={<Navigate to="/" replace />} />
