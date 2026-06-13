@@ -112,14 +112,6 @@ final class SignalementController extends AbstractController
             );
         }
 
-        // RG-209 : masquage automatique si seuil de signalements atteint
-        $totalSignalements = $this->laverieNoteSignalementRepository->countByNote($note);
-        if ($totalSignalements >= $this->seuilMasquage && $note->getCommentaireSupprimeMotif() === null) {
-            $note->setCommentaireSupprimeMotif('Masqué automatiquement suite à des signalements');
-            $note->setCommentaireSupprimeLe(new \DateTime());
-            $this->entityManager->flush();
-        }
-
         return $this->json([
             'message' => 'Signalement ajouté avec succès',
             'signalement' => [

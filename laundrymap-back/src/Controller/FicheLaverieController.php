@@ -18,6 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\LaverieNote;
 use App\Enum\StatutEnum;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 
 #[Route('/api/v1')]
@@ -32,6 +33,8 @@ class FicheLaverieController extends AbstractController
         private readonly LaverieNoteRepository                      $laverieNoteRepository,
         private readonly LaverieNoteSignalementRepository           $laverieNoteSignalementRepository,
         private readonly EntityManagerInterface                     $entityManager,
+        #[Autowire(env: 'int:SIGNALEMENT_SEUIL_MASQUAGE')]
+        private readonly int                                        $seuilMasquage,
     ) {}
 
 
@@ -143,17 +146,15 @@ class FicheLaverieController extends AbstractController
 
         $currentUser = $this->getUser();
 
-        // IDs des notes déjà signalées par l'utilisateur courant — cachées pour lui dès son signalement
-        $signaledNoteIds = $currentUser instanceof Utilisateur
-            ? $this->laverieNoteSignalementRepository->findSignaledNoteIdsByUtilisateur($currentUser)
-            : [];
+        $noteIds = array_map(fn($n) => $n->getId(), $notes);
+        $signalementCounts = $this->laverieNoteSignalementRepository->countByNoteIds($noteIds);
 
-        //  affiche que les notes qui ont un commentaire non supprimé et non signalé par l'utilisateur
         $reviews = [];
         foreach ($notes as $note) {
+            $nbSignalements = $signalementCounts[$note->getId()] ?? 0;
             if ($note->getCommentaire() === null
                 || $note->getCommentaireSupprimeLe() !== null
-                || in_array($note->getId(), $signaledNoteIds, true)) {
+                || $nbSignalements >= $this->seuilMasquage) {
                 continue;
             }
 
