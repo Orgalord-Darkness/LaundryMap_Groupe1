@@ -9,6 +9,7 @@ use App\Repository\LaverieFermetureExceptionnelleRepository;
 use App\Repository\LaverieEquipementRepository;
 use App\Repository\LaverieNoteRepository;
 use App\Repository\LaverieNoteSignalementRepository;
+use App\Repository\MotInjurieuxRepository;
 use App\Entity\Laverie;
 use App\Entity\Utilisateur;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +33,7 @@ class FicheLaverieController extends AbstractController
         private readonly LaverieEquipementRepository                $laverieEquipementRepository,
         private readonly LaverieNoteRepository                      $laverieNoteRepository,
         private readonly LaverieNoteSignalementRepository           $laverieNoteSignalementRepository,
+        private readonly MotInjurieuxRepository                     $motInjurieuxRepository,
         private readonly EntityManagerInterface                     $entityManager,
         #[Autowire(env: 'int:SIGNALEMENT_SEUIL_MASQUAGE')]
         private readonly int                                        $seuilMasquage,
@@ -339,8 +341,22 @@ class FicheLaverieController extends AbstractController
         }
  
         $commentaire = mb_substr(trim($commentaire), 0, 255);
- 
-        // Création ou mise à jour 
+
+        $motsInterdits = array_map(
+            fn($m) => mb_strtolower($m->getLabel()),
+            $this->motInjurieuxRepository->findAll()
+        );
+        $commentaireLower = mb_strtolower($commentaire);
+        foreach ($motsInterdits as $mot) {
+            if (str_contains($commentaireLower, $mot)) {
+                return $this->json(
+                    ['message' => 'Votre commentaire contient un ou plusieurs mots interdits.'],
+                    JsonResponse::HTTP_UNPROCESSABLE_ENTITY
+                );
+            }
+        }
+
+        // Création ou mise à jour
         // Un seul avis par utilisateur par laverie / cherche un avis existant
         $laverieNote = $this->laverieNoteRepository->findOneBy([
             'laverie'    => $laverie,
