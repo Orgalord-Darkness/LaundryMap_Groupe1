@@ -63,6 +63,7 @@ import MentionsLegales from "./legal/MentionsLegales";
 import CGU from "./legal/CGU";
 import Review from "./user/review"
 import { ModerationPage } from "./admin/moderation/commentaire";
+import MotsInterdits from "./admin/MotsInterdits";
 import { ModerationUtilisateursPage } from "./admin/moderation/utilisateur";
 import { FicheUtilisateur } from "./admin/utilisateurs/ficheUtilisateur";
 
@@ -221,6 +222,13 @@ export default function Router() {
           <ModerationPage />
         </ProtectedRoute>
       } />
+
+      <Route path="/admin/mots-interdits" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <MotsInterdits />
+        </ProtectedRoute>
+      } />
+
 
       <Route path="/admin/moderation/utilisateurs" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
