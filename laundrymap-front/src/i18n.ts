@@ -168,6 +168,11 @@ const resources = {
       histo_laverie_erreur_chargement: "Impossible de charger l'historique.",
       action_valide: 'Validation',
       action_refuse: 'Refus',
+      histo_filtre_action: "Type d'action",
+      histo_filtre_toutes: 'Toutes les actions',
+      histo_filtre_date_debut: 'Du',
+      histo_filtre_date_fin: 'Au',
+      histo_filtre_reinitialiser: 'Réinitialiser',
     },
   },
   en: {
@@ -331,6 +336,11 @@ const resources = {
       histo_laverie_erreur_chargement: 'Failed to load history.',
       action_valide: 'Validation',
       action_refuse: 'Refusal',
+      histo_filtre_action: 'Action type',
+      histo_filtre_toutes: 'All actions',
+      histo_filtre_date_debut: 'From',
+      histo_filtre_date_fin: 'To',
+      histo_filtre_reinitialiser: 'Reset',
     },
   },
 };

@@ -66,9 +66,14 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
 
 
 
-    public function getHistorique($offset = 0, $limit=10): ?array
-    {
-        $qb = $this->createQueryBuilder('h') //h.laverie est une relation ManyToOne Doctrine ne permet pas h.laverie_id IDENTITY(h.laverie) récupère l’ID de la relation
+    public function getHistorique(
+        int $offset = 0,
+        int $limit = 10,
+        ?string $action = null,
+        ?\DateTimeInterface $dateDebut = null,
+        ?\DateTimeInterface $dateFin = null,
+    ): ?array {
+        $qb = $this->createQueryBuilder('h') //h.laverie est une relation ManyToOne Doctrine ne permet pas h.laverie_id IDENTITY(h.laverie) récupère l'ID de la relation
             ->select(
                 'h.id',
                 'h.date',
@@ -79,25 +84,49 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
                 'u.nom AS proprietaire_nom',
                 'u.prenom AS proprietaire_prenom',
                 'm.nom_original AS logo_nom',
-                'IDENTITY(h.administrateur) AS administrateur_id'
+                'IDENTITY(h.administrateur) AS administrateur_id',
+                'IDENTITY(h.administrateur) AS administrateur_email'
             )
             ->join('h.laverie', 'l')
             ->join('l.professionnel', 'p')
             ->join('p.utilisateur', 'u')
             ->leftJoin('l.logo', 'm')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
             ->orderBy('h.date', 'DESC');
+
+        if ($action !== null) {
+            $qb->andWhere('h.action = :action')->setParameter('action', $action);
+        }
+        if ($dateDebut !== null) {
+            $qb->andWhere('h.date >= :dateDebut')->setParameter('dateDebut', $dateDebut);
+        }
+        if ($dateFin !== null) {
+            $qb->andWhere('h.date <= :dateFin')->setParameter('dateFin', $dateFin);
+        }
+
+        $qb->setFirstResult($offset)->setMaxResults($limit);
 
         return $qb->getQuery()->getArrayResult();
     }
 
-    public function getHistoriqueCount(): ?int 
-    {
+    public function getHistoriqueCount(
+        ?string $action = null,
+        ?\DateTimeInterface $dateDebut = null,
+        ?\DateTimeInterface $dateFin = null,
+    ): ?int {
         $qb = $this->createQueryBuilder('h')
             ->select('COUNT(h.id)');
 
-        return (int) $qb->getQuery()->getSingleScalarResult();  
+        if ($action !== null) {
+            $qb->andWhere('h.action = :action')->setParameter('action', $action);
+        }
+        if ($dateDebut !== null) {
+            $qb->andWhere('h.date >= :dateDebut')->setParameter('dateDebut', $dateDebut);
+        }
+        if ($dateFin !== null) {
+            $qb->andWhere('h.date <= :dateFin')->setParameter('dateFin', $dateFin);
+       }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
 

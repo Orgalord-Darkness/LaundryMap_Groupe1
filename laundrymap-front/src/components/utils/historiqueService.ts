@@ -53,9 +53,23 @@ export function normaliser(raw: HistoriqueEntryRaw): HistoriqueEntry {
     }
 }
 
+// ─── Filtres ──────────────────────────────────────────────────────────────────
+
+export interface HistoriqueFilters {
+    action?: "VALIDE" | "REFUSE"
+    dateDebut?: string
+    dateFin?: string
+}
+
 // ─── Accès API ────────────────────────────────────────────────────────────────
-export async function fetchHistoriquePage(page: number): Promise<HistoriquePage> {
-    const { data: json } = await apiClient.get('/admin/laveries/historique', { params: { page } })
+
+export async function fetchHistoriquePage(page: number, filters: HistoriqueFilters = {}): Promise<HistoriquePage> {
+    const params: Record<string, string | number> = { page }
+    if (filters.action)    params.action     = filters.action
+    if (filters.dateDebut) params.date_debut = filters.dateDebut
+    if (filters.dateFin)   params.date_fin   = filters.dateFin
+
+    const { data: json } = await apiClient.get('/admin/laveries/historique', { params })
     return {
         entries:     (json.enregistrements ?? []).map(normaliser),
         page:        json.page        ?? page,

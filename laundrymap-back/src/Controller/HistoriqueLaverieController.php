@@ -21,12 +21,10 @@ final class HistoriqueLaverieController extends AbstractController
     #[Route('/historique', name: 'liste', methods: ['GET'])]
     #[OA\Tag(name: 'Historique laverie')]
     #[OA\Security(name: 'Bearer')]
-    #[OA\Parameter(
-        name: 'page',
-        in: 'query',
-        required: false,
-        schema: new OA\Schema(type: 'integer', example: 1)
-    )]
+    #[OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', example: 1))]
+    #[OA\Parameter(name: 'action', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['VALIDE', 'REFUSE']))]
+    #[OA\Parameter(name: 'date_debut', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date', example: '2024-01-01'))]
+    #[OA\Parameter(name: 'date_fin', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date', example: '2024-12-31'))]
     #[OA\Response(
         response: 200,
         description: 'Historique récupéré avec succès',
@@ -64,8 +62,21 @@ final class HistoriqueLaverieController extends AbstractController
         $limit  = 10;
         $offset = ($page - 1) * $limit;
 
-        $total           = $this->historiqueRepository->getHistoriqueCount();
-        $enregistrements = $this->historiqueRepository->getHistorique($offset, $limit);
+        $actionParam = $request->query->get('action');
+        $action = ($actionParam === 'VALIDE' || $actionParam === 'REFUSE') ? $actionParam : null;
+
+        $dateDebut = null;
+        $dateFin   = null;
+        if ($request->query->get('date_debut')) {
+            $dateDebut = \DateTime::createFromFormat('Y-m-d', $request->query->get('date_debut')) ?: null;
+        }
+        if ($request->query->get('date_fin')) {
+            $dateFin = \DateTime::createFromFormat('Y-m-d', $request->query->get('date_fin')) ?: null;
+            $dateFin?->setTime(23, 59, 59);
+        }
+
+        $total           = $this->historiqueRepository->getHistoriqueCount($action, $dateDebut, $dateFin);
+        $enregistrements = $this->historiqueRepository->getHistorique($offset, $limit, $action, $dateDebut, $dateFin);
 
         return $this->json([
             'enregistrements' => $enregistrements,

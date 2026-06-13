@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { fetchHistoriquePage } from "@/components/utils/historiqueService"
-import type { HistoriqueEntry } from "@/components/utils/historiqueService"
+import type { HistoriqueEntry, HistoriqueFilters } from "@/components/utils/historiqueService"
 import { PaginationBar } from "./list"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -30,12 +30,13 @@ export default function HistoriqueLaverie() {
     const [pagination, setPagination] = useState<PaginationState>({ page: 1, total_pages: 1, total: 0 })
     const [loading, setLoading]       = useState(false)
     const [error, setError]           = useState<string | null>(null)
+    const [filters, setFilters]       = useState<HistoriqueFilters>({})
 
     const fetchHistorique = useCallback(async (page: number) => {
         setLoading(true)
         setError(null)
         try {
-            const result = await fetchHistoriquePage(page)
+            const result = await fetchHistoriquePage(page, filters)
             setEntries(result.entries)
             setPagination({ page: result.page, total_pages: result.total_pages, total: result.total })
         } catch {
@@ -43,7 +44,7 @@ export default function HistoriqueLaverie() {
         } finally {
             setLoading(false)
         }
-    }, [t])
+    }, [t, filters])
 
     useEffect(() => { fetchHistorique(1) }, [fetchHistorique])
 
@@ -52,12 +53,68 @@ export default function HistoriqueLaverie() {
         window.scrollTo({ top: 0, behavior: "smooth" })
     }
 
+    const hasFilters = !!(filters.action || filters.dateDebut || filters.dateFin)
+
     return (
         <div className="min-h-screen bg-background">
             <main className="max-w-5xl mx-auto px-4 py-6">
                 <h1 className="text-2xl font-semibold text-foreground mb-6">
                     {t('histo_laverie_titre')}
                 </h1>
+
+                {/* ── Filtres ── */}
+                <div className="flex flex-wrap items-end gap-3 mb-5 p-4 bg-card border border-border rounded-xl">
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs text-muted-foreground font-medium">
+                            {t('histo_filtre_action')}
+                        </label>
+                        <select
+                            value={filters.action ?? ""}
+                            onChange={e => setFilters(f => ({
+                                ...f,
+                                action: (e.target.value as "VALIDE" | "REFUSE") || undefined,
+                            }))}
+                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                            <option value="">{t('histo_filtre_toutes')}</option>
+                            <option value="VALIDE">{t('action_valide')}</option>
+                            <option value="REFUSE">{t('action_refuse')}</option>
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs text-muted-foreground font-medium">
+                            {t('histo_filtre_date_debut')}
+                        </label>
+                        <input
+                            type="date"
+                            value={filters.dateDebut ?? ""}
+                            onChange={e => setFilters(f => ({ ...f, dateDebut: e.target.value || undefined }))}
+                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs text-muted-foreground font-medium">
+                            {t('histo_filtre_date_fin')}
+                        </label>
+                        <input
+                            type="date"
+                            value={filters.dateFin ?? ""}
+                            onChange={e => setFilters(f => ({ ...f, dateFin: e.target.value || undefined }))}
+                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                    </div>
+
+                    {hasFilters && (
+                        <button
+                            onClick={() => setFilters({})}
+                            className="h-9 px-4 rounded-lg border border-border text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
+                        >
+                            {t('histo_filtre_reinitialiser')}
+                        </button>
+                    )}
+                </div>
 
                 {/* ── Skeleton ── */}
                 {loading && (
