@@ -8,7 +8,9 @@ use App\Repository\LaverieFermetureRepository;
 use App\Repository\LaverieFermetureExceptionnelleRepository;
 use App\Repository\LaverieEquipementRepository;
 use App\Repository\LaverieNoteRepository;
+use App\Repository\LaverieNoteSignalementRepository;
 use App\Entity\Laverie;
+use App\Entity\Utilisateur;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +30,7 @@ class FicheLaverieController extends AbstractController
         private readonly LaverieFermetureExceptionnelleRepository   $laverieFermetureExceptionnelleRepository,
         private readonly LaverieEquipementRepository                $laverieEquipementRepository,
         private readonly LaverieNoteRepository                      $laverieNoteRepository,
+        private readonly LaverieNoteSignalementRepository           $laverieNoteSignalementRepository,
         private readonly EntityManagerInterface                     $entityManager,
     ) {}
 
@@ -138,10 +141,19 @@ class FicheLaverieController extends AbstractController
             $moyenneNote = round($somme / $totalNotes, 1);
         }
 
-        //  affiche que les notes qui ont un commentaire non supprimé
+        $currentUser = $this->getUser();
+
+        // IDs des notes déjà signalées par l'utilisateur courant — cachées pour lui dès son signalement
+        $signaledNoteIds = $currentUser instanceof Utilisateur
+            ? $this->laverieNoteSignalementRepository->findSignaledNoteIdsByUtilisateur($currentUser)
+            : [];
+
+        //  affiche que les notes qui ont un commentaire non supprimé et non signalé par l'utilisateur
         $reviews = [];
         foreach ($notes as $note) {
-            if ($note->getCommentaire() === null || $note->getCommentaireSupprimeLe() !== null) {
+            if ($note->getCommentaire() === null
+                || $note->getCommentaireSupprimeLe() !== null
+                || in_array($note->getId(), $signaledNoteIds, true)) {
                 continue;
             }
 
@@ -162,9 +174,8 @@ class FicheLaverieController extends AbstractController
             ];
         }
 
-        //  Favori si utilisateur connecté 
-        $currentUser = $this->getUser();
-        $isFavorite  = $currentUser !== null && $laverie->getFavoris()->contains($currentUser);
+        //  Favori si utilisateur connecté
+        $isFavorite = $currentUser !== null && $laverie->getFavoris()->contains($currentUser);
 
         // ── isProfessional : l'utilisateur connecté est-il le propriétaire de cette laverie ? ──
         $isProfessional = false;

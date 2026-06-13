@@ -132,8 +132,68 @@ class AppFixtures extends Fixture
         // $users[2] = Buisson   | $users[3] = Lambert
         // $users[4] = Deschamps
 
+        // UTILISATEURS DE TEST — MODÉRATION (dédiés, n'interfèrent pas avec les fixtures existantes)
 
-         
+        $moderationUsersData = [
+            [
+                'email'                   => 'martin@example.net',
+                'nom'                     => 'Martin',
+                'prenom'                  => 'Sophie',
+                'mot_de_passe'            => 'Utilisateur1234.',
+                'statut'                  => StatutEnum::VALIDE,
+                'date_creation'           => new \DateTime('2026-01-10 08:00:00'),
+                'date_modification'       => new \DateTime('2026-03-01 10:00:00'),
+                'oauth_id'                => 'a1b2c3d4-0001-4000-8000-000000000001',
+                'date_derniere_connexion' => new \DateTime('2026-03-05 09:00:00'),
+            ],
+            [
+                'email'                   => 'dubois@example.net',
+                'nom'                     => 'Dubois',
+                'prenom'                  => 'Karim',
+                'mot_de_passe'            => 'Utilisateur1234.',
+                'statut'                  => StatutEnum::VALIDE,
+                'date_creation'           => new \DateTime('2026-01-12 09:00:00'),
+                'date_modification'       => new \DateTime('2026-03-01 11:00:00'),
+                'oauth_id'                => 'a1b2c3d4-0002-4000-8000-000000000002',
+                'date_derniere_connexion' => new \DateTime('2026-03-05 10:00:00'),
+            ],
+            [
+                'email'                   => 'petit@example.net',
+                'nom'                     => 'Petit',
+                'prenom'                  => 'Nora',
+                'mot_de_passe'            => 'Utilisateur1234.',
+                'statut'                  => StatutEnum::VALIDE,
+                'date_creation'           => new \DateTime('2026-01-14 10:00:00'),
+                'date_modification'       => new \DateTime('2026-03-01 12:00:00'),
+                'oauth_id'                => 'a1b2c3d4-0003-4000-8000-000000000003',
+                'date_derniere_connexion' => new \DateTime('2026-03-05 11:00:00'),
+            ],
+        ];
+
+        $moderationUsers = [];
+        foreach ($moderationUsersData as $userData) {
+            $user = new Utilisateur();
+            $user->setEmail($userData['email']);
+            $user->setNom($userData['nom']);
+            $user->setPrenom($userData['prenom']);
+            $user->setMotDePasse(
+                $this->hasher->hashPassword($user, $userData['mot_de_passe'])
+            );
+            $user->setStatut($userData['statut']);
+            $user->setDateCreation($userData['date_creation']);
+            $user->setDateModification($userData['date_modification']);
+            $user->setOauthId($userData['oauth_id']);
+            $user->setDateDerniereConnexion($userData['date_derniere_connexion']);
+
+            $manager->persist($user);
+            $moderationUsers[] = $user;
+        }
+        // $moderationUsers[0] = Martin  (> seuil : 18 signalements)
+        // $moderationUsers[1] = Dubois  (= seuil : 15 signalements)
+        // $moderationUsers[2] = Petit   (< seuil :  6 signalements)
+
+
+
         // ADMINISTRATEUR
          
         $admin = new Administrateur();
@@ -635,7 +695,10 @@ class AppFixtures extends Fixture
             ['utilisateur' => $users[1], 'theme' => ThemeEnum::CLAIR, 'notifications' => true,  'langue' => $langues[0]],
             ['utilisateur' => $users[2], 'theme' => ThemeEnum::CLAIR, 'notifications' => true,  'langue' => $langues[0]],
             ['utilisateur' => $users[3], 'theme' => ThemeEnum::CLAIR, 'notifications' => true,  'langue' => $langues[0]],
-            ['utilisateur' => $users[4], 'theme' => ThemeEnum::CLAIR, 'notifications' => false, 'langue' => $langues[0]],
+            ['utilisateur' => $users[4],            'theme' => ThemeEnum::CLAIR, 'notifications' => false, 'langue' => $langues[0]],
+            ['utilisateur' => $moderationUsers[0], 'theme' => ThemeEnum::CLAIR, 'notifications' => true,  'langue' => $langues[0]],
+            ['utilisateur' => $moderationUsers[1], 'theme' => ThemeEnum::CLAIR, 'notifications' => true,  'langue' => $langues[0]],
+            ['utilisateur' => $moderationUsers[2], 'theme' => ThemeEnum::CLAIR, 'notifications' => true,  'langue' => $langues[0]],
         ];
 
         foreach ($utilisateurPreferenceData as $data) {
@@ -779,9 +842,67 @@ class AppFixtures extends Fixture
             $manager->persist($signalement);
         }
 
+        // FIXTURES MODÉRATION UTILISATEURS
+        // Martin  : 9 notes × 2 reporters = 18 signalements (> seuil 15) → "À examiner"
+        // Dubois  : 7 notes × 2 reporters + 1 note × 1 reporter = 15 (= seuil) → "À examiner"
+        // Petit   : 3 notes × 2 reporters = 6 (< seuil) → "Tous" uniquement
+
+        $moderationTestData = [
+            [
+                'user'      => $moderationUsers[0],
+                'nb_notes'  => 9,
+                'reporters' => [$users[0], $users[1]],
+                'motif'     => MotifEnum::PROPOS_INJURIEUX,
+            ],
+            [
+                'user'      => $moderationUsers[1],
+                'nb_notes'  => 8,
+                'reporters' => [$users[0], $users[2]],
+                'motif'     => MotifEnum::SPAM,
+            ],
+            [
+                'user'      => $moderationUsers[2],
+                'nb_notes'  => 3,
+                'reporters' => [$users[1], $users[2]],
+                'motif'     => MotifEnum::PUBLICITE,
+            ],
+        ];
+
+        foreach ($moderationTestData as $config) {
+            for ($i = 0; $i < $config['nb_notes']; $i++) {
+                $note = new LaverieNote();
+                $note->setLaverie($laveries[$i % 2]);
+                $note->setUtilisateur($config['user']);
+                $note->setNote(1);
+                $note->setNoteLe(new \DateTime('2026-03-' . str_pad($i + 1, 2, '0', STR_PAD_LEFT) . ' 10:00:00'));
+                $note->setCommentaire('Commentaire signalé #' . ($i + 1));
+                $note->setCommentaireLe(new \DateTime('2026-03-' . str_pad($i + 1, 2, '0', STR_PAD_LEFT) . ' 11:00:00'));
+                $note->setReponse(null);
+                $note->setRepondLe(null);
+                $note->setCommentaireSupprimeMotif(null);
+                $note->setCommentaireSupprimeLe(null);
+                $manager->persist($note);
+
+                // Dernière note de Dubois : un seul reporter pour tomber exactement à 15
+                $reporters = ($config['user'] === $moderationUsers[1] && $i === $config['nb_notes'] - 1)
+                    ? [$config['reporters'][0]]
+                    : $config['reporters'];
+
+                foreach ($reporters as $reporter) {
+                    $sig = new LaverieNoteSignalement();
+                    $sig->setLaverieNote($note);
+                    $sig->setUtilisateur($reporter);
+                    $sig->setDate(new \DateTime('2026-03-' . str_pad($i + 1, 2, '0', STR_PAD_LEFT) . ' 12:00:00'));
+                    $sig->setMotif($config['motif']);
+                    $sig->setCommentaire(null);
+                    $manager->persist($sig);
+                }
+            }
+        }
 
 
-        
+
+
         // PROFESSIONNEL HISTORIQUE INTERACTIONS
 
         $professionnelHistoriqueInteractionData = [

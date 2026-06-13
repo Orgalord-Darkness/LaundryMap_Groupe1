@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import apiClient from "@/lib/apiClient"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +13,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -29,6 +31,8 @@ import {
   MoreVertical,
   Trash2,
   ShieldCheck,
+  ShieldBan,
+  UserSearch,
   Store,
   Flag,
   Calendar,
@@ -40,6 +44,7 @@ import {
 export interface ModerationComment {
   avisId: number           // laverie_note_id — identifiant unique du commentaire
   signalementIds: number[] // IDs de tous les signalements associés
+  authorId: number         // ID de l'auteur — pour navigation vers la fiche
   author: {
     name: string
     initials: string
@@ -52,17 +57,16 @@ export interface ModerationComment {
   laundry: string
   reportCount: number
   reportReason: string
-  /** Commentaire libre laissé par le signalant (optionnel) */
   reportComment?: string
+  isAuthorBanned: boolean
   /** Date formatée pour l'affichage (ex. "19.02.2026") */
   postedDate: string
 }
 
 interface ModerationCardProps {
   comment: ModerationComment
-  /** Rappelé après conservation (retrait de la file de modération côté serveur) */
+  isAuthorBlocked?: boolean
   onKept?: () => void
-  /** Rappelé après suppression réussie */
   onDeleted?: () => void
 }
 
@@ -87,9 +91,10 @@ function getReportSeverity(count: number) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardProps) {
+export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDeleted }: ModerationCardProps) {
   const [deleteDrawerOpen, setDeleteDrawerOpen] = useState(false)
   const [deleteMotif, setDeleteMotif] = useState("")
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const severity           = getReportSeverity(comment.reportCount)
@@ -97,12 +102,15 @@ export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardPro
 
   const handleDelete = async () => {
     if (!deleteMotif.trim()) return
+    setDeleteError(null)
     try {
       setLoading(true)
       await apiClient.delete(`/admin/avis/${comment.avisId}`, { data: { motif: deleteMotif } })
       setDeleteDrawerOpen(false)
       setDeleteMotif("")
       onDeleted?.()
+    } catch {
+      setDeleteError("Erreur lors de la suppression. Veuillez réessayer.")
     } finally {
       setLoading(false)
     }
@@ -149,6 +157,16 @@ export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardPro
                 <p className="text-xs text-muted-foreground mt-0.5">
                   <time dateTime={comment.postedAtIso}>{comment.postedAt}</time>
                 </p>
+                {isAuthorBlocked && (
+                  <Badge
+                    variant="outline"
+                    className="border-red-200 bg-red-50 text-red-700 text-xs gap-1 mt-0.5"
+                    aria-label="Utilisateur bloqué"
+                  >
+                    <ShieldBan className="h-3 w-3" aria-hidden="true" />
+                    Utilisateur bloqué
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -175,6 +193,16 @@ export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardPro
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                   Supprimer le commentaire
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2" asChild>
+                  <Link
+                    to={`/admin/utilisateurs/${comment.authorId}`}
+                    state={{ nom: comment.author.name.split(" ").slice(1).join(" "), prenom: comment.author.name.split(" ")[0] }}
+                  >
+                    <UserSearch className="h-4 w-4" aria-hidden="true" />
+                    Voir le profil
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -270,7 +298,7 @@ export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardPro
             </DrawerDescription>
           </DrawerHeader>
 
-          <div className="px-4 pb-2">
+          <div className="px-4 pb-2 space-y-2">
             <Textarea
               rows={3}
               placeholder="Ex : propos offensants, contenu inapproprié…"
@@ -278,6 +306,9 @@ export function ModerationCard({ comment, onKept, onDeleted }: ModerationCardPro
               onChange={(e) => setDeleteMotif(e.target.value)}
               aria-label="Motif de suppression"
             />
+            {deleteError && (
+              <p className="text-sm text-red-600">{deleteError}</p>
+            )}
           </div>
 
           <DrawerFooter className="pt-2">

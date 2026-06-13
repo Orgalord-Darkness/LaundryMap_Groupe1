@@ -11,8 +11,10 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Entity\LaverieNoteSignalement;
 use App\Entity\Utilisateur;
 use App\Enum\MotifEnum;
+use App\Enum\StatutEnum;
 use App\Repository\LaverieNoteSignalementRepository;
 use App\Repository\LaverieNoteRepository;
+use App\Service\SendEmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 
@@ -23,12 +25,15 @@ final class SignalementController extends AbstractController
         private LaverieNoteSignalementRepository $laverieNoteSignalementRepository,
         private LaverieNoteRepository $laverieNoteRepository,
         private EntityManagerInterface $entityManager,
+        private SendEmailService $sendEmailService,
         #[Autowire(env: 'int:SIGNALEMENT_SEUIL_MASQUAGE')]
         private int $seuilMasquage,
         #[Autowire(env: 'int:SIGNALEMENT_LIMITE_UTILISATEUR')]
         private int $limiteUtilisateur,
         #[Autowire(env: 'int:SIGNALEMENT_PERIODE_HEURES')]
         private int $periodeHeures,
+        #[Autowire(env: 'int:SIGNALEMENT_SEUIL_BANNISSEMENT')]
+        private int $seuilBannissement,
     ) {}
 
     #[Route('/utilisateur/avis/{id}/signalement', name: 'app_add_signalement', methods: ['POST'])]
@@ -96,6 +101,16 @@ final class SignalementController extends AbstractController
 
         $this->entityManager->persist($laverieNoteSignalement);
         $this->entityManager->flush();
+
+        // Notification e-mail à l'auteur du commentaire signalé
+        $auteur = $note->getUtilisateur();
+        if ($auteur && $note->getCommentaire()) {
+            $this->sendEmailService->sendSignalementNotification(
+                $auteur->getEmail(),
+                $note->getCommentaire(),
+                $motif->value,
+            );
+        }
 
         // RG-209 : masquage automatique si seuil de signalements atteint
         $totalSignalements = $this->laverieNoteSignalementRepository->countByNote($note);
@@ -174,6 +189,13 @@ final class SignalementController extends AbstractController
 
             $result[$userId]['total_signalements']++;
         }
+
+        // RG-211 : un utilisateur est signalé pour bannissement quand le total de
+        // signalements cumulés sur ses commentaires atteint le seuil configuré
+        foreach ($result as &$entry) {
+            $entry['depasse_seuil_bannissement'] = $entry['total_signalements'] >= $this->seuilBannissement;
+        }
+        unset($entry);
 
         usort($result, fn($a, $b) => $b['total_signalements'] <=> $a['total_signalements']);
 
