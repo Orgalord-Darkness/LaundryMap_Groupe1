@@ -50,6 +50,8 @@ interface Review {
   rating: number;
   date: string;
   comment: string;
+  reponse: string | null;     // ← réponse du professionnel
+  repond_le: string | null;   // ← date de la réponse
 }
 
 interface Laverie {
@@ -61,6 +63,7 @@ interface Laverie {
   reviewCount: number;
   isOpen: boolean;
   isFavorite: boolean;
+  isProfessional: boolean;    // ← l'utilisateur connecté est-il le propriétaire ?
   address: string;
   rue: string;
   city: string;
@@ -74,6 +77,11 @@ interface Laverie {
   machines: Machine[];
   reviews: Review[];
   description: string;
+}
+
+// Type pour la réponse brute de l'API (étend Laverie avec les champs spécifiques à l'utilisateur connecté)
+interface LaverieApiResponse extends Laverie {
+  userReview?: { note: number; commentaire: string } | null;
 }
 
 
@@ -107,53 +115,159 @@ const StarRating = ({
 };
 
 
-/** Carte avis */
+
+// ReviewCard — carte avis avec affichage et formulaire de réponse pro
+
 const ReviewCard = ({
   review,
   isConnected,
+  isProfessional,
   onSignal,
+  onReply,
 }: {
   review: Review;
   isConnected: boolean;
+  isProfessional: boolean;
   onSignal: (id: number) => void;
-}) => (
-  <div className="bg-card rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 shadow-sm">
-    <div className="flex items-center gap-3">
-      <img
-        src={review.avatar}
-        alt={review.author}
-        className="w-10 h-10 rounded-full object-cover"
-      />
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-slate-800 text-sm">{review.author}</p>
-        <p className="text-xs text-slate-400">{review.date}</p>
+  onReply: (noteId: number, reponse: string) => Promise<void>;
+}) => {
+  // État local du formulaire de réponse
+  const [showReplyForm, setShowReplyForm]   = useState(false);
+  const [replyText,     setReplyText]       = useState(review.reponse ?? "");
+  const [isSubmitting,  setIsSubmitting]    = useState(false);
+  const [reponse,       setReponse]         = useState(review.reponse);
+  const [repondLe,      setRepondLe]        = useState(review.repond_le);
+ 
+  const handleSubmitReply = async () => {
+    if (replyText.trim().length < 5) return;
+    setIsSubmitting(true);
+    await onReply(review.id, replyText.trim());
+    // Mise à jour locale immédiate (sans recharger la page)
+    setReponse(replyText.trim());
+    setRepondLe(new Date().toLocaleDateString("fr-FR"));
+    setShowReplyForm(false);
+    setIsSubmitting(false);
+  };
+ 
+  return (
+    <div className="bg-card rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 shadow-sm">
+ 
+      {/* ── En-tête du commentaire ── */}
+      <div className="flex items-center gap-3">
+        <img
+          src={review.avatar}
+          alt={review.author}
+          className="w-10 h-10 rounded-full object-cover"
+        />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-slate-800 text-sm">{review.author}</p>
+          <p className="text-xs text-slate-400">{review.date}</p>
+        </div>
+ 
+        {/* Note */}
+        <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-full">
+          <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+          <span className="text-xs font-bold text-amber-600">{review.rating}</span>
+        </div>
+ 
+        {/* Menu signalement (utilisateurs connectés) */}
+        {isConnected && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">⋮</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onSignal(review.id)}>
+                Signaler ce commentaire
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
-      <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-full">
-        <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-        <span className="text-xs font-bold text-amber-600">{review.rating}</span>
-      </div>
-      {isConnected && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">⋮</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onSignal(review.id)}>
-              Signaler ce commentaire
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+ 
+      {/* ── Texte du commentaire ── */}
+      <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
+ 
+      {/* ── Réponse existante du professionnel ── */}
+      {reponse && (
+        <div className="ml-4 mt-1 border-l-2 border-blue-200 pl-4 bg-blue-50 rounded-r-xl py-3 pr-3">
+          <p className="text-xs font-semibold text-blue-700 mb-1">
+            Réponse du propriétaire
+            {repondLe && (
+              <span className="ml-2 font-normal text-blue-400">· {repondLe}</span>
+            )}
+          </p>
+          <p className="text-sm text-slate-700 leading-relaxed">{reponse}</p>
+          {/* Bouton modifier visible seulement pour le professionnel */}
+          {isProfessional && (
+            <button
+              onClick={() => { setReplyText(reponse); setShowReplyForm(true); }}
+              className="mt-2 text-xs text-blue-500 hover:underline cursor-pointer"
+            >
+              Modifier la réponse
+            </button>
+          )}
+        </div>
+      )}
+ 
+      {/* ── Bouton "Répondre" (professionnel, pas encore de réponse) ── */}
+      {isProfessional && !reponse && !showReplyForm && (
+        <button
+          onClick={() => setShowReplyForm(true)}
+          className="self-start flex items-center gap-1.5 text-sm text-blue-600 font-medium hover:underline cursor-pointer"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
+          Répondre à ce commentaire
+        </button>
+      )}
+ 
+      {/* ── Formulaire de réponse ── */}
+      {isProfessional && showReplyForm && (
+        <div className="ml-4 border-l-2 border-blue-200 pl-4 space-y-2">
+          <p className="text-xs font-semibold text-blue-700">Votre réponse</p>
+          <textarea
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            placeholder="Rédigez votre réponse…"
+            rows={3}
+            maxLength={255}
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+          />
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-400">{replyText.length}/255</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowReplyForm(false); setReplyText(reponse ?? ""); }}
+                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmitReply}
+                disabled={isSubmitting || replyText.trim().length < 5}
+                className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {isSubmitting ? "Envoi…" : "Publier"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
-    <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
-  </div>
-);
+  );
+};
 
 
 
-// ------- Pour Note & Avis ---
+
+
+
+// ------- Pour Note & Avis ------
 
 
 /** Sélecteur d'étoiles interactif pour le formulaire d'avis */
@@ -318,11 +432,11 @@ function FicheLaverie() {
   const [error, setError] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [isFavLoading, setIsFavLoading] = useState<boolean>(false);
-
+  const [isProfessional, setIsProfessional] = useState<boolean>(false);  
   const [showModal,      setShowModal]      = useState<boolean>(false);
   const [isSubmitting,   setIsSubmitting]   = useState<boolean>(false);
   const [submitSuccess,  setSubmitSuccess]  = useState<boolean>(false);
-
+  const [emailVisible, setEmailVisible] = useState(false);
   const [userReview,     setUserReview]     = useState<{ note: number; commentaire: string } | null>(null);
   const [signalementReviewId, setSignalementReviewId] = useState<number | null>(null);
 
@@ -361,7 +475,8 @@ function FicheLaverie() {
         if (!response.ok) {
           throw new Error(`Erreur ${response.status} : ${response.statusText}`);
         }
-        const data: Laverie = await response.json();
+        // const data: Laverie = await response.json();
+        const data: LaverieApiResponse = await response.json();
         const apiBase = import.meta.env.VITE_API_BASE_URL
         setLaverie({
           ...data,
@@ -369,6 +484,8 @@ function FicheLaverie() {
           images: data.images ? data.images.map(img => `${apiBase}${img}`) : [],
         });
         setIsFavorite(data.isFavorite);
+        setIsProfessional(data.isProfessional ?? false);  
+        if (data.userReview) setUserReview(data.userReview);
       })
       .catch((err: Error) => {
         setError(err.message);
@@ -423,6 +540,8 @@ function FicheLaverie() {
             rating:  note,
             date:    new Date().toLocaleDateString("fr-FR"),
             comment: commentaire,
+            reponse:   null,
+            repond_le: null,
           };
           // Mise à jour : retirer l'ancien avis de cet utilisateur s'il existait
           const filteredReviews = userReview
@@ -444,6 +563,21 @@ function FicheLaverie() {
       })
       .catch((err) => console.error("[Avis] Erreur :", err))
       .finally(() => setIsSubmitting(false));
+  };
+
+
+
+  // ── Soumission d'une réponse (professionnel) ──
+  const handleSubmitReponse = async (noteId: number, reponse: string): Promise<void> => {
+    const reponseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/user/fiche-laverie/${id}/commentaire/${noteId}/reponse`;
+ 
+    await fetch(reponseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ reponse }),
+    }).catch((err) => console.error("[Réponse] Erreur :", err));
+    // La mise à jour locale est gérée directement dans ReviewCard (état local)
   };
 
   // fin
@@ -477,7 +611,6 @@ function FicheLaverie() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-muted">
         <div className="bg-card rounded-2xl p-8 max-w-sm mx-4 text-center shadow-xl">
-          {/* <p className="text-4xl mb-3">⚠️</p> */}
           <h2 className="text-slate-800 font-bold text-lg mb-2">Une erreur est survenue</h2>
           <p className="text-slate-500 text-sm">{error}</p>
         </div>
@@ -660,9 +793,18 @@ function FicheLaverie() {
             <div className="mt-6">
               <h4 className="text-slate-900 text-md font-semibold mb-3">Informations</h4>
               {laverie.email && (
-              <div className="flex items-center text-[15px] text-slate-600 font-medium">
-                Email : <a href={`mailto:${laverie.email}`} className="ml-1 text-blue-600 hover:underline">{laverie.email}</a>
-              </div>
+                <div className="flex items-center gap-2 text-[15px] text-slate-600 font-medium">
+                  <span>Email :</span>
+                  {emailVisible ? (
+                    <a href={`mailto:${laverie.email}`} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors" >
+                      {laverie.email}
+                    </a>
+                  ) : (
+                    <button onClick={() => setEmailVisible(true)} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer" >
+                      Afficher l'adresse email
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -723,7 +865,7 @@ function FicheLaverie() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-slate-900 text-2xl font-semibold">Commentaires</h3>
 
-            {isConnected && (
+            {isConnected && !isProfessional && (
               <button
                 onClick={() => setShowModal(true)}
                 className="flex items-center gap-2 bg-primary hover:bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm cursor-pointer"
@@ -734,6 +876,7 @@ function FicheLaverie() {
                 {userReview ? "Modifier mon avis" : "Laisser un avis"}
               </button>
             )}
+
           </div>
  
           {/* Message de succès */}
@@ -754,20 +897,24 @@ function FicheLaverie() {
                   key={review.id}
                   review={review}
                   isConnected={isConnected}
+                  isProfessional={isProfessional}
                   onSignal={(id) => setSignalementReviewId(id)}
+                  onReply={handleSubmitReponse}
                 />
               ))}
             </div>
           ) : (
             <div className="text-center py-8">
               <p className="text-slate-400 text-sm mb-3">Aucun commentaire pour le moment.</p>
-              {isConnected && (
-                <button onClick={() => setShowModal(true)} className="text-blue-600 text-sm font-medium hover:underline">
+              {isConnected && !isProfessional && (
+                <button onClick={() => setShowModal(true)} className="text-blue-600 text-sm font-medium hover:underline cursor-pointer">
                   Soyez le premier à laisser un avis →
                 </button>
               )}
             </div>
           )}
+
+
         </div> 
 
       </div>
