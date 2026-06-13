@@ -72,6 +72,8 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
         ?string $action = null,
         ?\DateTimeInterface $dateDebut = null,
         ?\DateTimeInterface $dateFin = null,
+        ?string $laverie = null,
+        ?string $motif = null,
     ): ?array {
         $qb = $this->createQueryBuilder('h') //h.laverie est une relation ManyToOne Doctrine ne permet pas h.laverie_id IDENTITY(h.laverie) récupère l'ID de la relation
             ->select(
@@ -85,12 +87,13 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
                 'u.prenom AS proprietaire_prenom',
                 'm.nom_original AS logo_nom',
                 'IDENTITY(h.administrateur) AS administrateur_id',
-                'IDENTITY(h.administrateur) AS administrateur_email'
+                'adm.email AS administrateur_email'
             )
             ->join('h.laverie', 'l')
             ->join('l.professionnel', 'p')
             ->join('p.utilisateur', 'u')
             ->leftJoin('l.logo', 'm')
+            ->join('h.administrateur', 'adm')
             ->orderBy('h.date', 'DESC');
 
         if ($action !== null) {
@@ -102,6 +105,12 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
         if ($dateFin !== null) {
             $qb->andWhere('h.date <= :dateFin')->setParameter('dateFin', $dateFin);
         }
+        if ($laverie !== null) {
+            $qb->andWhere('l.nom_etablissement LIKE :laverie')->setParameter('laverie', '%' . $laverie . '%');
+        }
+        if ($motif !== null) {
+            $qb->andWhere('h.motif_action LIKE :motif')->setParameter('motif', '%' . $motif . '%');
+        }
 
         $qb->setFirstResult($offset)->setMaxResults($limit);
 
@@ -112,9 +121,12 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
         ?string $action = null,
         ?\DateTimeInterface $dateDebut = null,
         ?\DateTimeInterface $dateFin = null,
+        ?string $laverie = null,
+        ?string $motif = null,
     ): ?int {
         $qb = $this->createQueryBuilder('h')
-            ->select('COUNT(h.id)');
+            ->select('COUNT(h.id)')
+            ->join('h.laverie', 'l');
 
         if ($action !== null) {
             $qb->andWhere('h.action = :action')->setParameter('action', $action);
@@ -124,7 +136,13 @@ class LaverieHistoriqueInteractionRepository extends ServiceEntityRepository
         }
         if ($dateFin !== null) {
             $qb->andWhere('h.date <= :dateFin')->setParameter('dateFin', $dateFin);
-       }
+        }
+        if ($laverie !== null) {
+            $qb->andWhere('l.nom_etablissement LIKE :laverie')->setParameter('laverie', '%' . $laverie . '%');
+        }
+        if ($motif !== null) {
+            $qb->andWhere('h.motif_action LIKE :motif')->setParameter('motif', '%' . $motif . '%');
+        }
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }

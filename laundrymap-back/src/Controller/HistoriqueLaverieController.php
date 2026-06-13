@@ -75,8 +75,11 @@ final class HistoriqueLaverieController extends AbstractController
             $dateFin?->setTime(23, 59, 59);
         }
 
-        $total           = $this->historiqueRepository->getHistoriqueCount($action, $dateDebut, $dateFin);
-        $enregistrements = $this->historiqueRepository->getHistorique($offset, $limit, $action, $dateDebut, $dateFin);
+        $laverie = $request->query->get('laverie') ?: null;
+        $motif   = $request->query->get('motif')   ?: null;
+
+        $total           = $this->historiqueRepository->getHistoriqueCount($action, $dateDebut, $dateFin, $laverie, $motif);
+        $enregistrements = $this->historiqueRepository->getHistorique($offset, $limit, $action, $dateDebut, $dateFin, $laverie, $motif);
 
         return $this->json([
             'enregistrements' => $enregistrements,

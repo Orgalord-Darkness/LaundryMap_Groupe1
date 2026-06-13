@@ -173,6 +173,9 @@ const resources = {
       histo_filtre_date_debut: 'Du',
       histo_filtre_date_fin: 'Au',
       histo_filtre_reinitialiser: 'Réinitialiser',
+      histo_filtre_laverie_placeholder: 'Nom de la laverie…',
+      histo_filtre_motif_placeholder: 'Motif…',
+      histo_filtre_rechercher: 'Filtrer',
     },
   },
   en: {
@@ -341,6 +344,9 @@ const resources = {
       histo_filtre_date_debut: 'From',
       histo_filtre_date_fin: 'To',
       histo_filtre_reinitialiser: 'Reset',
+      histo_filtre_laverie_placeholder: 'Laundry name…',
+      histo_filtre_motif_placeholder: 'Reason…',
+      histo_filtre_rechercher: 'Filter',
     },
   },
 };

@@ -32,6 +32,10 @@ export default function HistoriqueLaverie() {
     const [error, setError]           = useState<string | null>(null)
     const [filters, setFilters]       = useState<HistoriqueFilters>({})
 
+    // États locaux pour les champs texte — ne déclenchent la requête qu'à la validation
+    const [inputLaverie, setInputLaverie] = useState("")
+    const [inputMotif, setInputMotif]     = useState("")
+
     const fetchHistorique = useCallback(async (page: number) => {
         setLoading(true)
         setError(null)
@@ -53,7 +57,25 @@ export default function HistoriqueLaverie() {
         window.scrollTo({ top: 0, behavior: "smooth" })
     }
 
-    const hasFilters = !!(filters.action || filters.dateDebut || filters.dateFin)
+    const applyTextFilters = () => {
+        setFilters(f => ({
+            ...f,
+            laverie: inputLaverie || undefined,
+            motif:   inputMotif   || undefined,
+        }))
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") applyTextFilters()
+    }
+
+    const resetAll = () => {
+        setInputLaverie("")
+        setInputMotif("")
+        setFilters({})
+    }
+
+    const hasFilters = !!(filters.action || filters.dateDebut || filters.dateFin || filters.laverie || filters.motif)
 
     return (
         <div className="min-h-screen bg-background">
@@ -106,9 +128,40 @@ export default function HistoriqueLaverie() {
                         />
                     </div>
 
-                    {hasFilters && (
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs text-muted-foreground font-medium">Laverie</label>
+                        <input
+                            type="text"
+                            value={inputLaverie}
+                            onChange={e => setInputLaverie(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={t('histo_filtre_laverie_placeholder')}
+                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring w-44"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs text-muted-foreground font-medium">Motif</label>
+                        <input
+                            type="text"
+                            value={inputMotif}
+                            onChange={e => setInputMotif(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={t('histo_filtre_motif_placeholder')}
+                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring w-44"
+                        />
+                    </div>
+
+                    <button
+                        onClick={applyTextFilters}
+                        className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                    >
+                        {t('histo_filtre_rechercher')}
+                    </button>
+
+                    {(hasFilters || inputLaverie || inputMotif) && (
                         <button
-                            onClick={() => setFilters({})}
+                            onClick={resetAll}
                             className="h-9 px-4 rounded-lg border border-border text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
                         >
                             {t('histo_filtre_reinitialiser')}
@@ -188,8 +241,8 @@ export default function HistoriqueLaverie() {
                                                 </Link>
                                                 <p className="text-xs text-muted-foreground mt-0.5">{entry.proprietaire}</p>
                                             </td>
-                                            <td className="px-4 py-3 text-muted-foreground">
-                                                #{entry.administrateur_id}
+                                            <td className="px-4 py-3 text-muted-foreground text-xs">
+                                                {entry.administrateur_email ?? `#${entry.administrateur_id}`}
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                                                 <time dateTime={entry.horodatage}>

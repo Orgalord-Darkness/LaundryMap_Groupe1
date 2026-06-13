@@ -12,6 +12,7 @@ export interface HistoriqueEntryRaw {
     proprietaire_nom: string
     proprietaire_prenom: string
     administrateur_id: number
+    administrateur_email: string | null
 }
 
 export interface HistoriqueEntry {
@@ -24,6 +25,7 @@ export interface HistoriqueEntry {
     proprietaire: string
     motif: string | null
     administrateur_id: number
+    administrateur_email: string | null
 }
 
 export interface HistoriquePage {
@@ -49,7 +51,8 @@ export function normaliser(raw: HistoriqueEntryRaw): HistoriqueEntry {
         laverie_nom:      raw.laverie_nom,
         proprietaire:     `${raw.proprietaire_prenom} ${raw.proprietaire_nom}`,
         motif:            raw.motif_action,
-        administrateur_id: raw.administrateur_id,
+        administrateur_id:    raw.administrateur_id,
+        administrateur_email: raw.administrateur_email ?? null,
     }
 }
 
@@ -59,6 +62,8 @@ export interface HistoriqueFilters {
     action?: "VALIDE" | "REFUSE"
     dateDebut?: string
     dateFin?: string
+    laverie?: string
+    motif?: string
 }
 
 // ─── Accès API ────────────────────────────────────────────────────────────────
@@ -68,6 +73,8 @@ export async function fetchHistoriquePage(page: number, filters: HistoriqueFilte
     if (filters.action)    params.action     = filters.action
     if (filters.dateDebut) params.date_debut = filters.dateDebut
     if (filters.dateFin)   params.date_fin   = filters.dateFin
+    if (filters.laverie)   params.laverie    = filters.laverie
+    if (filters.motif)     params.motif      = filters.motif
 
     const { data: json } = await apiClient.get('/admin/laveries/historique', { params })
     return {
