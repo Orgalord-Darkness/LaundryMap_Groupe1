@@ -223,6 +223,7 @@ export default function Router() {
         </ProtectedRoute>
       } />
 
+
       <Route path="/admin/mots-interdits" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <MotsInterdits />

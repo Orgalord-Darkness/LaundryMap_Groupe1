@@ -64,6 +64,23 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
         ;
     }
 
+    public function countByNoteIds(array $noteIds): array
+    {
+        if (empty($noteIds)) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('lns')
+            ->select('IDENTITY(lns.laverie_note) AS note_id', 'COUNT(lns.id) AS nb')
+            ->where('lns.laverie_note IN (:ids)')
+            ->setParameter('ids', $noteIds)
+            ->groupBy('lns.laverie_note')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_column($rows, 'nb', 'note_id');
+    }
+
     public function countByNote(LaverieNote $note): int
     {
         return (int) $this->createQueryBuilder('l')
@@ -108,6 +125,7 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
             ->join('ln.utilisateur', 'u')
             ->join('ln.laverie', 'l')
             ->andWhere('ln.commentaire_supprime_le IS NULL')
+            ->orderBy('lns.date', 'DESC')
             ->getQuery()
             ->getArrayResult();
     }
