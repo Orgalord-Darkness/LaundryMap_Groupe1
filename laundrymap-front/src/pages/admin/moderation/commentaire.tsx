@@ -18,11 +18,11 @@ const SEVERITY_TABS = [
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ModerationPage() {
-  const [comments, setComments]       = useState<ModerationComment[]>([])
-  const [filter, setFilter]           = useState<SeverityFilter>("TOUS")
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState<string | null>(null)
-  const [statusMsg, setStatusMsg]     = useState("")
+  const [comments, setComments]             = useState<ModerationComment[]>([])
+  const [filter, setFilter]                 = useState<SeverityFilter>("TOUS")
+  const [loading, setLoading]               = useState(true)
+  const [error, setError]                   = useState<string | null>(null)
+  const [statusMsg, setStatusMsg]           = useState("")
   const [blockedUserIds, setBlockedUserIds] = useState<Set<number>>(new Set())
 
   const sortLabelId = useId()
@@ -149,7 +149,7 @@ export function ModerationPage() {
           </p>
         )}
 
-        {/* Liste */}
+        {/* Liste commentaires signalés */}
         {!loading && !error && visibleComments.length > 0 && (
           <section aria-label={`Commentaires à modérer, ${visibleComments.length} au total`}>
             <ul className="space-y-4 list-none p-0 m-0">
