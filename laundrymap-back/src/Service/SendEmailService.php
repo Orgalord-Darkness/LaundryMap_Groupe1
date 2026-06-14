@@ -4,17 +4,12 @@ namespace App\Service;
 
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use App\Entity\Utilisateur;
 use Twig\Environment;
 
 class SendEmailService
 {
     public function __construct(
         private MailerInterface $mailer,
-        private UrlGeneratorInterface $urlGenerator,
-        private JWTTokenManagerInterface $jwtManager,
         private Environment $twig
     ) {}
 
