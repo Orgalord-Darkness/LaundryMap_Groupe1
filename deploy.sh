@@ -16,6 +16,9 @@ cd laundrymap-back
 mkdir -p public/fichiers/images public/fichiers/logo
 chmod -R 777 public/fichiers/
 
+# Supprimer le cache prod pour éviter les conflits de permissions entre déploiements
+rm -rf var/cache/prod
+
 composer install --no-dev --optimize-autoloader
 
 # Générer les clés JWT si absentes (exclues du git par .gitignore)
