@@ -186,7 +186,7 @@ class FicheLaverieController extends AbstractController
         $isProfessional = false;
         if ($currentUser !== null) {
             $professionnel = $laverie->getProfessionnel();
-            if ($professionnel !== null && $professionnel->getUtilisateurId() === $currentUser) {
+            if ($professionnel !== null && $professionnel->getUtilisateurId()?->getId() === $currentUser->getId()) {
                 $isProfessional = true;
             }
         }
@@ -435,7 +435,7 @@ class FicheLaverieController extends AbstractController
  
         // ── Vérification : l'utilisateur est bien le propriétaire de cette laverie ──
         $professionnel = $laverie->getProfessionnel();
-        if ($professionnel === null || $professionnel->getUtilisateurId() !== $currentUser) {
+        if ($professionnel === null || $professionnel->getUtilisateurId()?->getId() !== $currentUser->getId()) {
             return $this->json(
                 ['message' => 'Accès refusé. Vous n\'êtes pas le propriétaire de cette laverie.'],
                 JsonResponse::HTTP_FORBIDDEN
