@@ -60,10 +60,10 @@ class FicheLaverieController extends AbstractController
 
         //  Images du carousel (LaverieMedia → Media)
         $laverieMedias = $this->laverieMediaRepository->findBy(['laverie' => $laverie]);
-        $images = array_values(array_map(
-            fn($lm) => $lm->getMedia()->getEmplacement(),
+        $images = array_values(array_filter(array_map(
+            fn($lm) => $lm->getMedia()?->getEmplacement(),
             $laverieMedias
-        ));
+        )));
 
 
         $adresse = $laverie->getAdresse();
