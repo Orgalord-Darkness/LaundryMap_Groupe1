@@ -65,7 +65,8 @@ import Review from "./user/review"
 import { ModerationPage } from "./admin/moderation/commentaire";
 import MotsInterdits from "./admin/MotsInterdits";
 import { ModerationUtilisateursPage } from "./admin/moderation/utilisateur";
-import { FicheUtilisateur } from "./admin/utilisateurs/ficheUtilisateur";
+import { FicheUtilisateur } from "./admin/utilisateurs/ficheUtilisateur"
+import HistoriqueLaverie from "./admin/laveries/historique";
 
 
 function ProtectedRoute({
@@ -240,6 +241,12 @@ export default function Router() {
       <Route path="/admin/utilisateurs/:id" element={
         <ProtectedRoute allowedRoles={["administrateur"]}>
           <FicheUtilisateur />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin/laveries/historique" element={
+        <ProtectedRoute allowedRoles={["administrateur"]}>
+          <HistoriqueLaverie />
         </ProtectedRoute>
       } />
 
