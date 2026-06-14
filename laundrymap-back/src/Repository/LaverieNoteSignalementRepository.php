@@ -226,7 +226,6 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
         )
         ->join('lns.laverie_note', 'ln')
         ->join('ln.utilisateur', 'u')
-        ->andWhere('ln.commentaire_supprime_le IS NULL')
         ->orderBy('u.id', 'ASC')
         ->getQuery()
         ->getArrayResult();
