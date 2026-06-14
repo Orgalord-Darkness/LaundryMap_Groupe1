@@ -171,12 +171,23 @@ class FicheLaverieController extends AbstractController
                 'rating'  => $note->getNote(),
                 'date'    => ($note->getCommentaireLe() ?? $note->getNoteLe())->format('d/m/Y'),
                 'comment' => $note->getCommentaire(),
+                // ── Réponse du professionnel ──
+                'reponse'   => $note->getReponse(),
+                'repond_le' => $note->getRepondLe()?->format('d/m/Y'),
             ];
         }
 
         //  Favori si utilisateur connecté
         $isFavorite = $currentUser !== null && $laverie->getFavoris()->contains($currentUser);
 
+        // ── isProfessional : l'utilisateur connecté est-il le propriétaire de cette laverie ? ──
+        $isProfessional = false;
+        if ($currentUser !== null) {
+            $professionnel = $laverie->getProfessionnel();
+            if ($professionnel !== null && $professionnel->getUtilisateurId() === $currentUser) {
+                $isProfessional = true;
+            }
+        }
 
         // Si l'utilisateur connecté, retourne son avis existant pour pré-remplir le formulaire
         $userReview = null;
@@ -204,6 +215,7 @@ class FicheLaverieController extends AbstractController
             'reviewCount'    => $totalNotes,
             'isOpen'         => $isOpen,
             'isFavorite'     => $isFavorite,
+            'isProfessional' => $isProfessional,   // ← nouveau
             'userReview'     => $userReview,
             'description'    => $laverie->getDescription(),
             'email'          => $laverie->getContactEmail(),
@@ -396,5 +408,68 @@ class FicheLaverieController extends AbstractController
         ], $isNew ? JsonResponse::HTTP_CREATED : JsonResponse::HTTP_OK);
     }
 
+
+    
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // POST /api/v1/user/fiche-laverie/{laverieId}/commentaire/{noteId}/reponse
+    // Permet au professionnel propriétaire de répondre à un commentaire
+    // ─────────────────────────────────────────────────────────────────────────
+    #[Route(
+        '/user/fiche-laverie/{laverieId}/commentaire/{noteId}/reponse',
+        name: 'api_user_fiche_laverie_reponse',
+        methods: ['POST']
+    )]
+    public function repondreCommentaire(int $laverieId, int $noteId, Request $request): JsonResponse
+    {
+        $laverie = $this->laverieRepository->find($laverieId);
+ 
+        if (!$laverie || $laverie->getSupprimeLe() !== null) {
+            return $this->json(['message' => 'Laverie introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+ 
+        /** @var \App\Entity\Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+ 
+        // ── Vérification : l'utilisateur est bien le propriétaire de cette laverie ──
+        $professionnel = $laverie->getProfessionnel();
+        if ($professionnel === null || $professionnel->getUtilisateurId() !== $currentUser) {
+            return $this->json(
+                ['message' => 'Accès refusé. Vous n\'êtes pas le propriétaire de cette laverie.'],
+                JsonResponse::HTTP_FORBIDDEN
+            );
+        }
+ 
+        // ── Récupération du commentaire à partir de l'id ──
+        $laverieNote = $this->laverieNoteRepository->find($noteId);
+ 
+        if ($laverieNote === null || $laverieNote->getLaverie() !== $laverie) {
+            return $this->json(['message' => 'Commentaire introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+ 
+        // ── Validation de la réponse ──
+        $body    = json_decode($request->getContent(), true);
+        $reponse = $body['reponse'] ?? null;
+ 
+        if (!is_string($reponse) || mb_strlen(trim($reponse)) < 5) {
+            return $this->json(
+                ['message' => 'La réponse doit faire au moins 5 caractères.'],
+                JsonResponse::HTTP_BAD_REQUEST
+            );
+        }
+ 
+        $reponse = mb_substr(trim($reponse), 0, 255);
+ 
+        // ── Enregistrement ──
+        $laverieNote->setReponse($reponse);
+        $laverieNote->setRepondLe(new \DateTime());
+        $this->entityManager->flush();
+ 
+        return $this->json([
+            'reponse'   => $laverieNote->getReponse(),
+            'repond_le' => $laverieNote->getRepondLe()->format('d/m/Y'),
+            'message'   => 'Réponse publiée avec succès.',
+        ]);
+    }
 
 }
