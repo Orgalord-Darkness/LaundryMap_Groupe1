@@ -154,7 +154,9 @@ final class SignalementController extends AbstractController
                         'prenom'        => $row['prenom'],
                         'email'         => $row['email'],
                         'statut'        => $row['statut'],
-                        'blocked_until' => $row['blocked_until']?->format(\DateTime::ATOM),
+                        'blocked_until' => $row['blocked_until'] instanceof \DateTimeInterface
+                    ? $row['blocked_until']->format(\DateTime::ATOM)
+                    : null,
                     ],
                     'total_signalements'   => 0,
                     'commentaires_signales' => [],
