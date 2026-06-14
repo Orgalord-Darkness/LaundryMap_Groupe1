@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { PersonalSpaceNavbar, TAB_ROUTES, type PersonalSpaceTab } from "@/components/ui/PersonalSpaceNavbar"
 import axios from "axios"
@@ -136,7 +135,6 @@ function ReviewCard({
 // ---------- Page principale ---------- 
 
 export default function Review() {
-    const { t } = useTranslation()
     const navigate = useNavigate()
 
     const [reviews, setReviews]           = useState<ReviewItem[]>([])
