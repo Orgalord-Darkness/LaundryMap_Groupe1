@@ -320,7 +320,7 @@ export function FicheUtilisateur() {
                         </tr>
                       </thead>
                       <tbody>
-                        {history.map((entry, idx) => {
+                        {history.map((entry) => {
                           const banniIdx = banniEntries.indexOf(entry)
                           const isLastBanni = banniIdx === lastBanniIndex
                           const status = deriveStatus(entry, isLastBanni, isBlocked)

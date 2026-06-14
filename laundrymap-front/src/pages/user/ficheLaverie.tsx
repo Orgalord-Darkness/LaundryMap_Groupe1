@@ -16,7 +16,6 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import SignalementForm from "@/components/layout/SignalementForm";
-import { LaverieActions } from "@/components/ui/optionsButton";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -439,6 +438,7 @@ function FicheLaverie() {
   const [showModal,      setShowModal]      = useState<boolean>(false);
   const [isSubmitting,   setIsSubmitting]   = useState<boolean>(false);
   const [submitSuccess,  setSubmitSuccess]  = useState<boolean>(false);
+  const [submitError,    setSubmitError]    = useState<string | null>(null);
   const [emailVisible, setEmailVisible] = useState(false);
   const [userReview,     setUserReview]     = useState<{ note: number; commentaire: string } | null>(null);
   const [signalementReviewId, setSignalementReviewId] = useState<number | null>(null);
