@@ -12,6 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import {
   AlertTriangle,
+  CalendarX,
   MessageSquareWarning,
   ShieldBan,
   UserSearch,
@@ -32,6 +33,7 @@ export interface UtilisateurSignale {
   prenom: string
   email: string
   statut: string
+  blockedUntil: string | null
   totalSignalements: number
   /** Calculé côté back (RG-211) — true si total_signalements >= SIGNALEMENT_SEUIL_BANNISSEMENT */
   depasseSeuil: boolean
@@ -89,14 +91,16 @@ export function UtilisateurSignaleCard({ utilisateur, onBlocked }: UtilisateurSi
                 <p className="font-semibold text-sm leading-tight truncate">{fullName}</p>
                 <p className="text-xs text-muted-foreground mt-0.5 truncate">{utilisateur.email}</p>
                 {isBlocked && (
-                  <Badge
-                    variant="outline"
-                    className="border-red-200 bg-red-50 text-red-700 text-xs gap-1 mt-0.5"
-                    aria-label="Utilisateur bloqué"
-                  >
-                    <ShieldBan className="h-3 w-3" aria-hidden="true" />
-                    {t('moderation_utilisateur_bloque')}
-                  </Badge>
+                  <div className="mt-0.5">
+                    <Badge
+                      variant="outline"
+                      className="border-red-200 bg-red-50 text-red-700 text-xs gap-1"
+                      aria-label={utilisateur.blockedUntil ? "Utilisateur bloqué temporairement" : "Utilisateur bloqué définitivement"}
+                    >
+                      <ShieldBan className="h-3 w-3" aria-hidden="true" />
+                      {utilisateur.blockedUntil ? 'Bloqué temporairement' : 'Bloqué définitivement'}
+                    </Badge>
+                  </div>
                 )}
               </div>
             </div>
@@ -120,6 +124,14 @@ export function UtilisateurSignaleCard({ utilisateur, onBlocked }: UtilisateurSi
               <dt className="text-sm font-semibold w-56 flex-shrink-0">{t('moderation_commentaires_concernes')}&nbsp;:</dt>
               <dd className="text-sm">{utilisateur.commentairesSignales.length}</dd>
             </div>
+
+            {isBlocked && utilisateur.blockedUntil && (
+              <div className="flex items-center gap-2">
+                <CalendarX className="h-4 w-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                <dt className="text-sm font-semibold w-56 flex-shrink-0">Débannissement&nbsp;:</dt>
+                <dd className="text-sm">{new Date(utilisateur.blockedUntil).toLocaleDateString('fr-FR')}</dd>
+              </div>
+            )}
           </dl>
         </CardContent>
 

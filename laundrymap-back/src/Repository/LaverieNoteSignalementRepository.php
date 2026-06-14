@@ -220,6 +220,7 @@ class LaverieNoteSignalementRepository extends ServiceEntityRepository
             'u.prenom',
             'u.email',
             'u.statut',
+            'u.blocked_until',
             'ln.id AS note_id',
             'ln.commentaire AS note_commentaire'
         )

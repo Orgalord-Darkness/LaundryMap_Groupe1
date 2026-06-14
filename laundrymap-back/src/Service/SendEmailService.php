@@ -50,6 +50,23 @@ class SendEmailService
         $this->mailer->send($email);
     }
 
+    public function sendReponseAvisNotification(string $to, string $prenom, string $nomLaverie, string $reponse): void
+    {
+        $html = $this->twig->render('emails/reponseAvis.html.twig', [
+            'prenom'      => $prenom,
+            'nom_laverie' => $nomLaverie,
+            'reponse'     => $reponse,
+        ]);
+
+        $email = (new Email())
+            ->from('no-reply@laundrymap.com')
+            ->to($to)
+            ->subject('Le gérant de ' . $nomLaverie . ' a répondu à votre avis')
+            ->html($html);
+
+        $this->mailer->send($email);
+    }
+
     public function sendEmail(string $email, string $template, string $subject, string $statut, string $laundryName, string $reason = null): void
     {
 

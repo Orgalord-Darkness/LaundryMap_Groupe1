@@ -291,9 +291,9 @@ export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDel
       <Drawer open={deleteDrawerOpen} onOpenChange={handleDrawerChange}>
         <DrawerContent>
           <DrawerHeader className="text-left">
-            <DrawerTitle>Masquer le commentaire</DrawerTitle>
+            <DrawerTitle>Supprimer le commentaire</DrawerTitle>
             <DrawerDescription>
-              Le commentaire de <strong>{comment.author.name}</strong> sera masqué.
+              Le commentaire de <strong>{comment.author.name}</strong> sera supprimé.
               Renseignez un motif de modération.
             </DrawerDescription>
           </DrawerHeader>
