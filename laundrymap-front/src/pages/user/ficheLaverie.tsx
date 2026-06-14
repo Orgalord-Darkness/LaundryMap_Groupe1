@@ -312,16 +312,19 @@ const ModalAvis = ({
   isSubmitting,
   existingRating = 0,
   existingComment = "",
+  apiError = null,
 }: {
   onClose: () => void;
   onSubmit: (note: number, commentaire: string) => void;
   isSubmitting: boolean;
   existingRating?: number;
   existingComment?: string;
+  apiError?: string | null;
 }) => {
   const [note, setNote]           = useState(existingRating);
   const [commentaire, setCommentaire] = useState(existingComment);
   const [formError, setFormError] = useState<string | null>(null);
+  const displayError = apiError ?? formError;
  
   const handleSubmit = () => {
     if (note === 0) {
@@ -381,8 +384,8 @@ const ModalAvis = ({
             className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
           <div className="flex justify-between items-center">
-            {formError
-              ? <p className="text-xs text-rose-500">{formError}</p>
+            {displayError
+              ? <p className="text-xs text-rose-500">{displayError}</p>
               : <span />
             }
             <p className="text-xs text-slate-400 ml-auto">{commentaire.length}/255</p>
@@ -527,7 +530,12 @@ function FicheLaverie() {
       body: JSON.stringify({ note, commentaire }),
     })
       .then(async (response) => {
-        if (!response.ok) throw new Error(`Erreur ${response.status}`);
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          setSubmitError(data.message ?? `Erreur ${response.status}`);
+          return;
+        }
+        setSubmitError(null);
         const data = await response.json();
  
         // Ajout du nouvel avis en tête de liste sans recharger la page
@@ -561,7 +569,7 @@ function FicheLaverie() {
         // Réinitialiser le message de succès après 3s
         setTimeout(() => setSubmitSuccess(false), 3000);
       })
-      .catch((err) => console.error("[Avis] Erreur :", err))
+      .catch(() => setSubmitError("Une erreur réseau est survenue."))
       .finally(() => setIsSubmitting(false));
   };
 
@@ -922,11 +930,12 @@ function FicheLaverie() {
       {/* MODAL AVIS */}
       {showModal && (
         <ModalAvis
-          onClose={() => setShowModal(false)}
+          onClose={() => { setShowModal(false); setSubmitError(null); }}
           onSubmit={handleSubmitAvis}
           isSubmitting={isSubmitting}
           existingRating={userReview?.note ?? 0}
           existingComment={userReview?.commentaire ?? ""}
+          apiError={submitError}
         />
       )}
 

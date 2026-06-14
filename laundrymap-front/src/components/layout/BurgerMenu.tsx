@@ -47,7 +47,7 @@ function getMenuItems(role: Role, t: (key: string) => string): MenuItem[] {
         { label: "Mes informations", href: "/admin/informations", icon: <Icon.Info />, separator: true },
         { label: "Mes préférences", href: "/admin/preferences", icon: <Icon.Sliders /> },
         { label: "Historique compte", href: "/admin/historique-compte", icon: <Icon.History />, separator: true },
-        { label: "Historique laverie", href: "/admin/historique-laverie", icon: <Icon.History /> },
+        { label: t('histo_laverie_nav'), href: "/admin/laveries/historique", icon: <Icon.History /> },
         { label: t('admin_nav_messages_signales'), href: "/admin/moderation", icon: <Icon.Flag /> },
         { label: t('admin_nav_utilisateurs_a_moderer'), href: "/admin/moderation/utilisateurs", icon: <Icon.UserX /> },
         { label: "Mots interdits", href: "/admin/mots-interdits", icon: <Icon.Ban /> },

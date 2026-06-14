@@ -70,8 +70,5 @@ class LaverieNoteRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    public function deleteAvis(LaverieNote $laverieNote): void {
-        $this->getEntityManager()->remove($laverieNote);
-        $this->getEntityManager()->flush();
-    }
+
 }

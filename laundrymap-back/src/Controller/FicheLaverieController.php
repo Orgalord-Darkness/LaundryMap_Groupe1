@@ -9,6 +9,7 @@ use App\Repository\LaverieFermetureExceptionnelleRepository;
 use App\Repository\LaverieEquipementRepository;
 use App\Repository\LaverieNoteRepository;
 use App\Repository\LaverieNoteSignalementRepository;
+use App\Repository\MotInjurieuxRepository;
 use App\Entity\Laverie;
 use App\Entity\Utilisateur;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\LaverieNote;
 use App\Enum\StatutEnum;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 
 #[Route('/api/v1')]
@@ -31,7 +33,10 @@ class FicheLaverieController extends AbstractController
         private readonly LaverieEquipementRepository                $laverieEquipementRepository,
         private readonly LaverieNoteRepository                      $laverieNoteRepository,
         private readonly LaverieNoteSignalementRepository           $laverieNoteSignalementRepository,
+        private readonly MotInjurieuxRepository                     $motInjurieuxRepository,
         private readonly EntityManagerInterface                     $entityManager,
+        #[Autowire(env: 'int:SIGNALEMENT_SEUIL_MASQUAGE')]
+        private readonly int                                        $seuilMasquage,
     ) {}
 
 
@@ -143,17 +148,15 @@ class FicheLaverieController extends AbstractController
 
         $currentUser = $this->getUser();
 
-        // IDs des notes déjà signalées par l'utilisateur courant — cachées pour lui dès son signalement
-        $signaledNoteIds = $currentUser instanceof Utilisateur
-            ? $this->laverieNoteSignalementRepository->findSignaledNoteIdsByUtilisateur($currentUser)
-            : [];
+        $noteIds = array_map(fn($n) => $n->getId(), $notes);
+        $signalementCounts = $this->laverieNoteSignalementRepository->countByNoteIds($noteIds);
 
-        //  affiche que les notes qui ont un commentaire non supprimé et non signalé par l'utilisateur
         $reviews = [];
         foreach ($notes as $note) {
+            $nbSignalements = $signalementCounts[$note->getId()] ?? 0;
             if ($note->getCommentaire() === null
                 || $note->getCommentaireSupprimeLe() !== null
-                || in_array($note->getId(), $signaledNoteIds, true)) {
+                || $nbSignalements >= $this->seuilMasquage) {
                 continue;
             }
 
@@ -350,8 +353,22 @@ class FicheLaverieController extends AbstractController
         }
  
         $commentaire = mb_substr(trim($commentaire), 0, 255);
- 
-        // Création ou mise à jour 
+
+        $motsInterdits = array_map(
+            fn($m) => mb_strtolower($m->getLabel()),
+            $this->motInjurieuxRepository->findAll()
+        );
+        $commentaireLower = mb_strtolower($commentaire);
+        foreach ($motsInterdits as $mot) {
+            if (str_contains($commentaireLower, $mot)) {
+                return $this->json(
+                    ['message' => 'Votre commentaire contient un ou plusieurs mots interdits.'],
+                    JsonResponse::HTTP_UNPROCESSABLE_ENTITY
+                );
+            }
+        }
+
+        // Création ou mise à jour
         // Un seul avis par utilisateur par laverie / cherche un avis existant
         $laverieNote = $this->laverieNoteRepository->findOneBy([
             'laverie'    => $laverie,
