@@ -19,6 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\LaverieNote;
 use App\Enum\StatutEnum;
+use App\Service\SendEmailService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 
@@ -35,6 +36,7 @@ class FicheLaverieController extends AbstractController
         private readonly LaverieNoteSignalementRepository           $laverieNoteSignalementRepository,
         private readonly MotInjurieuxRepository                     $motInjurieuxRepository,
         private readonly EntityManagerInterface                     $entityManager,
+        private readonly SendEmailService                           $sendEmailService,
         #[Autowire(env: 'int:SIGNALEMENT_SEUIL_MASQUAGE')]
         private readonly int                                        $seuilMasquage,
     ) {}
@@ -464,7 +466,16 @@ class FicheLaverieController extends AbstractController
         $laverieNote->setReponse($reponse);
         $laverieNote->setRepondLe(new \DateTime());
         $this->entityManager->flush();
- 
+
+        // ── Notification email à l'auteur du commentaire (F-12) ──
+        $auteur = $laverieNote->getUtilisateur();
+        $this->sendEmailService->sendReponseAvisNotification(
+            $auteur->getEmail(),
+            $auteur->getPrenom(),
+            $laverie->getNomEtablissement(),
+            $reponse,
+        );
+
         return $this->json([
             'reponse'   => $laverieNote->getReponse(),
             'repond_le' => $laverieNote->getRepondLe()->format('d/m/Y'),

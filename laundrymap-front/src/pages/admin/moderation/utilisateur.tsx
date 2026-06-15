@@ -18,6 +18,7 @@ interface UtilisateurSignaleApi {
     prenom: string
     email: string
     statut: string
+    blocked_until: string | null
   }
   total_signalements: number
   commentaires_signales: { note_id: number; commentaire: string; nb_signalements: number }[]
@@ -56,6 +57,7 @@ export function ModerationUtilisateursPage() {
           prenom:               row.utilisateur.prenom,
           email:                row.utilisateur.email,
           statut:               row.utilisateur.statut,
+          blockedUntil:         row.utilisateur.blocked_until,
           totalSignalements:    row.total_signalements,
           depasseSeuil:         row.depasse_seuil_bannissement,
           commentairesSignales: row.commentaires_signales.map((c) => ({

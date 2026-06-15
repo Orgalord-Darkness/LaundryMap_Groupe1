@@ -149,11 +149,12 @@ final class SignalementController extends AbstractController
             if (!isset($result[$userId])) {
                 $result[$userId] = [
                     'utilisateur' => [
-                        'id'     => $row['user_id'],
-                        'nom'    => $row['nom'],
-                        'prenom' => $row['prenom'],
-                        'email'  => $row['email'],
-                        'statut' => $row['statut'],
+                        'id'            => $row['user_id'],
+                        'nom'           => $row['nom'],
+                        'prenom'        => $row['prenom'],
+                        'email'         => $row['email'],
+                        'statut'        => $row['statut'],
+                        'blocked_until' => $row['blocked_until']?->format(\DateTime::ATOM),
                     ],
                     'total_signalements'   => 0,
                     'commentaires_signales' => [],
