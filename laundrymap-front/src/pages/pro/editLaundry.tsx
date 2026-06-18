@@ -541,7 +541,6 @@ export default function FormEditLaverie() {
                             capacity={machine.capacite ?? 0}
                             duration={machine.duree ?? 0}
                             price={machine.tarif ?? 0}
-                            available={true}
                         />
                         <button
                             type="button"

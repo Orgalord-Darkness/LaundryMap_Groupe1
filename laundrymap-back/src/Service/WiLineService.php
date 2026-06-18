@@ -2,12 +2,16 @@
 
 namespace App\Service;
 
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class WiLineService
 {
     public function __construct(
         private HttpClientInterface $httpClient,
+        private TagAwareCacheInterface $cache,
         private string $username,
         private string $apiKey,
     ) {}
@@ -70,5 +74,89 @@ class WiLineService
         } catch (\Throwable $e) {
             return ['error' => 'Impossible de contacter l\'API Wi-Line : ' . $e->getMessage()];
         }
+    }
+
+    /**
+     * Variante de getCentraleData() pour le polling fréquent du statut des machines :
+     * le token d'authentification est mis en cache 1h (il est en réalité valide 24h chez Wi-Line),
+     * pour éviter de ré-authentifier à chaque appel. Les données de la centrale, elles,
+     * sont toujours récupérées en direct, jamais mises en cache.
+     * Retourne le tableau de données, ou un tableau ['error' => '...'] en cas d'échec.
+     */
+    public function getCentraleDataCached(string $serial): array
+    {
+        if (!$this->username || !$this->apiKey) {
+            return ['error' => 'Les variables WILINE_USERNAME et WILINE_API_KEY ne sont pas configurées sur le serveur.'];
+        }
+
+        try {
+            $token = $this->getCachedToken();
+            $dataResponse = $this->fetchCentraleData($serial, $token);
+
+            if ($dataResponse->getStatusCode() === 401) {
+                // Le token caché a été invalidé côté Wi-Line (ex: une autre authentification
+                // a eu lieu sur le même compte entre-temps). On force un nouveau token et on
+                // retente une seule fois avant d'abandonner.
+                $this->cache->delete('wiline_auth_token');
+                $token = $this->getCachedToken();
+                $dataResponse = $this->fetchCentraleData($serial, $token);
+            }
+
+            $dataStatus = $dataResponse->getStatusCode();
+            if ($dataStatus === 404) {
+                return ['error' => "Aucune centrale trouvée pour le serial « {$serial} »."];
+            }
+            if ($dataStatus !== 200) {
+                return ['error' => "Erreur de l'API Wi-Line lors de la récupération des données (HTTP {$dataStatus})."];
+            }
+
+            return $dataResponse->toArray();
+
+        } catch (\Throwable $e) {
+            return ['error' => 'Impossible de contacter l\'API Wi-Line : ' . $e->getMessage()];
+        }
+    }
+
+    private function getCachedToken(): string
+    {
+        return $this->cache->get('wiline_auth_token', function (ItemInterface $item): string {
+            $item->expiresAfter(3600);
+
+            $authResponse = $this->httpClient->request('POST', 'https://api.wi-line.fr/auth', [
+                'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
+                'body'    => http_build_query(['user' => $this->username, 'api_key' => $this->apiKey]),
+                'timeout' => 10,
+            ]);
+
+            if ($authResponse->getStatusCode() !== 200) {
+                // Lever une exception ici empêche Symfony de mettre l'échec en cache :
+                // le prochain appel retentera une authentification fraîche.
+                throw new \RuntimeException("Échec de l'authentification Wi-Line (HTTP {$authResponse->getStatusCode()}).");
+            }
+
+            $authBody = $authResponse->toArray(false);
+            if (empty($authBody['status'])) {
+                throw new \RuntimeException('Identifiants Wi-Line incorrects (WILINE_USERNAME / WILINE_API_KEY).');
+            }
+
+            $token = $authBody['token'] ?? null;
+            if (!$token) {
+                throw new \RuntimeException("L'API Wi-Line n'a pas retourné de token d'authentification.");
+            }
+
+            return $token;
+        });
+    }
+
+    private function fetchCentraleData(string $serial, string $token): ResponseInterface
+    {
+        return $this->httpClient->request(
+            'GET',
+            "https://api.wi-line.fr/laundry_map/centrales/{$serial}",
+            [
+                'headers' => ['Authorization' => "Bearer {$token}"],
+                'timeout' => 10,
+            ]
+        );
     }
 }
