@@ -7,6 +7,7 @@ import { Field, FieldDescription, FieldLabel, FieldGroup } from "@/components/ui
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { Ec2eLogo } from "@/components/layout/Ec2eLogo"
 
 
 
@@ -85,8 +86,8 @@ function ProLogin() {
             <div className="flex flex-col gap-4 lg:gap-0 p-6 md:p-10">
 
                 <div className="flex justify-center gap-2">
-                    <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-                        <img src="/logo_ec2e.png"  alt="Image" className="w-82" />
+                    <a href="https://ec2e.com/" target="_blank" className="flex items-center font-medium">
+                        <Ec2eLogo />
                     </a>
                 </div>
 

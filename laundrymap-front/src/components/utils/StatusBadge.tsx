@@ -5,22 +5,22 @@ import type { HoraireSlot } from "./type"
 const BADGE_CONFIG: Record<LaverieStatusType, { label: string; classes: string; dot: string }> = {
     OUVERT: {
         label: "Ouvert",
-        classes: "bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
+        classes: "bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900 dark:text-emerald-200 dark:border-emerald-700",
         dot: "bg-emerald-500 animate-pulse",
     },
     BIENTOT_FERME: {
         label: "Ferme bientôt",
-        classes: "bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800",
+        classes: "bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-700",
         dot: "bg-orange-500 animate-pulse",
     },
     BIENTOT_OUVERT: {
         label: "Ouvre bientôt",
-        classes: "bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
+        classes: "bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700",
         dot: "bg-blue-500",
     },
     FERME: {
         label: "Fermé",
-        classes: "bg-rose-100 text-rose-600 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800",
+        classes: "bg-rose-100 text-rose-600 border border-rose-200 dark:bg-rose-900 dark:text-rose-200 dark:border-rose-700",
         dot: "bg-rose-500",
     },
 }

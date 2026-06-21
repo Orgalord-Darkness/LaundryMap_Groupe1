@@ -56,11 +56,11 @@ function getMenuItems(role: Role, t: (key: string) => string): MenuItem[] {
   }
 }
 
-const badgeConfig: Record<Role, { label: string; bg: string; color: string }> = {
-  guest:          { label: "Visiteur",       bg: "#f5f5f5", color: "#555" },
-  utilisateur:    { label: "Utilisateur",    bg: "#e3f2fd", color: "#1565c0" },
-  professionnel:  { label: "Professionnel",  bg: "#e8f5e9", color: "#2e7d32" },
-  administrateur: { label: "Administrateur", bg: "#fff3e0", color: "#e65100" },
+const badgeConfig: Record<Role, { label: string; className: string }> = {
+  guest:          { label: "Visiteur",       className: "bg-gray-500/15 text-gray-700 dark:text-gray-300" },
+  utilisateur:    { label: "Utilisateur",    className: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+  professionnel:  { label: "Professionnel",  className: "bg-green-500/15 text-green-700 dark:text-green-300" },
+  administrateur: { label: "Administrateur", className: "bg-orange-500/15 text-orange-700 dark:text-orange-300" },
 };
 
 export function BurgerMenu() {
@@ -106,23 +106,11 @@ export function BurgerMenu() {
 
   return (
     <>
-      {/* Bouton burger — bleu foncé sur fond clair = contraste élevé, fidèle à la maquette */}
+      {/* Bouton burger — bleu foncé fixe, fidèle à la maquette dans les deux thèmes */}
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Ouvrir le menu"
-        style={{
-          background: "#0e6b8a",
-          border: "none",
-          borderRadius: "10px",
-          width: "48px",
-          height: "48px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          flexShrink: 0,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
-        }}
+        className="flex items-center justify-center shrink-0 w-12 h-12 rounded-[10px] bg-[#0e6b8a] shadow-[0_2px_6px_rgba(0,0,0,0.25)] cursor-pointer"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
           <line x1="3" y1="6" x2="21" y2="6" />
@@ -134,49 +122,24 @@ export function BurgerMenu() {
       {/* Overlay */}
       <div
         onClick={() => setIsOpen(false)}
-        style={{
-          position: "fixed", inset: 0,
-          background: "rgba(0,0,0,0.4)",
-          zIndex: 998,
-          opacity: isOpen ? 1 : 0,
-          pointerEvents: isOpen ? "auto" : "none",
-          transition: "opacity 0.25s ease",
-        }}
+        className={`fixed inset-0 bg-black/40 z-[998] transition-opacity duration-[250ms] ease-in-out ${
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
       />
 
       {/* Sidebar — à GAUCHE */}
       <div
         ref={menuRef}
-        style={{
-          position: "fixed", top: 0, left: 0,
-          width: "280px", height: "100vh",
-          background: "#ffffff",
-          zIndex: 999,
-          transform: isOpen ? "translateX(0)" : "translateX(-100%)",
-          transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          display: "flex", flexDirection: "column",
-          boxShadow: "4px 0 24px rgba(0,0,0,0.15)",
-        }}
+        className={`fixed top-0 left-0 w-[280px] h-screen bg-card z-[999] flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.15)] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        {/* En-tête sidebar avec dégradé */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "14px 20px",
-          background: "linear-gradient(90deg, #1ab3d8 0%, #4ecfee 100%)",
-        }}>
+        {/* En-tête sidebar avec dégradé (même traitement que le header principal) */}
+        <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-[#1ab3d8] to-[#4ecfee] dark:from-gray-900 dark:to-gray-800">
           <button
             onClick={() => setIsOpen(false)}
             aria-label="Fermer le menu"
-            style={{
-              background: "#0e6b8a",
-              border: "none",
-              cursor: "pointer",
-              padding: "6px",
-              borderRadius: "6px",
-              color: "white",
-              display: "flex",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
-            }}
+            className="flex items-center justify-center p-1.5 rounded-md bg-[#0e6b8a] text-white shadow-[0_1px_4px_rgba(0,0,0,0.2)] cursor-pointer"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -186,29 +149,19 @@ export function BurgerMenu() {
         </div>
 
         {/* Navigation */}
-        <nav style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
+        <nav className="flex-1 overflow-y-auto py-2">
           {menuItems.map((item, i) => (
             <div key={i}>
-              {item.separator && (
-                <hr style={{ border: "none", borderTop: "1px solid #e8e8e8", margin: "6px 0" }} />
-              )}
+              {item.separator && <hr className="border-t border-border my-1.5" />}
               <button
                 onClick={() => handleItemClick(item.href, item.label)}
-                onMouseEnter={(event) => { event.currentTarget.style.background = "#e0f7fb"; }}
-                onMouseLeave={(event) => { event.currentTarget.style.background = isActive(item.href) ? "#e0f7fb" : "none"; }}
-                style={{
-                  display: "flex", alignItems: "center", gap: "14px",
-                  width: "100%", padding: "12px 24px",
-                  background: isActive(item.href) ? "#e0f7fb" : "none",
-                  border: "none", cursor: "pointer", textAlign: "left",
-                  color: isActive(item.href) ? "#0e6b8a" : "#222",
-                  fontWeight: isActive(item.href) ? 700 : 400,
-                  fontSize: "15px", fontFamily: "inherit",
-                  borderLeft: isActive(item.href) ? "4px solid #1ab3d8" : "4px solid transparent",
-                  transition: "background 0.15s, color 0.15s",
-                }}
+                className={`flex items-center gap-3.5 w-full px-6 py-3 text-left text-[15px] cursor-pointer border-l-4 transition-colors hover:bg-primary/10 ${
+                  isActive(item.href)
+                    ? "bg-primary/10 text-primary font-bold border-primary"
+                    : "text-foreground font-normal border-transparent"
+                }`}
               >
-                <span style={{ color: isActive(item.href) ? "#1ab3d8" : "#555", display: "flex", flexShrink: 0 }}>
+                <span className={`flex shrink-0 ${isActive(item.href) ? "text-primary" : "text-muted-foreground"}`}>
                   {item.icon}
                 </span>
                 <span>{item.label}</span>
@@ -218,12 +171,8 @@ export function BurgerMenu() {
         </nav>
 
         {/* Badge rôle */}
-        <div style={{ padding: "16px 24px", borderTop: "1px solid #e8e8e8" }}>
-          <span style={{
-            display: "inline-block", padding: "4px 12px",
-            borderRadius: "20px", fontSize: "12px", fontWeight: 600,
-            background: badge.bg, color: badge.color,
-          }}>
+        <div className="px-6 py-4 border-t border-border">
+          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>
             {badge.label}
           </span>
         </div>
