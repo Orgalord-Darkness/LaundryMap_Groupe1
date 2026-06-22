@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 // TYPES - à vérifier doublons dans un fichier types.ts / laundry.ts
 
 interface Machine {
+  id: number;
   type: string;
   capacity: number;
   duration: number;
@@ -426,6 +427,7 @@ function FicheLaverie() {
   const { id } = useParams<{ id: string }>();
 
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/fiche-laverie/${id}`;
+  const machinesStatutUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/fiche-laverie/${id}/machines-statut`;
   const favoriUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/user/fiche-laverie/${id}/favori`;
   const commentaireUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/user/fiche-laverie/${id}/commentaire`;
 
@@ -442,6 +444,7 @@ function FicheLaverie() {
   const [emailVisible, setEmailVisible] = useState(false);
   const [userReview,     setUserReview]     = useState<{ note: number; commentaire: string } | null>(null);
   const [signalementReviewId, setSignalementReviewId] = useState<number | null>(null);
+  const [machineStatuts, setMachineStatuts] = useState<Record<number, { status: number | null; statusText: string | null }>>({});
 
   
   const { user } = useAuth();
@@ -497,6 +500,33 @@ function FicheLaverie() {
         setIsLoading(false);
       });
   }, [id, url]);
+
+
+  // ── Polling du statut temps réel des machines (toutes les 30s) ──
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    const fetchStatuts = () => {
+      fetch(machinesStatutUrl, { method: "GET", credentials: "include" })
+        .then(async (response) => {
+          if (!response.ok) return;
+          const data: { statuts: { equipementId: number; status: number | null; statusText: string | null }[] } = await response.json();
+          const statutsParEquipement: Record<number, { status: number | null; statusText: string | null }> = {};
+          data.statuts.forEach((s) => {
+            statutsParEquipement[s.equipementId] = { status: s.status, statusText: s.statusText };
+          });
+          setMachineStatuts(statutsParEquipement);
+        })
+        .catch((err) => console.error("[Statut machines] Erreur :", err));
+    };
+
+    fetchStatuts(); // premier appel immédiat, sans attendre 30s
+    const intervalId = setInterval(fetchStatuts, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [id, machinesStatutUrl]);
 
 
    // ── Toggle favori ──
@@ -850,13 +880,15 @@ function FicheLaverie() {
 
             {/* Liste Machines pour une laverie  */} 
             <div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-2">
-              {laverie.machines.map((machine, index) => (
+              {laverie.machines.map((machine) => (
                 <CardMachine
-                  key={index}
+                  key={machine.id}
                   name={machine.type}
                   capacity={machine.capacity}
                   duration={machine.duration}
                   price={machine.price}
+                  statusCode={machineStatuts[machine.id]?.status ?? null}
+                  statusText={machineStatuts[machine.id]?.statusText ?? null}
                 />
               ))}
             </div>
