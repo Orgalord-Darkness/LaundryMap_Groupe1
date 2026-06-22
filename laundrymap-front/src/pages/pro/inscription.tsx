@@ -8,6 +8,7 @@ import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import { useTranslation } from "react-i18next"
 import PasswordChecklist from "react-password-checklist"
+import { Ec2eLogo } from "@/components/layout/Ec2eLogo"
 import { CountrySelect } from "@/components/ui/CountrySelect"
 
  
@@ -159,8 +160,8 @@ function ProInscription() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
 
         <div className="flex justify-center gap-2">
-          <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-              <img src="/logo_ec2e.png"  alt="Image" className="w-30" />
+          <a href="https://ec2e.com/" target="_blank" className="flex items-center font-medium">
+              <Ec2eLogo className="h-13" />
             </a>
         </div>
 

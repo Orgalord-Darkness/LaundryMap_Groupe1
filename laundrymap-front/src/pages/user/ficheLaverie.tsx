@@ -160,7 +160,7 @@ const ReviewCard = ({
           className="w-10 h-10 rounded-full object-cover"
         />
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800 text-sm">{review.author}</p>
+          <p className="font-semibold text-foreground text-sm">{review.author}</p>
           <p className="text-xs text-slate-400">{review.date}</p>
         </div>
  
@@ -188,10 +188,14 @@ const ReviewCard = ({
       </div>
  
       {/* ── Texte du commentaire ── */}
-      <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
+      <p className="text-muted-foreground text-sm leading-relaxed">{review.comment}</p>
  
       {/* ── Réponse existante du professionnel ── */}
       {reponse && (
+        // TODO(human): remplacer bg-blue-50/border-blue-200/text-blue-700/text-slate-700 (fixes,
+        // ne s'adaptent pas au dark mode) par une version basée sur les tokens --primary,
+        // sur le modèle de bg-primary/10 text-primary border-primary/20 déjà utilisé plus haut
+        // dans ce fichier (bouton "Afficher l'adresse email", ligne ~807).
         <div className="ml-4 mt-1 border-l-2 border-blue-200 pl-4 bg-blue-50 rounded-r-xl py-3 pr-3">
           <p className="text-xs font-semibold text-blue-700 mb-1">
             Réponse du propriétaire
@@ -216,7 +220,7 @@ const ReviewCard = ({
       {isProfessional && !reponse && !showReplyForm && (
         <button
           onClick={() => setShowReplyForm(true)}
-          className="self-start flex items-center gap-1.5 text-sm text-blue-600 font-medium hover:underline cursor-pointer"
+          className="self-start flex items-center gap-1.5 text-sm text-primary font-medium hover:underline cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -229,7 +233,7 @@ const ReviewCard = ({
       {/* ── Formulaire de réponse ── */}
       {isProfessional && showReplyForm && (
         <div className="ml-4 border-l-2 border-blue-200 pl-4 space-y-2">
-          <p className="text-xs font-semibold text-blue-700">Votre réponse</p>
+          <p className="text-xs font-semibold text-primary">Votre réponse</p>
           <textarea
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
@@ -243,7 +247,7 @@ const ReviewCard = ({
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowReplyForm(false); setReplyText(reponse ?? ""); }}
-                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
+                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-muted-foreground hover:bg-slate-50 cursor-pointer"
               >
                 Annuler
               </button>
@@ -352,7 +356,7 @@ const ModalAvis = ({
  
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-foreground">
             {existingRating > 0 ? "Modifier mon avis" : "Laisser un avis"}
           </h2>
           <button
@@ -368,13 +372,13 @@ const ModalAvis = ({
  
         {/* Sélecteur d'étoiles */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700">Votre note *</label>
+          <label className="text-sm font-semibold text-foreground">Votre note *</label>
           <StarPicker value={note} onChange={setNote} />
         </div>
  
         {/* Commentaire */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700">Votre commentaire *</label>
+          <label className="text-sm font-semibold text-foreground">Votre commentaire *</label>
           <textarea
             value={commentaire}
             onChange={(e) => setCommentaire(e.target.value)}
@@ -396,7 +400,7 @@ const ModalAvis = ({
         <div className="flex gap-3 pt-1">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
+            className="flex-1 py-3 rounded-xl border border-slate-200 text-muted-foreground font-semibold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Annuler
           </button>
@@ -649,8 +653,8 @@ function FicheLaverie() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-muted">
         <div className="bg-card rounded-2xl p-8 max-w-sm mx-4 text-center shadow-xl">
-          <h2 className="text-slate-800 font-bold text-lg mb-2">Une erreur est survenue</h2>
-          <p className="text-slate-500 text-sm">{error}</p>
+          <h2 className="text-foreground font-bold text-lg mb-2">Une erreur est survenue</h2>
+          <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>
     );
@@ -684,7 +688,7 @@ function FicheLaverie() {
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <h1 className="text-xl font-extrabold text-slate-900 leading-tight">
+                <h1 className="text-xl font-extrabold text-foreground leading-tight">
                   {laverie.name}
                 </h1>
                 {isConnected && (
@@ -716,14 +720,14 @@ function FicheLaverie() {
                 <StatusBadge fermetures={fermeturesFiche} />
                 <div className="flex items-center gap-1.5">
                   <StarRating rating={laverie.rating} />
-                  <span className="text-sm font-bold text-slate-700">{laverie.rating}</span>
+                  <span className="text-sm font-bold text-foreground">{laverie.rating}</span>
                   <span className="text-xs text-slate-400">({laverie.reviewCount} avis)</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <p className="mt-4 text-slate-500 text-sm leading-relaxed lg:ml-20">
+          <p className="mt-4 text-muted-foreground text-sm leading-relaxed lg:ml-20">
             {laverie.description}
           </p>
         </div>
@@ -756,7 +760,7 @@ function FicheLaverie() {
 
         {/* ── ADRESSE & NAVIGATION ── */}
         <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-4 w-full space-y-4">
-          <h3 className="text-slate-900 text-lg font-semibold"> Adresse & Itinéraire </h3>
+          <h3 className="text-foreground text-lg font-semibold"> Adresse & Itinéraire </h3>
 
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -766,19 +770,19 @@ function FicheLaverie() {
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-slate-800">
+              <p className="font-semibold text-foreground">
                 {laverie.rue && !laverie.address.includes(laverie.rue)
                   ? `${laverie.address} ${laverie.rue}`
                   : laverie.address}
               </p>
-              <p className="text-slate-500 text-sm">{laverie.postalCode} {laverie.city}</p>
+              <p className="text-muted-foreground text-sm">{laverie.postalCode} {laverie.city}</p>
             </div>
           </div>
 
 
           <div className="grid grid-cols-2 gap-3">
             <a href={itineraireUrl} target="_blank" rel=""
-              className="flex items-center justify-center gap-2 bg-slate-900 text-white py-3 px-4 rounded-lg font-semibold text-sm active:scale-95 transition-transform shadow-md"
+              className="flex items-center justify-center gap-2 bg-slate-900 dark:bg-slate-600 text-white py-3 px-4 rounded-lg font-semibold text-sm active:scale-95 transition-transform shadow-md"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
@@ -803,10 +807,10 @@ function FicheLaverie() {
 
           {/* Services */}
           <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
-            <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Services</h3>
+            <h3 className="text-foreground text-2xl font-semibold mb-3 text-center">Services</h3>
 
             <div className="mt-4">
-              <h4 className="text-slate-900 text-md font-semibold mb-3">Équipements disponibles</h4>
+              <h4 className="text-foreground text-md font-semibold mb-3">Équipements disponibles</h4>
 
               <div className="flex flex-wrap gap-3">
                 {laverie.services.map((service) => (
@@ -818,7 +822,7 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h4 className="text-slate-900 text-md font-semibold mb-3">Moyens de paiement</h4>
+              <h4 className="text-foreground text-md font-semibold mb-3">Moyens de paiement</h4>
               <div className="flex flex-wrap gap-3">
                 {laverie.paymentMethods.map((method) => (
                   <div key={method} className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium">
@@ -829,9 +833,9 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h4 className="text-slate-900 text-md font-semibold mb-3">Informations</h4>
+              <h4 className="text-foreground text-md font-semibold mb-3">Informations</h4>
               {laverie.email && (
-                <div className="flex items-center gap-2 text-[15px] text-slate-600 font-medium">
+                <div className="flex items-center gap-2 text-[15px] text-muted-foreground font-medium">
                   <span>Email :</span>
                   {emailVisible ? (
                     <a href={`mailto:${laverie.email}`} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors" >
@@ -849,7 +853,7 @@ function FicheLaverie() {
 
           {/* Horaires */}
           <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
-            <h3 className="text-slate-900 text-2xl font-semibold mb-3 text-center">Horaires</h3>
+            <h3 className="text-foreground text-2xl font-semibold mb-3 text-center">Horaires</h3>
 
             <div className="mt-4 space-y-3">
               {[...laverie.horaires]
@@ -859,8 +863,8 @@ function FicheLaverie() {
                   key={horaire.day}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-slate-100 pb-2 last:border-0"
                 >
-                  <h4 className="text-slate-900 text-sm font-bold w-24">{horaire.day}</h4>
-                  <div className="flex gap-4 text-sm text-slate-600 font-medium">
+                  <h4 className="text-foreground text-sm font-bold w-24">{horaire.day}</h4>
+                  <div className="flex gap-4 text-sm text-muted-foreground font-medium">
                     <span>{horaire.openAm} – {horaire.closeAm}</span>
                     <span className="text-slate-300">|</span>
                     <span>{horaire.openPm} – {horaire.closePm}</span>
@@ -876,7 +880,7 @@ function FicheLaverie() {
         <div className="grid lg:grid-cols-1 sm:grid-cols-1 gap-6 mt-12 mx-auto w-full">
 
           <div className="border border-border shadow-sm rounded-md bg-card p-6">
-            <h3 className="text-slate-900 text-2xl font-semibold mb-4 text-center">Liste des machines</h3>
+            <h3 className="text-foreground text-2xl font-semibold mb-4 text-center">Liste des machines</h3>
 
             {/* Liste Machines pour une laverie  */} 
             <div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-2">
@@ -903,7 +907,7 @@ function FicheLaverie() {
  
           
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-slate-900 text-2xl font-semibold">Commentaires</h3>
+            <h3 className="text-foreground text-2xl font-semibold">Commentaires</h3>
 
             {isConnected && !isProfessional && (
               <button
@@ -947,7 +951,7 @@ function FicheLaverie() {
             <div className="text-center py-8">
               <p className="text-slate-400 text-sm mb-3">Aucun commentaire pour le moment.</p>
               {isConnected && !isProfessional && (
-                <button onClick={() => setShowModal(true)} className="text-blue-600 text-sm font-medium hover:underline cursor-pointer">
+                <button onClick={() => setShowModal(true)} className="text-primary text-sm font-medium hover:underline cursor-pointer">
                   Soyez le premier à laisser un avis →
                 </button>
               )}
