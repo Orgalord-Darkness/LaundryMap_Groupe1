@@ -87,6 +87,17 @@ const resources = {
       laundry_form_machines_title: 'Machines',
       laundry_form_equipments_title: 'Équipements disponibles',
       laundry_form_payments_title: 'Moyens de paiement acceptés',
+      machine_status_unavailable: 'Statut non disponible',
+      // Codes de statut Wi-Line connus (table partielle — codes non listés : on garde le texte brut renvoyé par Wi-Line)
+      wiline_status_1: 'Libre',
+      wiline_status_3: 'Hors service',
+      wiline_status_5: 'Sortie indisponible',
+      wiline_status_9: 'Allumage automatique',
+      // Badge de statut de la laverie (StatusBadge.tsx)
+      status_ouvert: 'Ouvert',
+      status_bientot_ferme: 'Ferme bientôt',
+      status_bientot_ouvert: 'Ouvre bientôt',
+      status_ferme: 'Fermé',
       // Ajout laverie
       add_laundry_title: 'Ajouter une laverie',
       add_laundry_subtitle: 'Créer une laverie & ajoutez ses informations',
@@ -258,6 +269,17 @@ const resources = {
       laundry_form_machines_title: 'Machines',
       laundry_form_equipments_title: 'Available equipment',
       laundry_form_payments_title: 'Accepted payment methods',
+      machine_status_unavailable: 'Status unavailable',
+      // Known Wi-Line status codes (partial table — codes not listed: raw Wi-Line text is kept)
+      wiline_status_1: 'Free',
+      wiline_status_3: 'Out of service',
+      wiline_status_5: 'Output unavailable',
+      wiline_status_9: 'Automatic on',
+      // Laundry status badge (StatusBadge.tsx)
+      status_ouvert: 'Open',
+      status_bientot_ferme: 'Closing soon',
+      status_bientot_ouvert: 'Opening soon',
+      status_ferme: 'Closed',
       // Add laundry
       add_laundry_title: 'Add a laundry',
       add_laundry_subtitle: 'Create a laundry & add its information',
