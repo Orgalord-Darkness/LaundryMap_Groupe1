@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { fetchHistoriqueInteractionsPage } from "@/components/utils/historiqueInteractionsService"
 import type { HistoriqueInteractionEntry, HistoriqueInteractionFilters } from "@/components/utils/historiqueInteractionsService"
 import { PaginationBar } from "../laveries/list"
-import { HistoriqueFilterModal, type FilterFieldConfig } from "@/components/historique/HistoriqueFilterModal"
-import { HistoriqueActiveFilters } from "@/components/historique/HistoriqueActiveFilters"
+import { HistoriqueFilterModal, type FilterFieldConfig } from "@/components/layout/historique/HistoriqueFilterModal"
+import { HistoriqueActiveFilters } from "@/components/layout/historique/HistoriqueActiveFilters"
+import { HistoriqueDetailButton, type DetailField } from "@/components/layout/historique/HistoriqueDetailButton"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,6 +105,15 @@ export default function HistoriqueInteractions() {
     const estDecisionActuelle = (entry: HistoriqueInteractionEntry) =>
         (occurrencesParUtilisateur.get(entry.utilisateur_id) ?? 0) > 1 && dernierIdParUtilisateur.get(entry.utilisateur_id) === entry.id
 
+    const detailFieldsFor = (entry: HistoriqueInteractionEntry): DetailField[] => [
+        { label: t('histo_interactions_col_action'), value: t(ACTION_LABEL_KEYS[entry.action_label] ?? entry.action_label) },
+        { label: t('histo_interactions_col_utilisateur'), value: entry.utilisateur_nom_complet },
+        { label: t('email'), value: entry.utilisateur_email },
+        { label: t('histo_interactions_col_admin'), value: entry.administrateur_email ?? `#${entry.administrateur_id}` },
+        { label: t('histo_interactions_col_date'), value: `${entry.date} - ${entry.horodatage}` },
+        { label: t('histo_interactions_col_motif'), value: entry.motif ?? "—" },
+    ]
+
     return (
         <div className="min-h-screen bg-background">
             <main className="max-w-5xl mx-auto px-4 py-6">
@@ -176,7 +186,7 @@ export default function HistoriqueInteractions() {
                                             {t('histo_interactions_col_date')}
                                         </th>
                                         <th scope="col" className="text-left px-4 py-3 font-medium text-muted-foreground">
-                                            {t('histo_interactions_col_motif')}
+                                            {t('histo_col_detail')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -215,8 +225,8 @@ export default function HistoriqueInteractions() {
                                                     {entry.date} - {entry.horodatage}
                                                 </time>
                                             </td>
-                                            <td className="px-4 py-3 text-muted-foreground max-w-48">
-                                                <span title={entry.motif ?? undefined} className="truncate block">{entry.motif ?? "—"}</span>
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                <HistoriqueDetailButton fields={detailFieldsFor(entry)} />
                                             </td>
                                         </tr>
                                     ))}

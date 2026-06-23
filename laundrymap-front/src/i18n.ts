@@ -190,6 +190,11 @@ const resources = {
       histo_filtre_rechercher: 'Filtrer',
       histo_filtre_appliquer: 'Appliquer',
       histo_filtre_utilisateur_placeholder: 'Nom, prénom ou email…',
+      histo_col_detail: 'Détail',
+      histo_detail_titre: 'Détail de la décision',
+      histo_detail_voir: 'Voir le détail',
+      histo_detail_fermer: 'Fermer',
+      histo_laverie_col_proprietaire: 'Propriétaire',
       // Historique des interactions utilisateur (blocages + validations comptes pro)
       histo_interactions_nav: 'Historique utilisateurs',
       histo_interactions_titre: 'Historique des interactions utilisateur',
@@ -389,6 +394,11 @@ const resources = {
       histo_filtre_rechercher: 'Filter',
       histo_filtre_appliquer: 'Apply',
       histo_filtre_utilisateur_placeholder: 'Name or email…',
+      histo_col_detail: 'Details',
+      histo_detail_titre: 'Decision details',
+      histo_detail_voir: 'View details',
+      histo_detail_fermer: 'Close',
+      histo_laverie_col_proprietaire: 'Owner',
       // User interactions history (blocks + pro account validations)
       histo_interactions_nav: 'User interactions history',
       histo_interactions_titre: 'User interactions history',

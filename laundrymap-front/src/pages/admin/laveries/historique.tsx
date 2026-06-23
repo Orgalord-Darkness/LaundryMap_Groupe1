@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { fetchHistoriquePage } from "@/components/utils/historiqueService"
 import type { HistoriqueEntry, HistoriqueFilters } from "@/components/utils/historiqueService"
 import { PaginationBar } from "./list"
-import { HistoriqueFilterModal, type FilterFieldConfig } from "@/components/historique/HistoriqueFilterModal"
-import { HistoriqueActiveFilters } from "@/components/historique/HistoriqueActiveFilters"
+import { HistoriqueFilterModal, type FilterFieldConfig } from "@/components/layout/historique/HistoriqueFilterModal"
+import { HistoriqueActiveFilters } from "@/components/layout/historique/HistoriqueActiveFilters"
+import { HistoriqueDetailButton, type DetailField } from "@/components/layout/historique/HistoriqueDetailButton"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -95,6 +96,15 @@ export default function HistoriqueLaverie() {
     const estDecisionActuelle = (entry: HistoriqueEntry) =>
         (occurrencesParLaverie.get(entry.laverie_id) ?? 0) > 1 && dernierIdParLaverie.get(entry.laverie_id) === entry.id
 
+    const detailFieldsFor = (entry: HistoriqueEntry): DetailField[] => [
+        { label: t('histo_laverie_col_action'), value: t(entry.action === "VALIDE" ? "action_valide" : "action_refuse") },
+        { label: t('histo_laverie_col_laverie'), value: entry.laverie_nom },
+        { label: t('histo_laverie_col_proprietaire'), value: entry.proprietaire },
+        { label: t('histo_laverie_col_admin'), value: entry.administrateur_email ?? `#${entry.administrateur_id}` },
+        { label: t('histo_laverie_col_date'), value: `${entry.date} - ${entry.horodatage}` },
+        { label: t('histo_laverie_col_motif'), value: entry.motif ?? "—" },
+    ]
+
     return (
         <div className="min-h-screen bg-background">
             <main className="max-w-5xl mx-auto px-4 py-6">
@@ -167,7 +177,7 @@ export default function HistoriqueLaverie() {
                                             {t('histo_laverie_col_date')}
                                         </th>
                                         <th scope="col" className="text-left px-4 py-3 font-medium text-muted-foreground">
-                                            {t('histo_laverie_col_motif')}
+                                            {t('histo_col_detail')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -206,11 +216,8 @@ export default function HistoriqueLaverie() {
                                                     {entry.date} - {entry.horodatage}
                                                 </time>
                                             </td>
-                                            <td className="px-4 py-3 text-muted-foreground max-w-48">
-                                                {entry.action === "REFUSE"
-                                                    ? <span title={entry.motif ?? undefined} className="truncate block">{entry.motif ?? "—"}</span>
-                                                    : <span>—</span>
-                                                }
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                <HistoriqueDetailButton fields={detailFieldsFor(entry)} />
                                             </td>
                                         </tr>
                                     ))}
