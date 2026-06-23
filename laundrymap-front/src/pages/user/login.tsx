@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field"
 import { Eye, EyeOff } from "lucide-react"
+import { Ec2eLogo } from "@/components/layout/Ec2eLogo"
+
 
 type Inputs = {
     email: string
@@ -104,8 +106,8 @@ export default function Connexion() {
             <div className="flex flex-col gap-4 lg:gap-0 p-6 md:p-10">
 
                 <div className="flex justify-center gap-2">
-                    <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-                        <img src="/logo_ec2e.png"  alt="Image" className="w-82" />
+                    <a href="https://ec2e.com/" target="_blank" className="flex items-center font-medium">
+                        <Ec2eLogo />
                     </a>
                 </div>
 

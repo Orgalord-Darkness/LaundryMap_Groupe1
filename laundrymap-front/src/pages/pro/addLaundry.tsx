@@ -362,7 +362,6 @@ function AddLaundry() {
                 capacity={machine.capacity}
                 duration={machine.duration}
                 price={machine.price}
-                available={machine.available}
               />
             ))}
           </div>

@@ -53,20 +53,20 @@ function ProfessionnalAccountValidationList() {
                             key={pro.id}
                             className="bg-card border border-border shadow-md p-6 rounded-lg"
                         >
-                            <h3 className="text-xl font-semibold text-slate-900">
+                            <h3 className="text-xl font-semibold text-foreground">
                                 {pro.utilisateur.prenom} {pro.utilisateur.nom}
                             </h3>
-                            <p className="mt-1 text-sm text-slate-500">{pro.utilisateur.email}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{pro.utilisateur.email}</p>
 
                             <div className="mt-3">
-                                <span className="text-sm font-semibold text-slate-700">SIREN : </span>
-                                <span className="text-sm text-slate-500">{pro.siren}</span>
+                                <span className="text-sm font-semibold text-foreground">SIREN : </span>
+                                <span className="text-sm text-muted-foreground">{pro.siren}</span>
                             </div>
 
                             {pro.adresse?.ville && (
                                 <div className="mt-1">
-                                    <span className="text-sm font-semibold text-slate-700">Ville : </span>
-                                    <span className="text-sm text-slate-500">{pro.adresse.ville}</span>
+                                    <span className="text-sm font-semibold text-foreground">Ville : </span>
+                                    <span className="text-sm text-muted-foreground">{pro.adresse.ville}</span>
                                 </div>
                             )}
 

@@ -133,8 +133,8 @@ export default function MotsInterdits() {
 
       {/* En-tête */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Mots interdits</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Mots interdits</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           Gérez la liste des mots filtrés dans les avis et commentaires.
         </p>
       </div>
@@ -180,7 +180,7 @@ export default function MotsInterdits() {
 
       {/* Compteur + barre de recherche */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted-foreground">
           {mots.length} mot{mots.length !== 1 ? "s" : ""} au total
           {recherche && ` · ${motsFiltres.length} résultat${motsFiltres.length !== 1 ? "s" : ""}`}
         </span>

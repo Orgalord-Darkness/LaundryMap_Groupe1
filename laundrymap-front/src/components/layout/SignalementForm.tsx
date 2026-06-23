@@ -74,7 +74,7 @@ export default function SignalementForm({ reviewId, open, onOpenChange }: Props)
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Motif</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Motif</label>
                 <select
                   {...register("motif", { required: true })}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-background"
@@ -86,7 +86,7 @@ export default function SignalementForm({ reviewId, open, onOpenChange }: Props)
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Description{" "}
                   <span className="text-slate-400 font-normal">(optionnelle)</span>
                 </label>

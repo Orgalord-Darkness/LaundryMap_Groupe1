@@ -1792,6 +1792,77 @@ class AppFixtures extends Fixture
         $senlisLaveries[4]->addFavori($users[3]); // Lambert → Treille
         // ─────────────────────────────────────────────────────────────────────
 
+        // ── LAVERIE WI-LINE TEST — statut temps réel des machines ──────────────
+        // Serial réel d'une centrale Wi-Line (transmis par l'utilisateur) : permet de
+        // vérifier sur la fiche que GET /machines-statut renvoie un vrai status_text.
+        // equipement_reference=0 → doit correspondre à machine_number 0 chez Wi-Line.
+        // equipement_reference=999 → ne correspond à aucune machine (teste le fallback).
+        // 3e équipement sans equipement_reference → doit être ignoré (jamais relié).
+
+        $wilineAdresse = new Adresse();
+        $wilineAdresse->setAdresse('1');
+        $wilineAdresse->setRue('Rue du Test Wi-Line');
+        $wilineAdresse->setCodePostal('75001');
+        $wilineAdresse->setVille('Paris');
+        $wilineAdresse->setPays('France');
+        $wilineAdresse->setLatitude(48.8566);
+        $wilineAdresse->setLongitude(2.3522);
+        $wilineAdresse->setStatutGeolocalisation(GeoStatutEnum::GEOLOCALISE);
+        $manager->persist($wilineAdresse);
+
+        $wilineLaverie = new Laverie();
+        $wilineLaverie->setProfessionnel($professionnels[0]);
+        $wilineLaverie->setStatut(LaverieStatutEnum::VALIDE);
+        $wilineLaverie->setWiLineReference('17415410EC125A03');
+        $wilineLaverie->setNomEtablissement('Laverie Test Temps Réel (Wi-Line)');
+        $wilineLaverie->setContactEmail('contact@laverie-wiline-test.fr');
+        $wilineLaverie->setDescription('Laverie de test pour le statut temps réel des machines (intégration Wi-Line).');
+        $wilineLaverie->setAdresse($wilineAdresse);
+        $wilineLaverie->setLogo($logoMedias[0]);
+        $wilineLaverie->setDateAjout(new \DateTime('2026-06-01 09:00:00'));
+        $wilineLaverie->setDateModification(new \DateTime('2026-06-01 09:00:00'));
+        $wilineLaverie->setSupprimeLe(null);
+        $manager->persist($wilineLaverie);
+
+        foreach ([
+            ['ref' => 0,    'nom' => 'Machine à laver (reliée à Wi-Line)', 'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 7, 'tarif' => 3.00, 'duree' => 30],
+            ['ref' => 999,  'nom' => 'Machine à laver (référence inconnue)', 'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 7, 'tarif' => 3.00, 'duree' => 30],
+            ['ref' => null, 'nom' => 'Machine à laver (non reliée)',        'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 7, 'tarif' => 3.00, 'duree' => 30],
+        ] as $d) {
+            $eq = new LaverieEquipement();
+            $eq->setLaverie($wilineLaverie);
+            $eq->setEquipementReference($d['ref']);
+            $eq->setNom($d['nom']);
+            $eq->setType($d['type']);
+            $eq->setCapacite($d['capacite']);
+            $eq->setTarif($d['tarif']);
+            $eq->setDuree($d['duree']);
+            $manager->persist($eq);
+        }
+
+        foreach ($horairesGeo as [$jour, $debAm, $finAm, $debPm, $finPm]) {
+            $fam = new LaverieFermeture();
+            $fam->setLaverie($wilineLaverie);
+            $fam->setJour($jour);
+            $fam->setDateAjout(new \DateTime('2026-06-01 09:00:00'));
+            $fam->setDateModification(new \DateTime('2026-06-01 09:00:00'));
+            $fam->setHeureDebut(new \DateTime("1970-01-01 {$debAm}:00"));
+            $fam->setHeureFin(new \DateTime("1970-01-01 {$finAm}:00"));
+            $manager->persist($fam);
+
+            if ($debPm !== null) {
+                $fpm = new LaverieFermeture();
+                $fpm->setLaverie($wilineLaverie);
+                $fpm->setJour($jour);
+                $fpm->setDateAjout(new \DateTime('2026-06-01 09:00:00'));
+                $fpm->setDateModification(new \DateTime('2026-06-01 09:00:00'));
+                $fpm->setHeureDebut(new \DateTime("1970-01-01 {$debPm}:00"));
+                $fpm->setHeureFin(new \DateTime("1970-01-01 {$finPm}:00"));
+                $manager->persist($fpm);
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         $manager->flush();
     }
 }
