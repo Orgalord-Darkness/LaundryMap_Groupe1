@@ -20,6 +20,14 @@ interface GeoFeature {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Certaines communes (ex: Paris, Lyon, Marseille) ont plusieurs codes postaux
+// concaténés par Photon/OSM en un seul champ (ex: "75000;75001;...;75116").
+// Inexploitable tel quel dans une suggestion : on l'ignore plutôt que de l'afficher brut.
+function cleanPostcode(postcode?: string): string {
+    if (!postcode || postcode.includes(';')) return ''
+    return postcode
+}
+
 async function fetchSuggestions(query: string): Promise<Suggestion[]> {
     if (query.trim().length < 3) return []
 
@@ -28,17 +36,34 @@ async function fetchSuggestions(query: string): Promise<Suggestion[]> {
     if (!response.ok) return []
 
     const data = await response.json()
-    return (data.features ?? []).map((f: GeoFeature) => {
+    const features: GeoFeature[] = data.features ?? []
+
+    // Photon renvoie chaque arrondissement comme une entité distincte (ex: "Paris 75001",
+    // "Paris 75002"...), ce qui pollue le dropdown pour une recherche de ville générique.
+    // On ne garde qu'une seule suggestion par ville pour les résultats de niveau ville
+    // (sans numéro ni rue) ; les adresses précises restent toutes affichées.
+    const seenCities = new Set<string>()
+    const filtered = features.filter((f) => {
         const p = f.properties
-        const label = [p.housenumber, p.street ?? p.name, p.postcode, p.city]
+        const isCityLevel = !p.housenumber && !p.street
+        if (!isCityLevel || !p.city) return true
+        if (seenCities.has(p.city)) return false
+        seenCities.add(p.city)
+        return true
+    })
+
+    return filtered.map((f) => {
+        const p = f.properties
+        const postcode = cleanPostcode(p.postcode)
+        const label = [p.housenumber, p.street ?? p.name, postcode, p.city]
             .filter(Boolean)
             .join(' ')
         return {
             label,
-            city:     p.city ?? '',
-            postcode: p.postcode ?? '',
-            lat:      f.geometry.coordinates[1],
-            lng:      f.geometry.coordinates[0],
+            city: p.city ?? '',
+            postcode,
+            lat: f.geometry.coordinates[1],
+            lng: f.geometry.coordinates[0],
         }
     })
 }
@@ -228,7 +253,9 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                                 `}
                             >
                                 <span className="font-medium leading-tight">{suggestion.label}</span>
-                                <span className="text-xs text-gray-400">{suggestion.postcode} {suggestion.city}</span>
+                                <span className="text-xs text-gray-400">
+                                    {[suggestion.postcode, suggestion.city].filter(Boolean).join(' ')}
+                                </span>
                             </li>
                         ))}
                     </ul>

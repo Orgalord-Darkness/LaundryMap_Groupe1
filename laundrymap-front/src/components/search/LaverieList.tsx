@@ -16,6 +16,7 @@ interface LaverieListProps {
     selectedId: number | null
     onSelectLaverie: (id: number) => void
     hasActiveFilters?: boolean
+    distanceSourceLabel?: string | null
 }
 
 function useIsMobile() {
@@ -38,6 +39,7 @@ export function LaverieList({
     selectedId,
     onSelectLaverie,
     hasActiveFilters = false,
+    distanceSourceLabel = null,
 }: LaverieListProps) {
     const { t } = useTranslation()
     const [sortOrder, setSortOrder] = useState<SortOrder>("distance_asc")
@@ -107,6 +109,9 @@ export function LaverieList({
             <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-xs text-muted-foreground">
                     {laveries.length} résultat{laveries.length > 1 ? "s" : ""}
+                    {distanceSourceLabel && (
+                        <span className="text-gray-400"> · Distance {distanceSourceLabel}</span>
+                    )}
                 </span>
                 <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as SortOrder)}>
                     <SelectTrigger className="w-44 h-7 text-xs">

@@ -15,7 +15,14 @@ import type { LaverieSearch, SearchFilters } from "@/components/utils/type"
 // Un bouton "Filtres" ouvre une modal pour affiner par services, paiements, horaires.
 // Les filtres actifs s'affichent sous forme de chips supprimables au-dessus de la carte.
 
-const EMPTY_FILTERS: SearchFilters = { openAt: "", services: [], payments: [] }
+// Reconstruit les filtres depuis l'URL (?openAt=...&services=a,b&payments=x,y)
+// Permet de restaurer les filtres sélectionnés quand l'utilisateur revient
+// de la fiche laverie via le bouton retour.
+const getFiltersFromParams = (params: URLSearchParams): SearchFilters => ({
+    openAt: params.get("openAt") ?? "",
+    services: params.get("services")?.split(",").filter(Boolean) ?? [],
+    payments: params.get("payments")?.split(",").filter(Boolean) ?? [],
+})
 
 // TODO(human): Déclarer la constante LAST_POSITION_KEY pour le localStorage,
 // et créer un hook/état savedCenter qui lit la position sauvegardée au premier rendu.
@@ -52,11 +59,12 @@ export default function HomePage() {
     const [error, setError] = useState<string | null>(null)
     const [hasSearched, setHasSearched] = useState(false)
 
-    const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS)
+    const [filters, setFilters] = useState<SearchFilters>(() => getFiltersFromParams(searchParams))
     const [isFilterOpen, setIsFilterOpen] = useState(false)
     const [lastQuery, setLastQuery] = useState(initialQuery)
     const [autoStartLocate, setAutoStartLocate] = useState(false)
     const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null)
+    const [geoError, setGeoError] = useState<string | null>(null)
     const [fitBoundsKey, setFitBoundsKey] = useState(0)
     const [searchClearKey, setSearchClearKey] = useState(0)
     
@@ -87,8 +95,13 @@ export default function HomePage() {
         lastSearchPosRef.current = null
     }, [])
 
+    const handleLocationError = useCallback((message: string) => {
+        setGeoError(message)
+    }, [])
+
     const handleLocationFound = useCallback(async (pos: { lat: number; lng: number}) => {
         // Met toujours à jour la position (point bleu sur la carte)
+        setGeoError(null)
         setUserPosition(pos)
         localStorage.setItem(LAST_POSITION_KEY, JSON.stringify(pos))
 
@@ -158,9 +171,10 @@ export default function HomePage() {
     }, [filters, runSearch, setSearchParams])
 
     // Re-lance la recherche au chargement si q est présent dans l'URL
+    // (restaure aussi les filtres déjà sélectionnés, ex: retour depuis la fiche laverie)
     useEffect(() => {
         if (initialQuery) {
-            runSearch(initialQuery, EMPTY_FILTERS)
+            runSearch(initialQuery, filters)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -172,6 +186,20 @@ export default function HomePage() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters])
+
+    // Synchronise les filtres actifs dans l'URL pour pouvoir les restaurer
+    // au retour depuis la fiche laverie (bouton "Retour à la carte")
+    useEffect(() => {
+        setSearchParams(prev => {
+            if (filters.openAt) prev.set("openAt", filters.openAt)
+            else prev.delete("openAt")
+            if (filters.services.length) prev.set("services", filters.services.join(","))
+            else prev.delete("services")
+            if (filters.payments.length) prev.set("payments", filters.payments.join(","))
+            else prev.delete("payments")
+            return prev
+        }, { replace: true })
+    }, [filters, setSearchParams])
 
     // ─── Suppression d'un filtre depuis un chip ───────────────────────────────
 
@@ -212,6 +240,23 @@ export default function HomePage() {
                 {/* Chips des filtres actifs */}
                 <ActiveFilters filters={filters} onRemoveFilter={handleRemoveFilter} />
 
+                {/* Message d'erreur de géolocalisation */}
+                {geoError && (
+                    <div
+                        role="alert"
+                        className="flex items-center justify-between gap-3 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-2.5 text-sm text-red-600 dark:text-red-400"
+                    >
+                        <span>{geoError}</span>
+                        <button
+                            onClick={() => setGeoError(null)}
+                            aria-label="Fermer le message d'erreur"
+                            className="shrink-0 text-red-400 hover:text-red-600 dark:hover:text-red-300 cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                )}
+
                 {/* Carte interactive — isolate emprisonne les z-index internes de Leaflet */}
                 <div className="isolate">
                     <MapView
@@ -220,6 +265,7 @@ export default function HomePage() {
                         onSelectLaverie={handleSelectLaverie}
                         onLocationFound={handleLocationFound}
                         onLocationStop={handleLocationStop}
+                        onLocationError={handleLocationError}
                         autoStart={autoStartLocate}
                         userPosition={userPosition}
                         searchRadius={1000}
@@ -250,6 +296,12 @@ export default function HomePage() {
                         selectedId={selectedId}
                         onSelectLaverie={handleSelectLaverie}
                         hasActiveFilters={activeFilterCount > 0}
+                        distanceSourceLabel={
+                            !hasSearched ? null
+                            : lastQuery ? `depuis « ${lastQuery} »`
+                            : userPosition ? "depuis votre position"
+                            : null
+                        }
                     />
                 </section>
             </div>

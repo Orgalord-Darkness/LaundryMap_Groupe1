@@ -55,6 +55,7 @@ interface MapViewProps {
     onSelectLaverie: (id: number) => void
     onLocationFound?: (pos: { lat: number; lng: number }) => void
     onLocationStop?: () => void
+    onLocationError?: (message: string) => void
     autoStart?: boolean
     userPosition?: { lat: number; lng: number } | null
     searchRadius?: number
@@ -65,7 +66,23 @@ interface MapViewProps {
 interface LocateControlComponentProps {
     onLocationFound: (pos: { lat: number; lng: number }) => void
     onLocationStop?: () => void
+    onLocationError?: (message: string) => void
     autoStart?: boolean
+}
+
+// Traduit les codes d'erreur de géolocalisation du navigateur en messages clairs.
+// Codes alignés sur GeolocationPositionError (1 = refus, 2 = indisponible, 3 = timeout).
+function describeLocationError(e: L.ErrorEvent): string {
+    switch (e.code) {
+        case 1:
+            return "Vous avez refusé l'accès à votre position. Autorisez la géolocalisation dans les réglages de votre navigateur pour l'utiliser."
+        case 2:
+            return "Votre position n'a pas pu être déterminée. Vérifiez que la géolocalisation est activée sur votre appareil."
+        case 3:
+            return "La récupération de votre position a pris trop de temps. Réessayez."
+        default:
+            return "La géolocalisation n'est pas disponible sur cet appareil."
+    }
 }
 
 // ─── Sous-composant : ajuste le zoom quand les laveries changent ──────────────
@@ -117,14 +134,16 @@ function MapAdjuster({ laveries, selectedId, fitBoundsKey }: {
 
 // ─── Sous-composant : bouton de géolocalisation (leaflet-locatecontrol) ───────
 
-function LeafletLocateControl({ onLocationFound, onLocationStop, autoStart }: LocateControlComponentProps) {
+function LeafletLocateControl({ onLocationFound, onLocationStop, onLocationError, autoStart }: LocateControlComponentProps) {
     const map = useMap()
     const lcRef = useRef<InstanceType<typeof LocateControl> | null>(null)
     // Refs pour garder les callbacks à jour sans recréer le contrôle Leaflet
     const callbackRef = useRef(onLocationFound)
     const stopCallbackRef = useRef(onLocationStop)
+    const errorCallbackRef = useRef(onLocationError)
     useEffect(() => { callbackRef.current = onLocationFound }, [onLocationFound])
     useEffect(() => { stopCallbackRef.current = onLocationStop }, [onLocationStop])
+    useEffect(() => { errorCallbackRef.current = onLocationError }, [onLocationError])
 
     useEffect(() => {
         const lc = new LocateControl({
@@ -134,6 +153,10 @@ function LeafletLocateControl({ onLocationFound, onLocationStop, autoStart }: Lo
             keepCurrentZoomLevel: false,
             drawMarker: true,
             drawCircle: false,
+            // Désactive l'alert() natif de la lib (affiche le message brut du navigateur,
+            // ex: "User denied Geolocation prompt") : on gère l'erreur nous-mêmes via le
+            // listener 'locationerror' ci-dessous pour afficher un message clair en bandeau.
+            onLocationError: () => {},
             strings: {
                 title: 'Ma position',
                 popup: 'Vous êtes ici',
@@ -156,13 +179,19 @@ function LeafletLocateControl({ onLocationFound, onLocationStop, autoStart }: Lo
             stopCallbackRef.current?.()
         }
 
+        function handleLocationError(e: L.ErrorEvent) {
+            errorCallbackRef.current?.(describeLocationError(e))
+        }
+
         map.on('locationfound', handleLocationFound)
         map.on('locatedeactivate', handleLocationStop)
+        map.on('locationerror', handleLocationError)
 
         return () => {
             lc.remove()
             map.off('locationfound', handleLocationFound)
             map.off('locatedeactivate', handleLocationStop)
+            map.off('locationerror', handleLocationError)
         }
     }, [map])
 
@@ -182,7 +211,7 @@ function LeafletLocateControl({ onLocationFound, onLocationStop, autoStart }: Lo
 const PARIS: [number, number] = [48.8566, 2.3522]
 const DEFAULT_ZOOM = 12
 
-export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, onLocationStop, autoStart, userPosition, searchRadius, fitBoundsKey, initialCenter }: MapViewProps) {
+export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound, onLocationStop, onLocationError, autoStart, userPosition, searchRadius, fitBoundsKey, initialCenter }: MapViewProps) {
     const navigate = useNavigate()
     return (
         <div
@@ -213,6 +242,7 @@ export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound
                 <LeafletLocateControl
                     onLocationFound={onLocationFound ?? (() => {})}
                     onLocationStop={onLocationStop}
+                    onLocationError={onLocationError}
                     autoStart={autoStart}
                 />
                 {userPosition && (

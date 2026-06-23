@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/components/context/AuthContext";
 import axios from "axios";
 import CardMachine from "@/components/ui/cardMachine";
@@ -429,6 +429,7 @@ const JOURS_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'
 function FicheLaverie() {
 
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/fiche-laverie/${id}`;
   const machinesStatutUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/fiche-laverie/${id}/machines-statut`;
@@ -677,6 +678,17 @@ function FicheLaverie() {
 
     <div className="flex flex-col items-center p-4 min-h-screen bg-muted">
       <div className="w-full max-w-5xl mx-auto space-y-6">
+
+        {/* ── BOUTON RETOUR ── */}
+        <button
+          onClick={() => navigate(-1)}
+          className="self-start flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Retour à la carte
+        </button>
 
         {/* ── HERO INFO ── */}
         <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-5 w-full">
