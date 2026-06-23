@@ -69,6 +69,7 @@ class DashboardController extends AbstractController
 
         $data = array_map(function (Laverie $laverie) {
             $logo = $laverie->getLogo();
+            $adresse = $laverie->getAdresse();
 
             return [
                 'id'      => $laverie->getId(),
@@ -77,6 +78,13 @@ class DashboardController extends AbstractController
                 'logoUrl' => $logo?->getEmplacement(),
                 'rating'  => $this->laverieNoteRepository->findAverageRatingByLaverie($laverie),
                 'avis'    => $this->laverieNoteRepository->countAvisByLaverie($laverie),
+                'adresse'      => $adresse ? [
+                    'adresse'     => $adresse->getAdresse(),
+                    'rue'         => $adresse->getRue(),
+                    'ville'       => $adresse->getVille(),
+                    'code_postal' => $adresse->getCodePostal(),
+                ] : null,
+                'date_ajout'   => $laverie->getDateAjout()?->format('d/m/Y'),
             ];
         }, $laveries);
 

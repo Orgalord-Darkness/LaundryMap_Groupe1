@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Card,
   CardAction,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -13,7 +14,14 @@ import {
 } from "@/components/ui/card";
 import { LaverieActions } from "@/components/ui/optionsButton"
 
-// Valeurs de LaverieStatutEnum::value
+interface Adresse {
+  adresse: string | null;
+  rue: string | null;
+  ville: string | null;
+  code_postal: string | null;
+}
+
+
 interface Laundry {
   id: number;
   nom: string;
@@ -21,6 +29,8 @@ interface Laundry {
   logoUrl: string | null;
   rating: number | null;
   avis: number;
+  adresse: Adresse | null;     
+  date_ajout: string | null;
 }
 
 
@@ -122,7 +132,6 @@ function ProDashboard() {
 
                     <CardHeader>
                       <CardAction>
-                        
                         <Badge variant={config.variant} className="mt-2">
                           {config.label}
                         </Badge>
@@ -131,7 +140,6 @@ function ProDashboard() {
                       <CardTitle>{laundry.nom}</CardTitle>
 
                       <CardDescription>
-
                         {laundry.rating !== null ? (
                           <>
                             <span className="text-yellow-500">★ {laundry.rating}</span>
@@ -143,11 +151,21 @@ function ProDashboard() {
                       </CardDescription>
                     </CardHeader>
 
+                    <CardContent className="flex-1 flex flex-col justify-end gap-1 pb-2">
+                      {laundry.adresse && (
+                        <p className="text-sm text-muted-foreground">
+                          {laundry.adresse.adresse}, {laundry.adresse.rue}, {laundry.adresse.code_postal} {laundry.adresse.ville}
+                        </p>
+                      )}
+                      {laundry.date_ajout && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Crée le {laundry.date_ajout}
+                        </p>
+                      )}
+                    </CardContent>
+
                     <CardFooter>
-                      <Button
-                        className="w-full"
-                        onClick={() => navigate(`/pro/laverie/${laundry.id}`)}
-                      >
+                      <Button className="w-full" onClick={() => navigate(`/pro/laverie/${laundry.id}`)} >
                         Voir la laverie
                       </Button>
                     </CardFooter>
