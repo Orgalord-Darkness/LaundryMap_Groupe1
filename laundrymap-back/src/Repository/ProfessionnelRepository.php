@@ -86,4 +86,15 @@ class ProfessionnelRepository extends ServiceEntityRepository
         $em->persist($professionnel);
         $em->flush();
     }
+
+    /** Compte les professionnels en attente de validation par un admin. StatutEnum::EN_ATTENTE = 'en attente' */
+    public function countPending(): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.statut = :statut')
+            ->setParameter('statut', StatutEnum::EN_ATTENTE)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
