@@ -122,6 +122,7 @@ export function BurgerMenu() {
       {/* Overlay */}
       <div
         onClick={() => setIsOpen(false)}
+        aria-hidden="true"
         className={`fixed inset-0 bg-black/40 z-[998] transition-opacity duration-[250ms] ease-in-out ${
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}

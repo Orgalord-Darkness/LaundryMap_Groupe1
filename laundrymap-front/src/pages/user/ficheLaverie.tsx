@@ -760,7 +760,7 @@ function FicheLaverie() {
 
         {/* ── ADRESSE & NAVIGATION ── */}
         <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-4 w-full space-y-4">
-          <h3 className="text-foreground text-lg font-semibold"> Adresse & Itinéraire </h3>
+          <h2 className="text-foreground text-lg font-semibold"> Adresse & Itinéraire </h2>
 
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -807,10 +807,10 @@ function FicheLaverie() {
 
           {/* Services */}
           <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
-            <h3 className="text-foreground text-2xl font-semibold mb-3 text-center">Services</h3>
+            <h2 className="text-foreground text-2xl font-semibold mb-3 text-center">Services</h2>
 
             <div className="mt-4">
-              <h4 className="text-foreground text-md font-semibold mb-3">Équipements disponibles</h4>
+              <h3 className="text-foreground text-md font-semibold mb-3">Équipements disponibles</h3>
 
               <div className="flex flex-wrap gap-3">
                 {laverie.services.map((service) => (
@@ -822,7 +822,7 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h4 className="text-foreground text-md font-semibold mb-3">Moyens de paiement</h4>
+              <h3 className="text-foreground text-md font-semibold mb-3">Moyens de paiement</h3>
               <div className="flex flex-wrap gap-3">
                 {laverie.paymentMethods.map((method) => (
                   <div key={method} className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium">
@@ -833,7 +833,7 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h4 className="text-foreground text-md font-semibold mb-3">Informations</h4>
+              <h3 className="text-foreground text-md font-semibold mb-3">Informations</h3>
               {laverie.email && (
                 <div className="flex items-center gap-2 text-[15px] text-muted-foreground font-medium">
                   <span>Email :</span>
@@ -853,7 +853,7 @@ function FicheLaverie() {
 
           {/* Horaires */}
           <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
-            <h3 className="text-foreground text-2xl font-semibold mb-3 text-center">Horaires</h3>
+            <h2 className="text-foreground text-2xl font-semibold mb-3 text-center">Horaires</h2>
 
             <div className="mt-4 space-y-3">
               {[...laverie.horaires]
@@ -863,7 +863,7 @@ function FicheLaverie() {
                   key={horaire.day}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-slate-100 pb-2 last:border-0"
                 >
-                  <h4 className="text-foreground text-sm font-bold w-24">{horaire.day}</h4>
+                  <h3 className="text-foreground text-sm font-bold w-24">{horaire.day}</h3>
                   <div className="flex gap-4 text-sm text-muted-foreground font-medium">
                     <span>{horaire.openAm} – {horaire.closeAm}</span>
                     <span className="text-slate-300">|</span>
@@ -880,7 +880,7 @@ function FicheLaverie() {
         <div className="grid lg:grid-cols-1 sm:grid-cols-1 gap-6 mt-12 mx-auto w-full">
 
           <div className="border border-border shadow-sm rounded-md bg-card p-6">
-            <h3 className="text-foreground text-2xl font-semibold mb-4 text-center">Liste des machines</h3>
+            <h2 className="text-foreground text-2xl font-semibold mb-4 text-center">Liste des machines</h2>
 
             {/* Liste Machines pour une laverie  */} 
             <div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-2">
@@ -907,7 +907,7 @@ function FicheLaverie() {
  
           
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-foreground text-2xl font-semibold">Commentaires</h3>
+            <h2 className="text-foreground text-2xl font-semibold">Commentaires</h2>
 
             {isConnected && !isProfessional && (
               <button

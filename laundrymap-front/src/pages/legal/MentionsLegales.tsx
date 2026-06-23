@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export default function MentionsLegales() {
@@ -256,7 +257,7 @@ export default function MentionsLegales() {
           <section>
             <h2 className="text-xl font-bold text-foreground mb-4">10. Accessibilité numérique</h2>
             <p>
-              EC2E s'engage à rendre LaundryMap accessible à toutes et à tous, y compris aux personnes en situation de handicap, conformément au Référentiel Général d'Amélioration de l'Accessibilité (RGAA) et aux normes WCAG 2.1. Pour signaler un problème d'accessibilité : <span className="font-medium">contact@ec2e.com</span>
+              Le détail des mesures d'accessibilité mises en place sur LaundryMap fait l'objet d'une page dédiée : <Link to="/accessibilite" className="font-medium underline">Accessibilité</Link>.
             </p>
           </section>
 
