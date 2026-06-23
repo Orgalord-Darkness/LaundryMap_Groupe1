@@ -50,6 +50,23 @@ class DashboardController extends AbstractController
 
         $laveries = $this->laverieRepository->findActivesByProfessionnel($professionnel);
 
+        $noteMoyenneGlobale = null;
+        $totalNotes = 0;
+        $sommeNotes = 0;
+
+        foreach ($laveries as $laverie) {
+            $moyenne = $this->laverieNoteRepository->findAverageRatingByLaverie($laverie);
+            $nbAvis  = $this->laverieNoteRepository->countAvisByLaverie($laverie);
+            if ($moyenne !== null && $nbAvis > 0) {
+                $sommeNotes  += $moyenne * $nbAvis;
+                $totalNotes  += $nbAvis;
+            }
+        }
+
+        if ($totalNotes > 0) {
+            $noteMoyenneGlobale = round($sommeNotes / $totalNotes, 1);
+        }
+
         $data = array_map(function (Laverie $laverie) {
             $logo = $laverie->getLogo();
 
@@ -66,6 +83,7 @@ class DashboardController extends AbstractController
         return $this->json([
             'laveries' => $data,
             'total'    => count($data),
+            'noteMoyenneGlobale'  => $noteMoyenneGlobale,
         ]);
     }
 }

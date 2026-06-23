@@ -36,7 +36,7 @@ const statutConfig: Record<
 function ProDashboard() {
   const [laundries, setLaundries] = useState<Laundry[]>([]);
   const [total, setTotal]        = useState<number>(0);
-
+  const [noteMoyenneGlobale, setNoteMoyenneGlobale] = useState<number | null>(null);
   const [loading, setLoading]     = useState<boolean>(true);
   const [error, setError]        = useState<string | null>(null);
   const navigate = useNavigate();
@@ -48,6 +48,7 @@ function ProDashboard() {
       .then((response) => {
         setLaundries(response.data.laveries);
         setTotal(response.data.total);
+        setNoteMoyenneGlobale(response.data.noteMoyenneGlobale);
       })
       .catch(() => setError('Impossible de charger vos laveries.'))
       .finally(() => setLoading(false));
@@ -63,10 +64,18 @@ function ProDashboard() {
         <h1 className="font-bold text-2xl mt-6">Tableau de bord</h1>
         <p className="text-muted-foreground text-center mt-2">Bienvenue dans votre espace professionnel</p>
 
-        <div className="w-[150px] my-12">
-          <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center">
+        <div className="flex gap-4 my-12">
+
+          <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center w-[140px]">
             <p className="text-lg font-semibold">{total}</p>
             <p className="text-sm">Laveries</p>
+          </div>
+
+          <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center w-[140px]">
+            <p className="text-lg font-semibold">
+              {noteMoyenneGlobale !== null ? `★ ${noteMoyenneGlobale}` : '—'}
+            </p>
+            <p className="text-sm">Note moyenne</p>
           </div>
         </div>
 
