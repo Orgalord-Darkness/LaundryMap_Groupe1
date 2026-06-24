@@ -50,8 +50,26 @@ class DashboardController extends AbstractController
 
         $laveries = $this->laverieRepository->findActivesByProfessionnel($professionnel);
 
+        $noteMoyenneGlobale = null;
+        $totalNotes = 0;
+        $sommeNotes = 0;
+
+        foreach ($laveries as $laverie) {
+            $moyenne = $this->laverieNoteRepository->findAverageRatingByLaverie($laverie);
+            $nbAvis  = $this->laverieNoteRepository->countAvisByLaverie($laverie);
+            if ($moyenne !== null && $nbAvis > 0) {
+                $sommeNotes  += $moyenne * $nbAvis;
+                $totalNotes  += $nbAvis;
+            }
+        }
+
+        if ($totalNotes > 0) {
+            $noteMoyenneGlobale = round($sommeNotes / $totalNotes, 1);
+        }
+
         $data = array_map(function (Laverie $laverie) {
             $logo = $laverie->getLogo();
+            $adresse = $laverie->getAdresse();
 
             return [
                 'id'      => $laverie->getId(),
@@ -60,12 +78,20 @@ class DashboardController extends AbstractController
                 'logoUrl' => $logo?->getEmplacement(),
                 'rating'  => $this->laverieNoteRepository->findAverageRatingByLaverie($laverie),
                 'avis'    => $this->laverieNoteRepository->countAvisByLaverie($laverie),
+                'adresse'      => $adresse ? [
+                    'adresse'     => $adresse->getAdresse(),
+                    'rue'         => $adresse->getRue(),
+                    'ville'       => $adresse->getVille(),
+                    'code_postal' => $adresse->getCodePostal(),
+                ] : null,
+                'date_ajout'   => $laverie->getDateAjout()?->format('d/m/Y'),
             ];
         }, $laveries);
 
         return $this->json([
             'laveries' => $data,
             'total'    => count($data),
+            'noteMoyenneGlobale'  => $noteMoyenneGlobale,
         ]);
     }
 }

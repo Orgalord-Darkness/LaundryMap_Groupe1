@@ -24,7 +24,7 @@ export default function Connexion() {
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
     const [showPassword, setShowPassword] = useState(false)
-
+    
     useEffect(() => {
         if (successMessage) {
             const timer = setTimeout(() => {
@@ -159,17 +159,10 @@ export default function Connexion() {
                                     </div>
 
                                     <div className="relative">
-                                        <Input
-                                            id="mot_de_passe"
-                                            type={showPassword ? "text" : "password"}
-                                            required
-                                            aria-describedby={errors.mot_de_passe ? "mot_de_passe-error" : undefined}
-                                            {...register("mot_de_passe", { required: true })}
-                                            className="pr-10"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword((prev) => !prev)}
+                                        <Input id="password" type={showPassword ? "text" : "password"}  required {...register("mot_de_passe", { required: true })} className="pr-10" />
+
+                                        {/* Bouton œil positionné */}
+                                        <button type="button"  onClick={() => setShowPassword((prev) => !prev)}
                                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                             aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                                         >
