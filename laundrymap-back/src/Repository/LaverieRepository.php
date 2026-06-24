@@ -129,7 +129,7 @@ class LaverieRepository extends ServiceEntityRepository
 
         // ── Équipements : SQL natif car OneToMany non déclaré ────────────────────
         $equipements = $conn->fetchAllAssociative(
-            'SELECT id, nom, type, capacite, tarif, duree
+            'SELECT id, nom, type, capacite, tarif, duree, equipement_reference
             FROM laverie_equipement
             WHERE laverie_id = :id',
             ['id' => $id]

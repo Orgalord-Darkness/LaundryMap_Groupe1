@@ -18,6 +18,7 @@ export interface EquipementFormData {
   capacite: number | null;
   tarif:    number | null;
   duree:    number | null;
+  equipement_reference?: number | null;
 }
 
 export const EQUIPEMENT_LABELS: Record<EquipementEnum, string> = {

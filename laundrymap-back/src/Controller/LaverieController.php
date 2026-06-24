@@ -417,6 +417,11 @@ class LaverieController extends AbstractController
                 $equipement->setCapacite(isset($eqData['capacite']) ? (int)$eqData['capacite'] : null);
                 $equipement->setTarif(isset($eqData['tarif']) ? (float)$eqData['tarif'] : null);
                 $equipement->setDuree(isset($eqData['duree']) ? (int)$eqData['duree'] : null);
+                $equipement->setEquipementReference(
+                    isset($eqData['equipement_reference']) && $eqData['equipement_reference'] !== ''
+                        ? (int)$eqData['equipement_reference']
+                        : null
+                );
 
                 $typeStr = $eqData['type'] ?? 'machine_a_laver';
                 $typeEnum = EquipementEnum::tryFrom($typeStr) ?? EquipementEnum::MACHINE_A_LAVER;
