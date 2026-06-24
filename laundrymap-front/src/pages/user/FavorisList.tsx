@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DeleteFavoriteButton } from "@/components/ui/deleteFavoriButton"
@@ -57,11 +58,12 @@ function FavoriCard({
     onRemoved: () => void
 }) {
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     const statutLabel: Record<FavoriLaverie["statut"], string> = {
-        OUVERT: "Ouverte",
-        FERME: "Fermée",
-        INCONNU: "Inconnu",
+        OUVERT: t('favoris_statut_ouverte'),
+        FERME: t('favoris_statut_fermee'),
+        INCONNU: t('favoris_statut_inconnu'),
     }
 
     const statutStyle: Record<FavoriLaverie["statut"], string> = {
@@ -77,7 +79,7 @@ function FavoriCard({
                 {laverie.image_url ? (
                     <img
                         src={laverie.image_url}
-                        alt={`Photo de ${laverie.nom_etablissement}`}
+                        alt={t('favoris_photo_alt', { name: laverie.nom_etablissement })}
                         className="w-full h-auto max-h-44 object-contain"
                     />
                 ) : (
@@ -111,7 +113,7 @@ function FavoriCard({
                     </p>
                     {laverie.horaires_aujourd_hui && (
                         <p className="text-sm text-muted-foreground">
-                            Aujourd'hui : {laverie.horaires_aujourd_hui}
+                            {t('favoris_aujourdhui', { horaires: laverie.horaires_aujourd_hui })}
                         </p>
                     )}
                 </div>
@@ -121,14 +123,14 @@ function FavoriCard({
                         variant="default"
                         size="sm"
                         onClick={() => navigate(`/user/fiche-laverie/${laverie.id}`)}
-                        aria-label={`Voir la fiche de ${laverie.nom_etablissement}`}
+                        aria-label={t('favoris_voir_fiche_aria', { name: laverie.nom_etablissement })}
                     >
-                        Fiche de laverie
+                        {t('favoris_fiche_bouton')}
                     </Button>
 
                     {laverie.note !== undefined && (
                         <span className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-                            Note : {laverie.note.toFixed(1)}
+                            {t('favoris_note', { note: laverie.note.toFixed(1) })}
                             <svg className="w-4 h-4 text-yellow-400 fill-yellow-400" viewBox="0 0 24 24">
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                             </svg>
@@ -144,6 +146,7 @@ function FavoriCard({
 
 function EmptyFavoris() {
     const navigate = useNavigate()
+    const { t } = useTranslation()
     return (
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
             <div className="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
@@ -153,13 +156,13 @@ function EmptyFavoris() {
                 </svg>
             </div>
             <div>
-                <p className="font-semibold text-foreground text-base">Aucune laverie en favori</p>
+                <p className="font-semibold text-foreground text-base">{t('favoris_vide_titre')}</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Explorez la carte et ajoutez des laveries à vos favoris pour les retrouver ici.
+                    {t('favoris_vide_description')}
                 </p>
             </div>
             <Button variant="default" onClick={() => navigate("/")}>
-                Explorer les laveries
+                {t('favoris_explorer_bouton')}
             </Button>
         </div>
     )
@@ -169,6 +172,7 @@ function EmptyFavoris() {
 
 export function FavorisList() {
     const navigate = useNavigate()
+    const { t } = useTranslation()
     const [favoris, setFavoris] = useState<FavoriLaverie[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -183,7 +187,7 @@ export function FavorisList() {
             const { data } = await apiClient.get<{ data: BackendLaverie[] }>("/favori/list")
             setFavoris(data.data.map(mapLaverie))
         } catch {
-            setError("Impossible de charger vos favoris. Veuillez réessayer.")
+            setError(t('favoris_erreur_chargement'))
         } finally {
             setLoading(false)
         }
@@ -207,8 +211,8 @@ export function FavorisList() {
             <div className="bg-card px-4 pt-6 pb-0">
                 <div className="max-w-lg mx-auto">
                     <div className="text-center mb-4">
-                        <h1 className="text-xl font-bold text-foreground">Espace personnel</h1>
-                        <p className="text-sm text-muted-foreground mt-0.5">Mes laveries favorites</p>
+                        <h1 className="text-xl font-bold text-foreground">{t('espace_personnel')}</h1>
+                        <p className="text-sm text-muted-foreground mt-0.5">{t('favoris_sous_titre')}</p>
                     </div>
 
                     {/* Onglets de navigation */}
@@ -241,7 +245,7 @@ export function FavorisList() {
                     <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
                         <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
                         <Button variant="outline" size="sm" onClick={fetchFavoris}>
-                            Réessayer
+                            {t('reessayer')}
                         </Button>
                     </div>
                 ) : favoris.length === 0 ? (

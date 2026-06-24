@@ -69,7 +69,7 @@ export default function Connexion() {
 
             login({ email: data.email, role: data.role })
 
-            setSuccessMessage("Connexion réussie !")
+            setSuccessMessage(t("connexion_succes"))
             navigate('/')
 
         } catch (erreur) {
@@ -91,7 +91,7 @@ export default function Connexion() {
 
             setError("email", {
                 type: "server",
-                message: "Erreur lors de la connexion. Veuillez vérifier vos identifiants.",
+                message: t("erreur_connexion"),
             })
         }
 
@@ -124,7 +124,7 @@ export default function Connexion() {
                                     </p>
                                 </div>
 
-                                <a href="/pro/login" className="text-center text-sm text-foreground underline font-medium cursor-pointer" aria-label="Se connecter en tant que professionnel">
+                                <a href="/pro/login" className="text-center text-sm text-foreground underline font-medium cursor-pointer" aria-label={t("connexion_pro_aria")}>
                                     {t('connexion')} {t('en_tant_que_professionnel')} ?
                                 </a>
 
@@ -164,7 +164,7 @@ export default function Connexion() {
                                         {/* Bouton œil positionné */}
                                         <button type="button"  onClick={() => setShowPassword((prev) => !prev)}
                                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                                            aria-label={showPassword ? t("mdp_masquer") : t("mdp_afficher")}
                                         >
                                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
@@ -188,7 +188,7 @@ export default function Connexion() {
                                     <GoogleLoginButton
                                         route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`}
                                         title={t("connexion_avec_google")}
-                                        onSuccess={() => setSuccessMessage("Connexion Google réussie !")}
+                                        onSuccess={() => setSuccessMessage(t("connexion_google_succes"))}
                                     />
  
                                     <FieldDescription className="text-center">
