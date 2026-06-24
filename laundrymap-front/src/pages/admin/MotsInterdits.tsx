@@ -141,12 +141,12 @@ export default function MotsInterdits() {
 
       {/* Messages de retour (succès / erreur) */}
       {succes && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+        <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm dark:bg-green-900/30 dark:border-green-700 dark:text-green-300">
           {succes}
         </div>
       )}
       {erreur && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm dark:bg-red-900/30 dark:border-red-700 dark:text-red-300">
           {erreur}
         </div>
       )}
@@ -164,14 +164,16 @@ export default function MotsInterdits() {
             onKeyDown={(e) => e.key === "Enter" && handleAjouter()}
             placeholder="Ex : insulte, gros mot..."
             className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
           />
           <button
             onClick={handleAjouter}
             disabled={ajoutLoading}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300
                        text-white text-sm font-medium px-4 py-2 rounded-lg
-                       transition-colors duration-150 whitespace-nowrap"
+                       transition-colors duration-150 whitespace-nowrap
+                       dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-blue-800"
           >
             {ajoutLoading ? "Ajout..." : "Ajouter"}
           </button>
@@ -179,7 +181,7 @@ export default function MotsInterdits() {
       </div>
 
       {/* Compteur + barre de recherche */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 dark:bg-gray-800 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <span className="text-sm text-muted-foreground dark:text-gray-400">
           {mots.length} mot{mots.length !== 1 ? "s" : ""} au total
           {recherche && ` · ${motsFiltres.length} résultat${motsFiltres.length !== 1 ? "s" : ""}`}
@@ -191,7 +193,8 @@ export default function MotsInterdits() {
           placeholder="Rechercher un mot..."
           className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     w-full sm:w-56"
+                     w-full sm:w-56
+                     dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
         />
       </div>
 
@@ -206,7 +209,7 @@ export default function MotsInterdits() {
             {recherche ? "Aucun mot ne correspond à votre recherche." : "Aucun mot interdit enregistré."}
           </div>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-gray-100 dark:divide-gray-700">
             {motsFiltres.map((mot) => (
               <li
                 key={mot.id}
@@ -217,7 +220,8 @@ export default function MotsInterdits() {
                 <button
                   onClick={() => handleSupprimer(mot)}
                   className="text-red-400 hover:text-red-600 text-xs font-medium
-                             px-2 py-1 rounded hover:bg-red-50 transition-colors duration-150"
+                             px-2 py-1 rounded hover:bg-red-50 transition-colors duration-150
+                             dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                   title="Supprimer ce mot"
                 >
                   Supprimer

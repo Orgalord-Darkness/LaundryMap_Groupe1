@@ -26,7 +26,7 @@ function StarRating({ note }: { note: number }) {
             {[1, 2, 3, 4, 5].map((star) => (
                 <span
                     key={star}
-                    className={`text-lg leading-none ${star <= note ? "text-yellow-400" : "text-gray-200"}`}
+                    className={`text-lg leading-none ${star <= note ? "text-yellow-400" : "text-gray-200 dark:text-gray-700"}`}
                 >
                     ★
                 </span>
@@ -56,25 +56,25 @@ function ConfirmDeleteModal({
 }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
-                <h2 className="text-base font-semibold text-gray-900 mb-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-sm">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
                     Supprimer cet avis ?
                 </h2>
-                <p className="text-sm text-gray-500 mb-5">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
                     Cette action est irréversible. Votre note et votre commentaire seront définitivement supprimés.
                 </p>
                 <div className="flex gap-3">
                     <button
                         onClick={onCancel}
                         disabled={loading}
-                        className="flex-1 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex-1 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                         Annuler
                     </button>
                     <button
                         onClick={onConfirm}
                         disabled={loading}
-                        className="flex-1 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-60"
+                        className="flex-1 py-2 rounded-lg bg-red-500 dark:bg-red-600 text-white text-sm font-medium hover:bg-red-600 dark:hover:bg-red-700 transition-colors disabled:opacity-60"
                     >
                         {loading ? "Suppression…" : "Supprimer"}
                     </button>
@@ -93,15 +93,15 @@ function ReviewCard({
     onDeleteRequest: (id: number) => void
 }) {
     return (
-        <div className="border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
+        <div className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-800 shadow-sm">
             {/* En-tête */}
             <div className="flex items-start justify-between gap-2 mb-2">
-                <p className="font-semibold text-gray-800 text-sm leading-tight">
+                <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm leading-tight">
                     {review.laverie.nom}
                 </p>
                 <button
                     onClick={() => onDeleteRequest(review.id)}
-                    className="text-gray-300 hover:text-red-400 transition-colors shrink-0 text-lg leading-none"
+                    className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-400 transition-colors shrink-0 text-lg leading-none"
                     aria-label="Supprimer cet avis"
                     title="Supprimer"
                 >
@@ -111,22 +111,22 @@ function ReviewCard({
 
             {/* Note */}
             <StarRating note={review.note} />
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                 Noté le {formatDate(review.note_le)}
             </p>
 
             {/* Commentaire */}
             {review.commentaire ? (
                 <div className="mt-3">
-                    <p className="text-sm text-gray-600">{review.commentaire}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{review.commentaire}</p>
                     {review.commentaire_le && (
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                             Commenté le {formatDate(review.commentaire_le)}
                         </p>
                     )}
                 </div>
             ) : (
-                <p className="mt-3 text-xs text-gray-400 italic">Aucun commentaire.</p>
+                <p className="mt-3 text-xs text-gray-400 dark:text-gray-500 italic">Aucun commentaire.</p>
             )}
         </div>
     )
@@ -177,7 +177,7 @@ export default function Review() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
 
             {/* Modale de confirmation */}
             {deleteTargetId !== null && (
@@ -189,11 +189,11 @@ export default function Review() {
             )}
 
             {/* Header */}
-            <div className="bg-white px-4 pt-6 pb-0">
+            <div className="bg-white dark:bg-gray-800 px-4 pt-6 pb-0">
                 <div className="max-w-lg mx-auto">
                     <div className="text-center mb-4">
-                        <h1 className="text-xl font-bold text-gray-900">Espace personnel</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">Mes avis</p>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Espace personnel</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Mes avis</p>
                     </div>
                     <PersonalSpaceNavbar active="Avis" onChange={handleTabChange} />
                 </div>
@@ -203,20 +203,20 @@ export default function Review() {
             <main className="flex-1 px-4 py-5 w-full max-w-lg mx-auto">
 
                 {loading && (
-                    <p className="text-center py-10 text-gray-400 text-sm">
+                    <p className="text-center py-10 text-gray-400 dark:text-gray-500 text-sm">
                         Chargement de vos avis…
                     </p>
                 )}
 
                 {error && (
-                    <p className="text-center py-10 text-red-500 text-sm">{error}</p>
+                    <p className="text-center py-10 text-red-500 dark:text-red-400 text-sm">{error}</p>
                 )}
 
                 {!loading && !error && (
                     <>
                         {/* Compteur */}
                         {reviews.length > 0 && (
-                            <p className="text-xs text-gray-400 mb-3">
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
                                 {reviews.length} avis{reviews.length > 1 ? "" : ""}
                             </p>
                         )}
@@ -231,8 +231,8 @@ export default function Review() {
                                     />
                                 ))
                             ) : (
-                                <div className="rounded-xl border border-gray-100 bg-white p-8 text-center shadow-sm">
-                                    <p className="text-gray-400 text-sm">
+                                <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center shadow-sm">
+                                    <p className="text-gray-400 dark:text-gray-500 text-sm">
                                         Vous n'avez pas encore laissé d'avis.
                                     </p>
                                 </div>

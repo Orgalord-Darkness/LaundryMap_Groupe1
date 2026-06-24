@@ -10,7 +10,7 @@ export default function MentionsLegales() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Mentions légales</h1>
             <p className="text-muted-foreground mt-1">LaundryMap — Applicables à compter du 1er janvier 2025</p>
-            <p className="text-gray-400 text-sm mt-0.5">Plateforme web – Annuaire de laveries automatiques</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Plateforme web – Annuaire de laveries automatiques</p>
           </div>
           <Button
             type="button"
@@ -279,7 +279,7 @@ export default function MentionsLegales() {
               <p>Email : contact@ec2e.com</p>
               <p>Site institutionnel : https://www.ec2e.com</p>
             </div>
-            <p className="text-xs text-gray-400 mt-4">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
               Document établi dans le cadre du projet scolaire LaundryMap – Bachelor Développeur Web – EC2E – 2025
             </p>
           </section>

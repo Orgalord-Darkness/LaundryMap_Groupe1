@@ -63,13 +63,13 @@ export default function SignalementForm({ reviewId, open, onOpenChange }: Props)
         </DrawerHeader>
         <div className="px-4 pb-6">
           {success ? (
-            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm font-medium">
+            <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 px-4 py-3 rounded-xl text-sm font-medium">
               Signalement envoyé, merci pour votre contribution.
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {apiError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl text-sm">
                   {apiError}
                 </div>
               )}
@@ -77,7 +77,7 @@ export default function SignalementForm({ reviewId, open, onOpenChange }: Props)
                 <label className="block text-sm font-medium text-foreground mb-1">Motif</label>
                 <select
                   {...register("motif", { required: true })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-background"
+                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-background"
                 >
                   <option value="propos injurieux">Propos injurieux</option>
                   <option value="spam">Spam</option>
@@ -88,12 +88,12 @@ export default function SignalementForm({ reviewId, open, onOpenChange }: Props)
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
                   Description{" "}
-                  <span className="text-slate-400 font-normal">(optionnelle)</span>
+                  <span className="text-slate-400 dark:text-slate-500 font-normal">(optionnelle)</span>
                 </label>
                 <textarea
                   {...register("commentaire")}
                   rows={3}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-background resize-none"
+                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-background resize-none"
                   placeholder="Précisez votre signalement..."
                 />
               </div>

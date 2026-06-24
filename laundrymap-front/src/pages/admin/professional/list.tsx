@@ -45,7 +45,7 @@ function ProfessionnalAccountValidationList() {
             </p>
 
             {pros.length === 0 ? (
-                <p className="text-gray-400 mt-10">Aucun compte en attente de validation.</p>
+                <p className="text-gray-400 dark:text-gray-500 mt-10">Aucun compte en attente de validation.</p>
             ) : (
                 <div className="w-full max-w-sm flex flex-col gap-4">
                     {pros.map((pro) => (

@@ -40,7 +40,7 @@ export default function CGU() {
             <div>
               <h1 className="text-3xl font-bold text-foreground">Conditions Générales d'Utilisation</h1>
               <p className="text-muted-foreground mt-1">LaundryMap — Version du 1er janvier 2025</p>
-              <p className="text-gray-400 text-sm mt-0.5">Éditeur : EC2E (Electro Câblage Engineering et Équipement)</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Éditeur : EC2E (Electro Câblage Engineering et Équipement)</p>
             </div>
             <Button
               type="button"
@@ -184,7 +184,7 @@ export default function CGU() {
                 EC2E traite les données personnelles des utilisateurs de LaundryMap conformément au Règlement Général sur la Protection des Données (RGPD – Règlement UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée.
               </p>
               <p className="mb-3">
-                Les informations détaillées relatives à la collecte, au traitement, à la conservation et aux droits des utilisateurs concernant leurs données personnelles sont disponibles dans les <a href="/mentions-legales" className="text-blue-600 underline hover:text-blue-800">Mentions Légales</a> de la plateforme (sections 5 et 6).
+                Les informations détaillées relatives à la collecte, au traitement, à la conservation et aux droits des utilisateurs concernant leurs données personnelles sont disponibles dans les <a href="/mentions-legales" className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300">Mentions Légales</a> de la plateforme (sections 5 et 6).
               </p>
               <p className="text-sm">
                 Pour exercer vos droits (accès, rectification, effacement, portabilité, opposition, limitation) ou pour toute question relative à la protection de vos données, contactez le responsable du traitement : <span className="font-medium">contact@ec2e.com</span>
@@ -262,7 +262,7 @@ export default function CGU() {
               <p className="font-medium text-foreground mb-1">Contact EC2E</p>
               <p>4 boulevard Napoléon 1er, ZAC du Pont des Rayons, 95290 L'Isle-Adam, France</p>
               <p>Tél. : +33 (0)1 83 02 02 02 — Email : contact@ec2e.com</p>
-              <p className="text-xs text-gray-400 mt-2">Document établi dans le cadre du projet scolaire LaundryMap – Bachelor Développeur Web – EC2E – 2025</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Document établi dans le cadre du projet scolaire LaundryMap – Bachelor Développeur Web – EC2E – 2025</p>
             </div>
 
           </div>

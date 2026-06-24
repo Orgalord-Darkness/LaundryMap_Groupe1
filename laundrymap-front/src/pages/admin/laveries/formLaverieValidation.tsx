@@ -218,7 +218,7 @@ export default function LaverieValidation() {
         <div className="flex gap-3 mt-8 mb-12">
             <Button
                 type="button"
-                className="h-10 px-6 bg-red-500 hover:bg-red-600 text-sm"
+                className="h-10 px-6 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-sm"
                 onClick={() => handleAction("REFUSE")}
                 disabled={submitting}
             >
@@ -227,7 +227,7 @@ export default function LaverieValidation() {
 
             <Button
                 type="button"
-                className="h-10 px-6 bg-green-600 hover:bg-green-700 text-sm"
+                className="h-10 px-6 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-sm"
                 onClick={() => handleAction("VALIDE")}
                 disabled={submitting}
             >

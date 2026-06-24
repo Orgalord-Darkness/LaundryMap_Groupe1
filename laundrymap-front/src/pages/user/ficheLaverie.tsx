@@ -102,7 +102,7 @@ const StarRating = ({
         <svg
           key={star}
           className={`${starSize} ${
-            star <= Math.round(rating) ? "text-amber-400" : "text-slate-200"
+            star <= Math.round(rating) ? "text-amber-400" : "text-slate-200 dark:text-slate-700"
           }`}
           fill="currentColor"
           viewBox="0 0 20 20"
@@ -150,7 +150,7 @@ const ReviewCard = ({
   };
  
   return (
-    <div className="bg-card rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 shadow-sm">
+    <div className="scroll-mt-[72px] bg-card rounded-2xl border border-slate-100 dark:border-slate-700 p-4 flex flex-col gap-3 shadow-sm">
  
       {/* ── En-tête du commentaire ── */}
       <div className="flex items-center gap-3">
@@ -161,11 +161,11 @@ const ReviewCard = ({
         />
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-foreground text-sm">{review.author}</p>
-          <p className="text-xs text-slate-400">{review.date}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{review.date}</p>
         </div>
- 
+
         {/* Note */}
-        <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-full">
+        <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-full">
           <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
@@ -232,7 +232,7 @@ const ReviewCard = ({
  
       {/* ── Formulaire de réponse ── */}
       {isProfessional && showReplyForm && (
-        <div className="ml-4 border-l-2 border-blue-200 pl-4 space-y-2">
+        <div className="ml-4 border-l-2 border-blue-200 dark:border-blue-800 pl-4 space-y-2">
           <p className="text-xs font-semibold text-primary">Votre réponse</p>
           <textarea
             value={replyText}
@@ -240,21 +240,21 @@ const ReviewCard = ({
             placeholder="Rédigez votre réponse…"
             rows={3}
             maxLength={255}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
           />
           <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-400">{replyText.length}/255</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">{replyText.length}/255</p>
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowReplyForm(false); setReplyText(reponse ?? ""); }}
-                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-muted-foreground hover:bg-slate-50 cursor-pointer"
+                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-600 text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
               >
                 Annuler
               </button>
               <button
                 onClick={handleSubmitReply}
                 disabled={isSubmitting || replyText.trim().length < 5}
-                className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="px-3 py-1.5 text-sm rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? "Envoi…" : "Publier"}
               </button>
@@ -291,7 +291,7 @@ const StarPicker = ({ value, onChange }: { value: number; onChange: (n: number) 
         >
           <svg
             className={`w-8 h-8 transition-colors ${
-              star <= (hovered || value) ? "text-amber-400" : "text-slate-200"
+              star <= (hovered || value) ? "text-amber-400" : "text-slate-200 dark:text-slate-700"
             }`}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -361,10 +361,10 @@ const ModalAvis = ({
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             aria-label="Fermer"
           >
-            <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -385,29 +385,29 @@ const ModalAvis = ({
             placeholder="Partagez votre expérience avec cette laverie…"
             rows={4}
             maxLength={255}
-            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-300 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
           <div className="flex justify-between items-center">
             {displayError
-              ? <p className="text-xs text-rose-500">{displayError}</p>
+              ? <p className="text-xs text-rose-500 dark:text-rose-400">{displayError}</p>
               : <span />
             }
-            <p className="text-xs text-slate-400 ml-auto">{commentaire.length}/255</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 ml-auto">{commentaire.length}/255</p>
           </div>
         </div>
- 
+
         {/* Actions */}
         <div className="flex gap-3 pt-1">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-slate-200 text-muted-foreground font-semibold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
+            className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-600 text-muted-foreground font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             Annuler
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 py-3 rounded-xl bg-primary hover:bg-blue-900 text-white font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSubmitting ? "Envoi…" : "Publier"}
           </button>
@@ -642,7 +642,7 @@ function FicheLaverie() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-muted">
         <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <div className="w-10 h-10 border-4 border-gray/30 border-t-gray-500 rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-slate-300 dark:border-slate-700 border-t-slate-500 dark:border-t-slate-400 rounded-full animate-spin" />
           <p className="text-sm font-medium opacity-70">Chargement de la laverie…</p>
         </div>
       </div>
@@ -679,7 +679,7 @@ function FicheLaverie() {
       <div className="w-full max-w-5xl mx-auto space-y-6">
 
         {/* ── HERO INFO ── */}
-        <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-5 w-full">
+        <div className="bg-card rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm p-5 w-full">
           <div className="flex items-start gap-4">
             <img
               src={laverie.logo}
@@ -695,11 +695,11 @@ function FicheLaverie() {
                 <button
                   onClick={handleToggleFavori}
                   aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-                  className="flex-shrink-0 p-2 rounded-full bg-slate-50 hover:bg-rose-50 transition-colors mt-0.5 cursor-pointer"
-                > 
+                  className="flex-shrink-0 p-2 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors mt-0.5 cursor-pointer"
+                >
                   <svg
                     className={`w-5 h-5 transition-colors ${
-                      isFavorite ? "text-rose-500 fill-rose-500" : "text-slate-400"
+                      isFavorite ? "text-rose-500 fill-rose-500" : "text-slate-400 dark:text-slate-500"
                     }`}
                     fill={isFavorite ? "currentColor" : "none"}
                     stroke="currentColor"
@@ -721,7 +721,7 @@ function FicheLaverie() {
                 <div className="flex items-center gap-1.5">
                   <StarRating rating={laverie.rating} />
                   <span className="text-sm font-bold text-foreground">{laverie.rating}</span>
-                  <span className="text-xs text-slate-400">({laverie.reviewCount} avis)</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">({laverie.reviewCount} avis)</span>
                 </div>
               </div>
             </div>
@@ -739,32 +739,32 @@ function FicheLaverie() {
               {laverie.images.map((image, index) => (
                 <CarouselItem key={index}>
                   <Card className="m-px">
-                    <CardContent className="flex justify-center p-0">
+                    <CardContent className="flex justify-center p-2">
                       <img
                         src={image}
                         alt={`Photo ${index + 1} de ${laverie.name}`}
-                        className="w-full rounded-lg object-cover max-h-80"
+                        className="w-full aspect-[4/3] rounded-lg object-cover"
                       />
                     </CardContent>
                   </Card>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            <CarouselPrevious className="left-2 lg:-left-12" />
+            <CarouselNext className="right-2 lg:-right-12" />
           </Carousel>
-          <div className="py-2 text-center text-sm text-gray/60">
+          <div className="py-2 text-center text-sm text-slate-500 dark:text-slate-400">
             {current} / {count}
           </div>
         </div>
 
         {/* ── ADRESSE & NAVIGATION ── */}
-        <div className="bg-card rounded-lg border border-slate-100 shadow-sm p-4 w-full space-y-4">
+        <div className="bg-card rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm p-4 w-full space-y-4">
           <h2 className="text-foreground text-lg font-semibold"> Adresse & Itinéraire </h2>
 
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -790,7 +790,7 @@ function FicheLaverie() {
               Google Maps
             </a>
             <a href={wazeUrl} target="_blank" rel=""
-              className="flex items-center justify-center gap-2 bg-sky-400 text-white py-3 px-4 rounded-lg font-semibold text-sm active:scale-95 transition-transform shadow-md"
+              className="flex items-center justify-center gap-2 bg-sky-400 dark:bg-sky-500 text-white py-3 px-4 rounded-lg font-semibold text-sm active:scale-95 transition-transform shadow-md"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 1C5.9 1 1 5.9 1 12s4.9 11 11 11 11-4.9 11-11S18.1 1 12 1zm0 20c-5 0-9-4-9-9s4-9 9-9 9 4 9 9-4 9-9 9zm-1-14v2H9v2h2v6h2V9h2V7h-2V5h-2z" />
@@ -806,7 +806,7 @@ function FicheLaverie() {
         <div className="grid lg:grid-cols-2 grid-cols-1 gap-6">
 
           {/* Services */}
-          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
+          <div className="border border-slate-100 dark:border-slate-700 shadow-sm rounded-md p-6 bg-card">
             <h2 className="text-foreground text-2xl font-semibold mb-3 text-center">Services</h2>
 
             <div className="mt-4">
@@ -852,7 +852,7 @@ function FicheLaverie() {
           </div>
 
           {/* Horaires */}
-          <div className="border border-slate-100 shadow-sm rounded-md p-6 bg-card">
+          <div className="border border-slate-100 dark:border-slate-700 shadow-sm rounded-md p-6 bg-card">
             <h2 className="text-foreground text-2xl font-semibold mb-3 text-center">Horaires</h2>
 
             <div className="mt-4 space-y-3">
@@ -861,12 +861,12 @@ function FicheLaverie() {
                 .map((horaire) => (
                 <div
                   key={horaire.day}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-slate-100 pb-2 last:border-0"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-slate-100 dark:border-slate-700 pb-2 last:border-0"
                 >
                   <h3 className="text-foreground text-sm font-bold w-24">{horaire.day}</h3>
                   <div className="flex gap-4 text-sm text-muted-foreground font-medium">
                     <span>{horaire.openAm} – {horaire.closeAm}</span>
-                    <span className="text-slate-300">|</span>
+                    <span className="text-slate-300 dark:text-slate-600">|</span>
                     <span>{horaire.openPm} – {horaire.closePm}</span>
                   </div>
                 </div>
@@ -912,7 +912,7 @@ function FicheLaverie() {
             {isConnected && !isProfessional && (
               <button
                 onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 bg-primary hover:bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -925,7 +925,7 @@ function FicheLaverie() {
  
           {/* Message de succès */}
           {submitSuccess && (
-            <div className="mb-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm font-medium">
+            <div className="mb-4 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 px-4 py-3 rounded-xl text-sm font-medium">
               <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -949,7 +949,7 @@ function FicheLaverie() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-slate-400 text-sm mb-3">Aucun commentaire pour le moment.</p>
+              <p className="text-slate-400 dark:text-slate-500 text-sm mb-3">Aucun commentaire pour le moment.</p>
               {isConnected && !isProfessional && (
                 <button onClick={() => setShowModal(true)} className="text-primary text-sm font-medium hover:underline cursor-pointer">
                   Soyez le premier à laisser un avis →
