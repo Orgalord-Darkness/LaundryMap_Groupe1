@@ -13,6 +13,7 @@ use App\Repository\ProfessionnelRepository;
 use App\Repository\ProfessionnelHistoriqueInteractionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\SireneService;
+use App\Service\SendEmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use OpenApi\Attributes as OA;
@@ -391,7 +392,8 @@ class ProfessionnelController extends AbstractController
         ProfessionnelRepository $professionnelRepository,
         ProfessionnelHistoriqueInteractionRepository $historiqueRepo,
         AdministrateurRepository $administrateurRepository,
-        UtilisateurRepository $utilisateurRepository, 
+        UtilisateurRepository $utilisateurRepository,
+        SendEmailService $sendEmailService,
     ): JsonResponse {
         $utilisateur = $this->getUser();
 
@@ -437,6 +439,24 @@ class ProfessionnelController extends AbstractController
             return $this->json(['message' => 'Utilisateur professionnel introuvable.'], Response::HTTP_NOT_FOUND);
         }
         $utilisateurRepository->setStatut($utilisateurPro, $statutEnum);
+
+        $statutString = match ($actionEnum) {
+            ActionEnum::VALIDE => 'validé',
+            ActionEnum::REFUSE => 'refusé',
+            ActionEnum::EN_ATTENTE => null,
+        };
+
+        if ($statutString !== null) {
+            $nomComplet = trim($utilisateurPro->getPrenom() . ' ' . $utilisateurPro->getNom());
+            $sendEmailService->sendEmail(
+                $utilisateurPro->getEmail(),
+                'updateStatutProfessionnel.html.twig',
+                'Mise à jour du statut de votre compte professionnel',
+                $statutString,
+                $nomComplet,
+                $motif
+            );
+        }
 
         return $this->json(['message' => 'Statut du compte professionnel mis à jour.'], Response::HTTP_OK);
     }
