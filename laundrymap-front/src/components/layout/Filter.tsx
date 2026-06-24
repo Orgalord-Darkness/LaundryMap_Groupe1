@@ -38,7 +38,7 @@ export function FilterTabs<T extends string>({
                         flex-1 py-2 px-3 rounded-xl text-sm font-medium
                         transition-colors duration-150 whitespace-nowrap
                         ${active === value
-                            ? "bg-primary text-white shadow-sm"
+                            ? "bg-primary text-primary-foreground shadow-sm"
                             : "bg-muted text-muted-foreground hover:bg-muted hover:text-foreground"
                         }
                     `}

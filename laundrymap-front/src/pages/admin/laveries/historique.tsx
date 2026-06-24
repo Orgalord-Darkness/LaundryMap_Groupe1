@@ -154,7 +154,7 @@ export default function HistoriqueLaverie() {
 
                     <button
                         onClick={applyTextFilters}
-                        className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                        className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-90 transition-colors"
                     >
                         {t('histo_filtre_rechercher')}
                     </button>

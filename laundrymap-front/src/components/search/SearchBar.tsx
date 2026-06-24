@@ -248,7 +248,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                     <span className="hidden sm:inline">Filtres</span>
                 </Button>
                 {activeFilterCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+                    <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                         {activeFilterCount}
                     </span>
                 )}
@@ -262,7 +262,7 @@ export function SearchBar({ onSearch, loading, onFilterClick, activeFilterCount,
                 className="rounded-xl px-5 gap-2 shrink-0 py-2.5"
             >
                 {loading ? (
-                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true" />
+                    <span className="w-4 h-4 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full animate-spin" aria-hidden="true" />
                 ) : (
                     <Search className="w-4 h-4" aria-hidden="true" />
                 )}

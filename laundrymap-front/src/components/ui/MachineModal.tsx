@@ -196,7 +196,7 @@ export default function MachineModal({ onAdd }: AddMachineModalProps) {
                 <button type="button" onClick={close} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-muted-foreground border border-border bg-card hover:bg-muted active:scale-95 transition-all duration-150 cursor-pointer">
                   Annuler
                 </button>
-                <button type="button" onClick={handleAdd} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary hover:bg-blue-800 active:scale-95 transition-all duration-150 cursor-pointer">
+                <button type="button" onClick={handleAdd} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:brightness-90 active:scale-95 transition-all duration-150 cursor-pointer">
                   Ajouter
                 </button>
               </div>

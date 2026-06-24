@@ -254,7 +254,7 @@ const ReviewCard = ({
               <button
                 onClick={handleSubmitReply}
                 disabled={isSubmitting || replyText.trim().length < 5}
-                className="px-3 py-1.5 text-sm rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="px-3 py-1.5 text-sm rounded-lg bg-primary hover:brightness-90 text-primary-foreground font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? "Envoi…" : "Publier"}
               </button>
@@ -407,7 +407,7 @@ const ModalAvis = ({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            className="flex-1 py-3 rounded-xl bg-primary hover:brightness-90 text-primary-foreground font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSubmitting ? "Envoi…" : "Publier"}
           </button>
@@ -912,7 +912,7 @@ function FicheLaverie() {
             {isConnected && !isProfessional && (
               <button
                 onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+                className="flex items-center gap-2 bg-primary hover:brightness-90 text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
