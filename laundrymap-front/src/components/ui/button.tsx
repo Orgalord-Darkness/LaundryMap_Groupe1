@@ -49,7 +49,7 @@ const buttonVariants = cva(
         default:
           "font-bold bg-primary text-primary-foreground hover:bg-white/90 hover:border-primary hover:border-3 hover:text-blue-900 aria-expanded:bg-primary/90 aria-expanded:text-primary-foreground",
         outline:
-          "font-bold  border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "font-bold  border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:bg-secondary dark:border-input dark:hover:bg-accent",
         secondary:
           "font-bold  bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
