@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/context/AuthContext";
 import axios from "axios";
 import CardMachine from "@/components/ui/cardMachine";
@@ -131,6 +132,7 @@ const ReviewCard = ({
   onSignal: (id: number) => void;
   onReply: (noteId: number, reponse: string) => Promise<void>;
 }) => {
+  const { t } = useTranslation();
   // État local du formulaire de réponse
   const [showReplyForm, setShowReplyForm]   = useState(false);
   const [replyText,     setReplyText]       = useState(review.reponse ?? "");
@@ -180,7 +182,7 @@ const ReviewCard = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onSignal(review.id)}>
-                Signaler ce commentaire
+                {t('fiche_signaler_commentaire')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -198,7 +200,7 @@ const ReviewCard = ({
         // dans ce fichier (bouton "Afficher l'adresse email", ligne ~807).
         <div className="ml-4 mt-1 border-l-2 border-blue-200 pl-4 bg-blue-50 rounded-r-xl py-3 pr-3">
           <p className="text-xs font-semibold text-blue-700 mb-1">
-            Réponse du propriétaire
+            {t('fiche_avis_reponse_pro')}
             {repondLe && (
               <span className="ml-2 font-normal text-blue-400">· {repondLe}</span>
             )}
@@ -210,7 +212,7 @@ const ReviewCard = ({
               onClick={() => { setReplyText(reponse); setShowReplyForm(true); }}
               className="mt-2 text-xs text-blue-500 hover:underline cursor-pointer"
             >
-              Modifier la réponse
+              {t('fiche_avis_modifier_reponse')}
             </button>
           )}
         </div>
@@ -226,18 +228,18 @@ const ReviewCard = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
           </svg>
-          Répondre à ce commentaire
+          {t('fiche_avis_repondre')}
         </button>
       )}
  
       {/* ── Formulaire de réponse ── */}
       {isProfessional && showReplyForm && (
         <div className="ml-4 border-l-2 border-blue-200 dark:border-blue-800 pl-4 space-y-2">
-          <p className="text-xs font-semibold text-primary">Votre réponse</p>
+          <p className="text-xs font-semibold text-primary">{t('fiche_avis_votre_reponse')}</p>
           <textarea
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            placeholder="Rédigez votre réponse…"
+            placeholder={t('fiche_avis_reponse_placeholder')}
             rows={3}
             maxLength={255}
             className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
@@ -249,14 +251,14 @@ const ReviewCard = ({
                 onClick={() => { setShowReplyForm(false); setReplyText(reponse ?? ""); }}
                 className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-600 text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
               >
-                Annuler
+                {t('annuler')}
               </button>
               <button
                 onClick={handleSubmitReply}
                 disabled={isSubmitting || replyText.trim().length < 5}
                 className="px-3 py-1.5 text-sm rounded-lg bg-primary hover:brightness-90 text-primary-foreground font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isSubmitting ? "Envoi…" : "Publier"}
+                {isSubmitting ? t('fiche_avis_envoi') : t('fiche_avis_publier')}
               </button>
             </div>
           </div>
@@ -276,6 +278,7 @@ const ReviewCard = ({
 
 /** Sélecteur d'étoiles interactif pour le formulaire d'avis */
 const StarPicker = ({ value, onChange }: { value: number; onChange: (n: number) => void }) => {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState(0);
   return (
     <div className="flex items-center gap-1">
@@ -287,7 +290,7 @@ const StarPicker = ({ value, onChange }: { value: number; onChange: (n: number) 
           onMouseEnter={() => setHovered(star)}
           onMouseLeave={() => setHovered(0)}
           className="focus:outline-none"
-          aria-label={`${star} étoile${star > 1 ? "s" : ""}`}
+          aria-label={`${star} ${star > 1 ? t('fiche_avis_etoiles') : t('fiche_avis_etoile')}`}
         >
           <svg
             className={`w-8 h-8 transition-colors ${
@@ -302,7 +305,7 @@ const StarPicker = ({ value, onChange }: { value: number; onChange: (n: number) 
       ))}
       {value > 0 && (
         <span className="ml-2 text-sm font-semibold text-amber-500">
-          {["", "Mauvais", "Passable", "Bien", "Très bien", "Excellent"][value]}
+          {["", t('avis_note_mauvais'), t('avis_note_passable'), t('avis_note_bien'), t('avis_note_tres_bien'), t('avis_note_excellent')][value]}
         </span>
       )}
     </div>
@@ -325,18 +328,19 @@ const ModalAvis = ({
   existingComment?: string;
   apiError?: string | null;
 }) => {
+  const { t } = useTranslation();
   const [note, setNote]           = useState(existingRating);
   const [commentaire, setCommentaire] = useState(existingComment);
   const [formError, setFormError] = useState<string | null>(null);
   const displayError = apiError ?? formError;
- 
+
   const handleSubmit = () => {
     if (note === 0) {
-      setFormError("Veuillez sélectionner une note.");
+      setFormError(t('avis_erreur_note_requise'));
       return;
     }
     if (commentaire.trim().length < 10) {
-      setFormError("Le commentaire doit faire au moins 10 caractères.");
+      setFormError(t('avis_erreur_commentaire_court'));
       return;
     }
     setFormError(null);
@@ -357,12 +361,12 @@ const ModalAvis = ({
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground">
-            {existingRating > 0 ? "Modifier mon avis" : "Laisser un avis"}
+            {existingRating > 0 ? t('avis_modifier') : t('avis_laisser')}
           </h2>
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            aria-label="Fermer"
+            aria-label={t('fermer')}
           >
             <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -372,17 +376,17 @@ const ModalAvis = ({
  
         {/* Sélecteur d'étoiles */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-foreground">Votre note *</label>
+          <label className="text-sm font-semibold text-foreground">{t('avis_label_note')}</label>
           <StarPicker value={note} onChange={setNote} />
         </div>
  
         {/* Commentaire */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-foreground">Votre commentaire *</label>
+          <label className="text-sm font-semibold text-foreground">{t('avis_label_commentaire')}</label>
           <textarea
             value={commentaire}
             onChange={(e) => setCommentaire(e.target.value)}
-            placeholder="Partagez votre expérience avec cette laverie…"
+            placeholder={t('avis_placeholder_commentaire')}
             rows={4}
             maxLength={255}
             className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-300 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -402,14 +406,14 @@ const ModalAvis = ({
             onClick={onClose}
             className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-600 text-muted-foreground font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
-            Annuler
+            {t('annuler')}
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
             className="flex-1 py-3 rounded-xl bg-primary hover:brightness-90 text-primary-foreground font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
-            {isSubmitting ? "Envoi…" : "Publier"}
+            {isSubmitting ? t('fiche_avis_envoi') : t('fiche_avis_publier')}
           </button>
         </div>
       </div>
@@ -426,8 +430,19 @@ const JOURS_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'
 
 // COMPOSANT PRINCIPAL
 
+const DAY_TRANSLATION_KEYS: Record<string, string> = {
+  Lundi: 'jour_lundi',
+  Mardi: 'jour_mardi',
+  Mercredi: 'jour_mercredi',
+  Jeudi: 'jour_jeudi',
+  Vendredi: 'jour_vendredi',
+  Samedi: 'jour_samedi',
+  Dimanche: 'jour_dimanche',
+};
+
 function FicheLaverie() {
 
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
 
   const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/fiche-laverie/${id}`;
@@ -603,7 +618,7 @@ function FicheLaverie() {
         // Réinitialiser le message de succès après 3s
         setTimeout(() => setSubmitSuccess(false), 3000);
       })
-      .catch(() => setSubmitError("Une erreur réseau est survenue."))
+      .catch(() => setSubmitError(t('erreur_reseau')))
       .finally(() => setIsSubmitting(false));
   };
 
@@ -643,7 +658,7 @@ function FicheLaverie() {
       <div className="flex items-center justify-center min-h-screen bg-muted">
         <div className="flex flex-col items-center gap-4 text-muted-foreground">
           <div className="w-10 h-10 border-4 border-slate-300 dark:border-slate-700 border-t-slate-500 dark:border-t-slate-400 rounded-full animate-spin" />
-          <p className="text-sm font-medium opacity-70">Chargement de la laverie…</p>
+          <p className="text-sm font-medium opacity-70">{t('fiche_chargement')}</p>
         </div>
       </div>
     );
@@ -653,7 +668,7 @@ function FicheLaverie() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-muted">
         <div className="bg-card rounded-2xl p-8 max-w-sm mx-4 text-center shadow-xl">
-          <h2 className="text-foreground font-bold text-lg mb-2">Une erreur est survenue</h2>
+          <h2 className="text-foreground font-bold text-lg mb-2">{t('fiche_erreur_titre')}</h2>
           <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>
@@ -683,7 +698,7 @@ function FicheLaverie() {
           <div className="flex items-start gap-4">
             <img
               src={laverie.logo}
-              alt="Logo laverie"
+              alt={t('fiche_logo_alt')}
               className="w-16 h-16 rounded-lg object-cover shadow-md flex-shrink-0"
             />
             <div className="flex-1 min-w-0">
@@ -694,7 +709,7 @@ function FicheLaverie() {
                 {isConnected && (
                 <button
                   onClick={handleToggleFavori}
-                  aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+                  aria-label={isFavorite ? t('favoris_retirer') : t('favoris_ajouter')}
                   className="flex-shrink-0 p-2 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors mt-0.5 cursor-pointer"
                 >
                   <svg
@@ -721,7 +736,7 @@ function FicheLaverie() {
                 <div className="flex items-center gap-1.5">
                   <StarRating rating={laverie.rating} />
                   <span className="text-sm font-bold text-foreground">{laverie.rating}</span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">({laverie.reviewCount} avis)</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{t('avis_count', { count: laverie.reviewCount })}</span>
                 </div>
               </div>
             </div>
@@ -742,7 +757,7 @@ function FicheLaverie() {
                     <CardContent className="flex justify-center p-2">
                       <img
                         src={image}
-                        alt={`Photo ${index + 1} de ${laverie.name}`}
+                        alt={t('fiche_photo_alt', { n: index + 1, name: laverie.name })}
                         className="w-full aspect-[4/3] rounded-lg object-cover"
                       />
                     </CardContent>
@@ -760,7 +775,7 @@ function FicheLaverie() {
 
         {/* ── ADRESSE & NAVIGATION ── */}
         <div className="bg-card rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm p-4 w-full space-y-4">
-          <h2 className="text-foreground text-lg font-semibold"> Adresse & Itinéraire </h2>
+          <h2 className="text-foreground text-lg font-semibold">{t('fiche_adresse_titre')}</h2>
 
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
@@ -807,10 +822,10 @@ function FicheLaverie() {
 
           {/* Services */}
           <div className="border border-slate-100 dark:border-slate-700 shadow-sm rounded-md p-6 bg-card">
-            <h2 className="text-foreground text-2xl font-semibold mb-3 text-center">Services</h2>
+            <h2 className="text-foreground text-2xl font-semibold mb-3 text-center">{t('fiche_services_titre')}</h2>
 
             <div className="mt-4">
-              <h3 className="text-foreground text-md font-semibold mb-3">Équipements disponibles</h3>
+              <h3 className="text-foreground text-md font-semibold mb-3">{t('laundry_form_equipments_title')}</h3>
 
               <div className="flex flex-wrap gap-3">
                 {laverie.services.map((service) => (
@@ -822,7 +837,7 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h3 className="text-foreground text-md font-semibold mb-3">Moyens de paiement</h3>
+              <h3 className="text-foreground text-md font-semibold mb-3">{t('edit_laundry_payments_title')}</h3>
               <div className="flex flex-wrap gap-3">
                 {laverie.paymentMethods.map((method) => (
                   <div key={method} className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium">
@@ -833,17 +848,17 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h3 className="text-foreground text-md font-semibold mb-3">Informations</h3>
+              <h3 className="text-foreground text-md font-semibold mb-3">{t('fiche_informations_titre')}</h3>
               {laverie.email && (
                 <div className="flex items-center gap-2 text-[15px] text-muted-foreground font-medium">
-                  <span>Email :</span>
+                  <span>{t('fiche_email_label')}</span>
                   {emailVisible ? (
                     <a href={`mailto:${laverie.email}`} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors" >
                       {laverie.email}
                     </a>
                   ) : (
                     <button onClick={() => setEmailVisible(true)} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer" >
-                      Afficher l'adresse email
+                      {t('fiche_afficher_email')}
                     </button>
                   )}
                 </div>
@@ -853,7 +868,7 @@ function FicheLaverie() {
 
           {/* Horaires */}
           <div className="border border-slate-100 dark:border-slate-700 shadow-sm rounded-md p-6 bg-card">
-            <h2 className="text-foreground text-2xl font-semibold mb-3 text-center">Horaires</h2>
+            <h2 className="text-foreground text-2xl font-semibold mb-3 text-center">{t('fiche_horaires_titre')}</h2>
 
             <div className="mt-4 space-y-3">
               {[...laverie.horaires]
@@ -863,7 +878,7 @@ function FicheLaverie() {
                   key={horaire.day}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-slate-100 dark:border-slate-700 pb-2 last:border-0"
                 >
-                  <h3 className="text-foreground text-sm font-bold w-24">{horaire.day}</h3>
+                  <h3 className="text-foreground text-sm font-bold w-24">{t(DAY_TRANSLATION_KEYS[horaire.day] ?? horaire.day)}</h3>
                   <div className="flex gap-4 text-sm text-muted-foreground font-medium">
                     <span>{horaire.openAm} – {horaire.closeAm}</span>
                     <span className="text-slate-300 dark:text-slate-600">|</span>
@@ -880,7 +895,7 @@ function FicheLaverie() {
         <div className="grid lg:grid-cols-1 sm:grid-cols-1 gap-6 mt-12 mx-auto w-full">
 
           <div className="border border-border shadow-sm rounded-md bg-card p-6">
-            <h2 className="text-foreground text-2xl font-semibold mb-4 text-center">Liste des machines</h2>
+            <h2 className="text-foreground text-2xl font-semibold mb-4 text-center">{t('fiche_machines_titre')}</h2>
 
             {/* Liste Machines pour une laverie  */} 
             <div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-2">
@@ -907,7 +922,7 @@ function FicheLaverie() {
  
           
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-foreground text-2xl font-semibold">Commentaires</h2>
+            <h2 className="text-foreground text-2xl font-semibold">{t('fiche_commentaires_titre')}</h2>
 
             {isConnected && !isProfessional && (
               <button
@@ -917,7 +932,7 @@ function FicheLaverie() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                {userReview ? "Modifier mon avis" : "Laisser un avis"}
+                {userReview ? t('avis_modifier') : t('avis_laisser')}
               </button>
             )}
 
@@ -929,7 +944,7 @@ function FicheLaverie() {
               <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              Votre avis a bien été publié, merci !
+              {t('avis_succes_publication')}
             </div>
           )}
  
@@ -949,10 +964,10 @@ function FicheLaverie() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-slate-400 dark:text-slate-500 text-sm mb-3">Aucun commentaire pour le moment.</p>
+              <p className="text-slate-400 dark:text-slate-500 text-sm mb-3">{t('avis_aucun')}</p>
               {isConnected && !isProfessional && (
                 <button onClick={() => setShowModal(true)} className="text-primary text-sm font-medium hover:underline cursor-pointer">
-                  Soyez le premier à laisser un avis →
+                  {t('avis_premier_cta')}
                 </button>
               )}
             </div>

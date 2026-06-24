@@ -96,7 +96,7 @@ export default function MonProfi() {
                 if (!(donnees.mot_de_passe_actuel || "").trim()) {
                     setError("mot_de_passe_actuel", {
                         type: "manual",
-                        message: "Le mot de passe actuel est requis pour modifier le mot de passe.",
+                        message: t("erreur_mdp_actuel_requis"),
                     })
                     return
                 }
@@ -107,7 +107,7 @@ export default function MonProfi() {
                 if (donnees.mot_de_passe !== donnees.confirmation_mot_de_passe) {
                     setError("confirmation_mot_de_passe", {
                         type: "server",
-                        message: "La confirmation du mot de passe ne correspond pas.",
+                        message: t("erreur_confirmation_mdp"),
                     })
                     return
                 }
@@ -170,7 +170,7 @@ export default function MonProfi() {
 
             setError("nom", {
                 type: "server",
-                message: "Impossible de modifier vos informations. Réessayez plus tard.",
+                message: t("erreur_modif_infos"),
             })
         }
     }
@@ -179,8 +179,8 @@ export default function MonProfi() {
             <div className="bg-card px-4 pt-6 pb-0">
                 <div className="max-w-lg mx-auto">
                     <div className="text-center mb-4">
-                        <h1 className="text-xl font-bold text-foreground">Espace personnel</h1>
-                        <p className="text-sm text-muted-foreground mt-0.5">Mon profil</p>
+                        <h1 className="text-xl font-bold text-foreground">{t('espace_personnel')}</h1>
+                        <p className="text-sm text-muted-foreground mt-0.5">{t('profil_titre')}</p>
                     </div>
                     <PersonalSpaceNavbar active="Profil" onChange={handleTabChange} />
                 </div>
@@ -205,7 +205,7 @@ export default function MonProfi() {
                     )}
 
                     <div className="flex flex-col">
-                        <label htmlFor="prenom" className="text-sm font-medium mb-1">Prénom</label>
+                        <label htmlFor="prenom" className="text-sm font-medium mb-1">{t('firstname')}</label>
                         <Input
                             id="prenom"
                             type="text"
@@ -216,7 +216,7 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label htmlFor="nom" className="text-sm font-medium mb-1">Nom</label>
+                        <label htmlFor="nom" className="text-sm font-medium mb-1">{t('lastname')}</label>
                         <Input
                             id="nom"
                             type="text"
@@ -227,7 +227,7 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label htmlFor="email" className="text-sm font-medium mb-1">Email</label>
+                        <label htmlFor="email" className="text-sm font-medium mb-1">{t('email')}</label>
                         <Input
                             id="email"
                             type="email"
@@ -237,7 +237,7 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label htmlFor="mot_de_passe_actuel" className="text-sm font-medium mb-1">Mot de passe actuel</label>
+                        <label htmlFor="mot_de_passe_actuel" className="text-sm font-medium mb-1">{t('label_mot_de_passe_actuel')}</label>
                         <Input
                             id="mot_de_passe_actuel"
                             type="password"
@@ -248,10 +248,10 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label htmlFor="mot_de_passe" className="text-sm font-medium mb-1">Nouveau Mot de passe</label>
+                        <label htmlFor="mot_de_passe" className="text-sm font-medium mb-1">{t('label_nouveau_mot_de_passe')}</label>
                         <p className="text-xs text-muted-foreground mt-1">
-                            Longueur minimal : 8 caractères<br />
-                            Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial
+                            {t('mdp_regle_longueur')}<br />
+                            {t('mdp_regle_complexite')}
                         </p>
                         <Input
                             id="mot_de_passe"
@@ -263,7 +263,7 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label htmlFor="confirmation_mot_de_passe" className="text-sm font-medium mb-1">Confirmation du nouveau mot de passe</label>
+                        <label htmlFor="confirmation_mot_de_passe" className="text-sm font-medium mb-1">{t('profil_confirmation_mdp_label')}</label>
                         <Input
                             id="confirmation_mot_de_passe"
                             type="password"
@@ -274,7 +274,7 @@ export default function MonProfi() {
                     </div>
 
                     <Button type="submit" className="mt-4 w-full">
-                        Confirmation
+                        {t('confirmer')}
                     </Button>
 
                     {/* <p className="text-center text-sm text-foreground underline font-medium mt-2 cursor-pointer">
