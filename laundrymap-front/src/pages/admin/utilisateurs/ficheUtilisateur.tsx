@@ -61,11 +61,11 @@ function deriveStatus(entry: HistoryEntry, isLast: boolean, isCurrentlyBlocked: 
 
 function getInitialsColor(initials: string): string {
   const colors = [
-    "bg-emerald-100 text-emerald-700",
-    "bg-blue-100 text-blue-700",
-    "bg-amber-100 text-amber-700",
-    "bg-rose-100 text-rose-700",
-    "bg-violet-100 text-violet-700",
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+    "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
+    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
   ]
   return colors[initials.charCodeAt(0) % colors.length]
 }
@@ -252,7 +252,7 @@ export function FicheUtilisateur() {
                         {signalement.total_signalements} signalement{signalement.total_signalements > 1 ? "s" : ""} cumulé{signalement.total_signalements > 1 ? "s" : ""}
                       </Badge>
                       {signalement.depasse_seuil_bannissement && (
-                        <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 text-xs gap-1">
+                        <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-400 text-xs gap-1">
                           <AlertTriangle className="h-3 w-3" aria-hidden="true" />
                           {t('moderation_a_examiner')}
                         </Badge>
@@ -266,10 +266,10 @@ export function FicheUtilisateur() {
                     const isLong     = c.commentaire.length > 120
                     const isExpanded = expandedNotes.has(c.note_id)
                     const severity   = c.nb_signalements >= 10
-                      ? "bg-red-100 text-red-700 border-red-200"
+                      ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800"
                       : c.nb_signalements >= 5
-                      ? "bg-orange-100 text-orange-700 border-orange-200"
-                      : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                      ? "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800"
+                      : "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800"
 
                     return (
                       <div key={c.note_id} className="py-3 px-6 space-y-1.5">

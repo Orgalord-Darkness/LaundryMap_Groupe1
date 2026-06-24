@@ -53,8 +53,16 @@ createRoot(document.getElementById('root')!).render(
                     <PreferencesProvider>
                         <AuthProvider>
                             <div className="min-h-screen flex flex-col">
+                                <a
+                                    href="#main-content"
+                                    className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[1000] focus:bg-background focus:text-foreground focus:px-4 focus:py-2 focus:rounded-md focus:outline focus:outline-2 focus:outline-primary"
+                                >
+                                    Aller au contenu
+                                </a>
                                 <Header />
+                                <div id="main-content">
                                     <Router />
+                                </div>
                                 <Footer />
                             </div>
                         </AuthProvider>

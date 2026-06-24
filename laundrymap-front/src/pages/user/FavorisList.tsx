@@ -66,7 +66,7 @@ function FavoriCard({
 
     const statutStyle: Record<FavoriLaverie["statut"], string> = {
         OUVERT: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-        FERME: "bg-red-100 dark:bg-red-900/30 text-red-700",
+        FERME: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
         INCONNU: "bg-muted text-muted-foreground",
     }
 
@@ -82,7 +82,7 @@ function FavoriCard({
                     />
                 ) : (
                     <div className="h-44 w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-                        <svg className="w-14 h-14 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-14 h-14 text-blue-300 dark:text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                                 d="M4 4h16v2H4V4zm0 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm4 4v4m4-4v4" />
                         </svg>
@@ -147,7 +147,7 @@ function EmptyFavoris() {
     return (
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
             <div className="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
-                <svg className="w-10 h-10 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-10 h-10 text-red-300 dark:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                         d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                 </svg>

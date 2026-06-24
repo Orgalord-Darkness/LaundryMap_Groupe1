@@ -205,26 +205,31 @@ export default function MonProfi() {
                     )}
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Prénom</label>
+                        <label htmlFor="prenom" className="text-sm font-medium mb-1">Prénom</label>
                         <Input
+                            id="prenom"
                             type="text"
+                            aria-describedby={errors.prenom ? "prenom-error" : undefined}
                             {...register("prenom", { required: false })}
                         />
-                        {errors.prenom && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.prenom.message}</p>}
+                        {errors.prenom && <p id="prenom-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.prenom.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Nom</label>
+                        <label htmlFor="nom" className="text-sm font-medium mb-1">Nom</label>
                         <Input
+                            id="nom"
                             type="text"
+                            aria-describedby={errors.nom ? "nom-error" : undefined}
                             {...register("nom", { required: false })}
                         />
-                        {errors.nom && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.nom.message}</p>}
+                        {errors.nom && <p id="nom-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.nom.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Email</label>
+                        <label htmlFor="email" className="text-sm font-medium mb-1">Email</label>
                         <Input
+                            id="email"
                             type="email"
                             {...register("email", { required: false })}
                             disabled={true}
@@ -232,34 +237,40 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Mot de passe actuel</label>
+                        <label htmlFor="mot_de_passe_actuel" className="text-sm font-medium mb-1">Mot de passe actuel</label>
                         <Input
+                            id="mot_de_passe_actuel"
                             type="password"
+                            aria-describedby={errors.mot_de_passe_actuel ? "mot_de_passe_actuel-error" : undefined}
                             {...register("mot_de_passe_actuel", { required: false })}
                         />
-                        {errors.mot_de_passe_actuel && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.mot_de_passe_actuel.message}</p>}
+                        {errors.mot_de_passe_actuel && <p id="mot_de_passe_actuel-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.mot_de_passe_actuel.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Nouveau Mot de passe</label>
+                        <label htmlFor="mot_de_passe" className="text-sm font-medium mb-1">Nouveau Mot de passe</label>
                         <p className="text-xs text-muted-foreground mt-1">
                             Longueur minimal : 8 caractères<br />
                             Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial
                         </p>
                         <Input
+                            id="mot_de_passe"
                             type="password"
+                            aria-describedby={errors.mot_de_passe ? "mot_de_passe-error" : undefined}
                             {...register("mot_de_passe", { required: false })}
                         />
-                        {errors.mot_de_passe && <p className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">{errors.mot_de_passe.message}<br /></p>}
+                        {errors.mot_de_passe && <p id="mot_de_passe-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">{errors.mot_de_passe.message}<br /></p>}
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Confirmation du nouveau mot de passe</label>
+                        <label htmlFor="confirmation_mot_de_passe" className="text-sm font-medium mb-1">Confirmation du nouveau mot de passe</label>
                         <Input
+                            id="confirmation_mot_de_passe"
                             type="password"
+                            aria-describedby={errors.confirmation_mot_de_passe ? "confirmation_mot_de_passe-error" : undefined}
                             {...register("confirmation_mot_de_passe", { required: false })}
                         />
-                        {errors.confirmation_mot_de_passe && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.confirmation_mot_de_passe.message}</p>}
+                        {errors.confirmation_mot_de_passe && <p id="confirmation_mot_de_passe-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.confirmation_mot_de_passe.message}</p>}
                     </div>
 
                     <Button type="submit" className="mt-4 w-full">

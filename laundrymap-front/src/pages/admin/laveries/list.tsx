@@ -171,7 +171,7 @@ function ContextMenu({
                     role="menuitem"
                     onClick={onClose}
                     className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-background ${
-                        danger ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:text-red-400" : "text-foreground"
+                        danger ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300" : "text-foreground"
                     }`}
                 >
                     {icon}
@@ -214,7 +214,7 @@ export function PaginationBar({
 
             {pages.map((p, i) =>
                 p === "…" ? (
-                    <span key={`e-${i}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">…</span>
+                    <span key={`e-${i}`} className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">…</span>
                 ) : (
                     <button
                         key={p}
@@ -258,7 +258,7 @@ function LaverieCard({
                     />
                 ) : (
                     <div className="h-44 w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-                        <svg className="w-14 h-14 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-14 h-14 text-blue-300 dark:text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                                 d="M4 4h16v2H4V4zm0 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm4 4v4m4-4v4" />
                         </svg>
@@ -289,7 +289,7 @@ function LaverieCard({
                     </Button>
 
                     <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
                             Soumis il y a {laverie.soumis_il_y_a}
                         </span>
 
@@ -300,7 +300,7 @@ function LaverieCard({
                                 aria-label="Plus d'actions"
                                 aria-haspopup="true"
                                 aria-expanded={menuOpen}
-                                className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-muted hover:text-muted-foreground transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 dark:text-gray-500 hover:bg-muted hover:text-muted-foreground transition-colors"
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <circle cx="12" cy="5"  r="1.5" />
@@ -389,7 +389,7 @@ export default function LaveriesValidation() {
                 )}
 
                 {!loading && !error && laveries.length === 0 && (
-                    <p className="text-center text-gray-400 py-12 text-sm">
+                    <p className="text-center text-gray-400 dark:text-gray-500 py-12 text-sm">
                         Aucune laverie dans cette catégorie.
                     </p>
                 )}

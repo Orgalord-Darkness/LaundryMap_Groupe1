@@ -531,7 +531,7 @@ export default function FormEditLaverie() {
                 <h2 className="font-semibold text-lg text-center mb-2">{t('edit_laundry_machines_title')}</h2>
 
                 {selectedMachines.length === 0 && (
-                    <p className="text-gray-400 text-sm text-center mb-3">{t('edit_laundry_no_equipment')}</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-sm text-center mb-3">{t('edit_laundry_no_equipment')}</p>
                 )}
 
                 {selectedMachines.map((machine, index) => (

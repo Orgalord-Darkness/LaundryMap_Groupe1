@@ -137,7 +137,17 @@ export default function Connexion() {
 
                                 <Field>
                                     <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
-                                    <Input id="email" type="email" placeholder="email@example.com" required {...register("email", { required: true })}/>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="email@example.com"
+                                        required
+                                        aria-describedby={errors.email ? "email-error" : undefined}
+                                        {...register("email", { required: true })}
+                                    />
+                                    {errors.email && (
+                                        <p id="email-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>
+                                    )}
                                 </Field>
 
                                 <Field>
@@ -160,11 +170,8 @@ export default function Connexion() {
                                         </button>
                                     </div>
 
-                                    {errors.email && (
-                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>
-                                    )}
                                     {errors.mot_de_passe && (
-                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">
+                                        <p id="mot_de_passe-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">
                                             {errors.mot_de_passe.message}
                                         </p>
                                     )}

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export default function MentionsLegales() {
@@ -9,7 +10,7 @@ export default function MentionsLegales() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Mentions légales</h1>
             <p className="text-muted-foreground mt-1">LaundryMap — Applicables à compter du 1er janvier 2025</p>
-            <p className="text-gray-400 text-sm mt-0.5">Plateforme web – Annuaire de laveries automatiques</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Plateforme web – Annuaire de laveries automatiques</p>
           </div>
           <Button
             type="button"
@@ -256,7 +257,7 @@ export default function MentionsLegales() {
           <section>
             <h2 className="text-xl font-bold text-foreground mb-4">10. Accessibilité numérique</h2>
             <p>
-              EC2E s'engage à rendre LaundryMap accessible à toutes et à tous, y compris aux personnes en situation de handicap, conformément au Référentiel Général d'Amélioration de l'Accessibilité (RGAA) et aux normes WCAG 2.1. Pour signaler un problème d'accessibilité : <span className="font-medium">contact@ec2e.com</span>
+              Le détail des mesures d'accessibilité mises en place sur LaundryMap fait l'objet d'une page dédiée : <Link to="/accessibilite" className="font-medium underline">Accessibilité</Link>.
             </p>
           </section>
 
@@ -278,7 +279,7 @@ export default function MentionsLegales() {
               <p>Email : contact@ec2e.com</p>
               <p>Site institutionnel : https://www.ec2e.com</p>
             </div>
-            <p className="text-xs text-gray-400 mt-4">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
               Document établi dans le cadre du projet scolaire LaundryMap – Bachelor Développeur Web – EC2E – 2025
             </p>
           </section>

@@ -61,7 +61,7 @@ export default function CardMachine({
         {/* Badge statut temps réel (Wi-Line) */}
         <span
           className={`
-            inline-block w-fit mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide
+            inline-block w-fit max-w-full truncate mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide
             ${statusText
               ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
               : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"

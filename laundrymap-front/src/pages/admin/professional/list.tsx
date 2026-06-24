@@ -45,7 +45,7 @@ function ProfessionnalAccountValidationList() {
             </p>
 
             {pros.length === 0 ? (
-                <p className="text-gray-400 mt-10">Aucun compte en attente de validation.</p>
+                <p className="text-gray-400 dark:text-gray-500 mt-10">Aucun compte en attente de validation.</p>
             ) : (
                 <div className="w-full max-w-sm flex flex-col gap-4">
                     {pros.map((pro) => (
@@ -73,7 +73,7 @@ function ProfessionnalAccountValidationList() {
                             <button
                                 type="button"
                                 onClick={() => navigate(`/admin/professionnel/${pro.id}`)}
-                                className="mt-5 px-5 py-2 rounded-md text-white text-sm font-medium bg-primary hover:bg-secondary hover:text-primary hover:border-1 hover:border-primary cursor-pointer"
+                                className="mt-5 px-5 py-2 rounded-md text-primary-foreground text-sm font-medium bg-primary hover:brightness-90 cursor-pointer"
                             >
                                 Examiner
                             </button>

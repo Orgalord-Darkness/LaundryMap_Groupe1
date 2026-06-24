@@ -195,6 +195,7 @@ export default function HomePage() {
 
     return (
         <main className="min-h-screen bg-background">
+            <h1 className="sr-only">LaundryMap — Recherche de laveries automatiques</h1>
             <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col gap-5">
 
                 {/* Barre de recherche + bouton filtres — z-10 pour passer au-dessus de la carte */}

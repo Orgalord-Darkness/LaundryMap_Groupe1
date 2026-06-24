@@ -199,7 +199,7 @@ export default function AddMachineModal({ onAdd }: EquipementFormDataProps) {
 
               <div className="flex gap-3"> 
                 <button type="button" onClick={close} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-muted-foreground border border-border bg-card hover:bg-muted active:scale-95 transition-all duration-150 cursor-pointer">Annuler</button>
-                <button type="submit" className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary hover:bg-blue-800 active:scale-95 transition-all duration-150 cursor-pointer">Ajouter</button> 
+                <button type="submit" className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:brightness-90 active:scale-95 transition-all duration-150 cursor-pointer">Ajouter</button>
               </div>
 
             </form>

@@ -146,7 +146,7 @@ function ProDashboard() {
                             <span className="text-muted-foreground ml-2">{laundry.avis} avis</span>
                           </>
                         ) : (
-                          <span className="text-gray-400 italic">Aucun avis</span>
+                          <span className="text-gray-400 dark:text-gray-500 italic">Aucun avis</span>
                         )}
                       </CardDescription>
                     </CardHeader>

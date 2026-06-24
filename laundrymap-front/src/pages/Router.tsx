@@ -60,6 +60,7 @@ import { FavorisList } from "./user/FavorisList"
 import MesPreferences from "./user/preferences";
 import FicheLaverie from "./user/ficheLaverie";
 import MentionsLegales from "./legal/MentionsLegales";
+import Accessibilite from "./legal/Accessibilite";
 import CGU from "./legal/CGU";
 import Review from "./user/review"
 import { ModerationPage } from "./admin/moderation/commentaire";
@@ -129,6 +130,7 @@ export default function Router() {
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/user/fiche-laverie/:id" element={ <FicheLaverie /> } />
       <Route path="/mentions-legales" element={<MentionsLegales />} />
+      <Route path="/accessibilite" element={<Accessibilite />} />
       <Route path="/cgu" element={<CGU />} />
       
       <Route path="/user/favoris" element={
