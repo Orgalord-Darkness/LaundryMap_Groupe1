@@ -8,6 +8,7 @@ import GoogleLoginButton from "@/components/utils/google"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field"
+import { Eye, EyeOff } from "lucide-react"
 import { Ec2eLogo } from "@/components/layout/Ec2eLogo"
 
 
@@ -22,6 +23,7 @@ export default function Connexion() {
     const { t } = useTranslation()
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
     
     useEffect(() => {
         if (successMessage) {
@@ -146,7 +148,17 @@ export default function Connexion() {
                                         </a>
                                     </div>
 
-                                    <Input id="password" type="password" required {...register("mot_de_passe", { required: true })}/>
+                                    <div className="relative">
+                                        <Input id="password" type={showPassword ? "text" : "password"}  required {...register("mot_de_passe", { required: true })} className="pr-10" />
+
+                                        {/* Bouton œil positionné */}
+                                        <button type="button"  onClick={() => setShowPassword((prev) => !prev)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
 
                                     {errors.email && (
                                         <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>

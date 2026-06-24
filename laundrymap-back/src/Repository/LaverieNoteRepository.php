@@ -71,4 +71,16 @@ class LaverieNoteRepository extends ServiceEntityRepository
     }
 
 
+    // Compte les avis (LaverieNote) ayant au moins un signalement.
+    // DISTINCT évite de compter plusieurs fois un avis avec plusieurs signalements.
+    public function countReported(): int
+    {
+        return (int) $this->createQueryBuilder('ln')
+            ->select('COUNT(DISTINCT ln.id)')
+            ->join('ln.signalements', 's')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+
 }
