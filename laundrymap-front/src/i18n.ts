@@ -187,6 +187,7 @@ const resources = {
       histo_filtre_laverie_placeholder: 'Nom de la laverie…',
       histo_filtre_motif_placeholder: 'Motif…',
       histo_filtre_rechercher: 'Filtrer',
+      histo_filtre_appliquer: 'Appliquer',
     },
   },
   en: {
@@ -369,6 +370,7 @@ const resources = {
       histo_filtre_laverie_placeholder: 'Laundry name…',
       histo_filtre_motif_placeholder: 'Reason…',
       histo_filtre_rechercher: 'Filter',
+      histo_filtre_appliquer: 'Apply',
     },
   },
 };

@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { fetchHistoriquePage } from "@/components/utils/historiqueService"
 import type { HistoriqueEntry, HistoriqueFilters } from "@/components/utils/historiqueService"
 import { PaginationBar } from "./list"
+import { HistoriqueFilterModal, type FilterFieldConfig } from "@/components/layout/historique/HistoriqueFilterModal"
+import { HistoriqueActiveFilters } from "@/components/layout/historique/HistoriqueActiveFilters"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,10 +33,7 @@ export default function HistoriqueLaverie() {
     const [loading, setLoading]       = useState(false)
     const [error, setError]           = useState<string | null>(null)
     const [filters, setFilters]       = useState<HistoriqueFilters>({})
-
-    // États locaux pour les champs texte — ne déclenchent la requête qu'à la validation
-    const [inputLaverie, setInputLaverie] = useState("")
-    const [inputMotif, setInputMotif]     = useState("")
+    const [filterModalOpen, setFilterModalOpen] = useState(false)
 
     const fetchHistorique = useCallback(async (page: number) => {
         setLoading(true)
@@ -57,25 +56,31 @@ export default function HistoriqueLaverie() {
         window.scrollTo({ top: 0, behavior: "smooth" })
     }
 
-    const applyTextFilters = () => {
-        setFilters(f => ({
-            ...f,
-            laverie: inputLaverie || undefined,
-            motif:   inputMotif   || undefined,
-        }))
-    }
+    const filterFields: FilterFieldConfig[] = [
+        {
+            key: "action",
+            type: "select",
+            label: t('histo_filtre_action'),
+            options: [
+                { value: "", label: t('histo_filtre_toutes') },
+                { value: "VALIDE", label: t('action_valide') },
+                { value: "REFUSE", label: t('action_refuse') },
+            ],
+        },
+        { key: "dateDebut", type: "date", label: t('histo_filtre_date_debut') },
+        { key: "dateFin",   type: "date", label: t('histo_filtre_date_fin') },
+        { key: "laverie",   type: "text", label: "Laverie", placeholder: t('histo_filtre_laverie_placeholder') },
+        { key: "motif",     type: "text", label: "Motif",   placeholder: t('histo_filtre_motif_placeholder') },
+    ]
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") applyTextFilters()
+    const filterLabelFor = (key: string, value: string): string => {
+        switch (key) {
+            case "action": return value === "VALIDE" ? t('action_valide') : t('action_refuse')
+            case "dateDebut": return `${t('histo_filtre_date_debut')} ${value}`
+            case "dateFin": return `${t('histo_filtre_date_fin')} ${value}`
+            default: return value
+        }
     }
-
-    const resetAll = () => {
-        setInputLaverie("")
-        setInputMotif("")
-        setFilters({})
-    }
-
-    const hasFilters = !!(filters.action || filters.dateDebut || filters.dateFin || filters.laverie || filters.motif)
 
     return (
         <div className="min-h-screen bg-background">
@@ -85,89 +90,21 @@ export default function HistoriqueLaverie() {
                 </h1>
 
                 {/* ── Filtres ── */}
-                <div className="flex flex-wrap items-end gap-3 mb-5 p-4 bg-card border border-border rounded-xl">
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-muted-foreground font-medium">
-                            {t('histo_filtre_action')}
-                        </label>
-                        <select
-                            value={filters.action ?? ""}
-                            onChange={e => setFilters(f => ({
-                                ...f,
-                                action: (e.target.value as "VALIDE" | "REFUSE") || undefined,
-                            }))}
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                            <option value="">{t('histo_filtre_toutes')}</option>
-                            <option value="VALIDE">{t('action_valide')}</option>
-                            <option value="REFUSE">{t('action_refuse')}</option>
-                        </select>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-muted-foreground font-medium">
-                            {t('histo_filtre_date_debut')}
-                        </label>
-                        <input
-                            type="date"
-                            value={filters.dateDebut ?? ""}
-                            onChange={e => setFilters(f => ({ ...f, dateDebut: e.target.value || undefined }))}
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-muted-foreground font-medium">
-                            {t('histo_filtre_date_fin')}
-                        </label>
-                        <input
-                            type="date"
-                            value={filters.dateFin ?? ""}
-                            onChange={e => setFilters(f => ({ ...f, dateFin: e.target.value || undefined }))}
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-muted-foreground font-medium">Laverie</label>
-                        <input
-                            type="text"
-                            value={inputLaverie}
-                            onChange={e => setInputLaverie(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder={t('histo_filtre_laverie_placeholder')}
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring w-44"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-muted-foreground font-medium">Motif</label>
-                        <input
-                            type="text"
-                            value={inputMotif}
-                            onChange={e => setInputMotif(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder={t('histo_filtre_motif_placeholder')}
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring w-44"
-                        />
-                    </div>
-
-                    <button
-                        onClick={applyTextFilters}
-                        className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-90 transition-colors"
-                    >
-                        {t('histo_filtre_rechercher')}
-                    </button>
-
-                    {(hasFilters || inputLaverie || inputMotif) && (
-                        <button
-                            onClick={resetAll}
-                            className="h-9 px-4 rounded-lg border border-border text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
-                        >
-                            {t('histo_filtre_reinitialiser')}
-                        </button>
-                    )}
-                </div>
+                <HistoriqueActiveFilters
+                    filters={filters}
+                    labelFor={filterLabelFor}
+                    onRemove={key => setFilters(f => ({ ...f, [key]: undefined }))}
+                    onOpenFilters={() => setFilterModalOpen(true)}
+                    filterButtonLabel={t('histo_filtre_rechercher')}
+                />
+                <HistoriqueFilterModal
+                    open={filterModalOpen}
+                    onOpenChange={setFilterModalOpen}
+                    title={t('histo_filtre_rechercher')}
+                    fields={filterFields}
+                    filters={filters}
+                    onApply={setFilters}
+                />
 
                 {/* ── Skeleton ── */}
                 {loading && (
