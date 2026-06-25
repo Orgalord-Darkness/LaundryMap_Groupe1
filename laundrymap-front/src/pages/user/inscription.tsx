@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
+import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
@@ -34,6 +35,7 @@ function loadDraft(): Partial<Inputs> {
 export default function Inscription() {
 
     const { t } = useTranslation()
+    const navigate = useNavigate()
 
     const [successMessage, setSuccessMessage] = useState("");
     const [cguAccepted, setCguAccepted] = useState(
@@ -194,7 +196,7 @@ export default function Inscription() {
                                 <FieldSeparator>{t("continuer_avec")}</FieldSeparator>
 
                                 <Field>
-                                    <GoogleLoginButton route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`} title={t("inscription_avec_google")} onSuccess={() => setSuccessMessage(t("connexion_google_succes"))} />
+                                    <GoogleLoginButton route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`} title={t("inscription_avec_google")} onSuccess={() => { setSuccessMessage(t("connexion_google_succes")); navigate("/") }} />
  
                                     <FieldDescription className="text-center">
                                         {t("already_account")}{" "}

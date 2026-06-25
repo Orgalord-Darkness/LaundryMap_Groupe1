@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription, DrawerClose } from "@/components/ui/drawer"
 import { FilterTabs } from "@/components/layout/Filter"
 import apiClient from "@/lib/apiClient"
 import i18n from "@/i18n"
@@ -102,9 +103,11 @@ function normaliser(raw: LaverieAPI): Laverie {
 function ContextMenu({
     laverieId,
     onClose,
+    onDeleteRequest,
 }: {
     laverieId: number
     onClose: () => void
+    onDeleteRequest: () => void
 }) {
     const { t } = useTranslation()
     const ref = useRef<HTMLDivElement>(null)
@@ -129,7 +132,7 @@ function ContextMenu({
                         d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
             ),
-            href: `/admin/laverie/${laverieId}/commentaires`,
+            href: `/user/fiche-laverie/${laverieId}`,
         },
         {
             label: t('admin_voir_demande'),
@@ -159,7 +162,7 @@ function ContextMenu({
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
             ),
-            href: `/admin/laverie/${laverieId}/supprimer`,
+            onClick: onDeleteRequest,
             danger: true,
         },
     ]
@@ -171,20 +174,31 @@ function ContextMenu({
             aria-label={t('actions')}
             className="absolute right-0 bottom-10 z-20 bg-card rounded-2xl shadow-lg border border-border py-1 min-w-[170px] overflow-hidden"
         >
-            {items.map(({ label, icon, href, danger }) => (
-                <a
-                    key={label}
-                    href={href}
-                    role="menuitem"
-                    onClick={onClose}
-                    className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-background ${
-                        danger ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300" : "text-foreground"
-                    }`}
-                >
-                    {icon}
-                    {label}
-                </a>
-            ))}
+            {items.map(({ label, icon, href, onClick, danger }) => {
+                const className = `flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-background w-full text-left ${
+                    danger ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300" : "text-foreground"
+                }`
+                if (onClick) {
+                    return (
+                        <button
+                            key={label}
+                            type="button"
+                            role="menuitem"
+                            onClick={() => { onClick(); onClose() }}
+                            className={className}
+                        >
+                            {icon}
+                            {label}
+                        </button>
+                    )
+                }
+                return (
+                    <a key={label} href={href} role="menuitem" onClick={onClose} className={className}>
+                        {icon}
+                        {label}
+                    </a>
+                )
+            })}
         </div>
     )
 }
@@ -249,12 +263,31 @@ export function PaginationBar({
 
 function LaverieCard({
     laverie,
+    onDeleted,
 }: {
     laverie: Laverie
+    onDeleted: (id: number) => void
 }) {
     const { t } = useTranslation()
     const badgeLabels = getBadgeLabels(t)
     const [menuOpen, setMenuOpen] = useState(false)
+    const [deleteDrawerOpen, setDeleteDrawerOpen] = useState(false)
+    const [deleteLoading, setDeleteLoading] = useState(false)
+    const [deleteError, setDeleteError] = useState("")
+
+    const handleDelete = async () => {
+        setDeleteLoading(true)
+        setDeleteError("")
+        try {
+            await apiClient.delete(`/laverie/suppression/${laverie.id}`)
+            setDeleteDrawerOpen(false)
+            onDeleted(laverie.id)
+        } catch {
+            setDeleteError(t('admin_laverie_supprimer_erreur'))
+        } finally {
+            setDeleteLoading(false)
+        }
+    }
 
     return (
         <Card className="overflow-hidden rounded-2xl p-0 gap-0 shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -323,12 +356,47 @@ function LaverieCard({
                                 <ContextMenu
                                     laverieId={laverie.id}
                                     onClose={() => setMenuOpen(false)}
+                                    onDeleteRequest={() => setDeleteDrawerOpen(true)}
                                 />
                             )}
                         </div>
                     </div>
                 </div>
             </CardContent>
+
+            <Drawer open={deleteDrawerOpen} onOpenChange={setDeleteDrawerOpen}>
+                <DrawerContent>
+                    <DrawerHeader className="text-center">
+                        <DrawerTitle>{t('admin_laverie_supprimer_titre')}</DrawerTitle>
+                        <DrawerDescription>
+                            {t('admin_laverie_supprimer_texte', { name: laverie.nom_etablissement })}
+                        </DrawerDescription>
+                    </DrawerHeader>
+
+                    {deleteError && (
+                        <p role="alert" className="px-4 text-red-500 dark:text-red-400 text-sm text-center">
+                            {deleteError}
+                        </p>
+                    )}
+
+                    <DrawerFooter>
+                        <Button
+                            variant="danger"
+                            onClick={handleDelete}
+                            disabled={deleteLoading}
+                            aria-busy={deleteLoading}
+                            className="w-full"
+                        >
+                            {deleteLoading ? t('admin_laverie_supprimer_en_cours') : t('admin_laverie_supprimer_confirmer')}
+                        </Button>
+                        <DrawerClose asChild>
+                            <Button variant="outline" disabled={deleteLoading} className="w-full">
+                                {t('annuler')}
+                            </Button>
+                        </DrawerClose>
+                    </DrawerFooter>
+                </DrawerContent>
+            </Drawer>
         </Card>
     )
 }
@@ -416,7 +484,10 @@ export default function LaveriesValidation() {
                         >
                             {laveries.map(laverie => (
                                 <div key={laverie.id} role="listitem">
-                                    <LaverieCard laverie={laverie} />
+                                    <LaverieCard
+                                        laverie={laverie}
+                                        onDeleted={(id) => setLaveries(prev => prev.filter(l => l.id !== id))}
+                                    />
                                 </div>
                             ))}
                         </div>

@@ -35,7 +35,7 @@ function getMenuItems(role: Role, t: (key: string) => string): MenuItem[] {
         { label: "Accueil", href: "/", icon: <Icon.Home /> },
         { label: "Tableau de bord", href: "/pro/dashboard", icon: <Icon.Home /> },
         { label: "Mes informations", href: "/pro/informations", icon: <Icon.Info /> },
-        { label: "Mes préférences", href: "/pro/preferences", icon: <Icon.Sliders /> },
+        { label: "Mes préférences", href: "/user/preferences", icon: <Icon.Sliders /> },
         { label: "Déconnexion", href: "/logout", icon: <Icon.Logout />, separator: true },
       ];
     case "administrateur":
@@ -44,8 +44,6 @@ function getMenuItems(role: Role, t: (key: string) => string): MenuItem[] {
         { label: "Tableau de bord", href: "/admin/dashboard", icon: <Icon.Home /> },
         { label: "Laveries", href: "/admin/laveries/list", icon: <Icon.Laundry /> },
         { label: "Comptes", href: "/admin/professional/list", icon: <Icon.People /> },
-        { label: "Mes informations", href: "/admin/informations", icon: <Icon.Info />, separator: true },
-        { label: "Mes préférences", href: "/admin/preferences", icon: <Icon.Sliders /> },
         { label: t('histo_interactions_nav'), href: "/admin/utilisateurs/historique", icon: <Icon.History />, separator: true },
         { label: t('histo_laverie_nav'), href: "/admin/laveries/historique", icon: <Icon.History /> },
         { label: t('admin_nav_messages_signales'), href: "/admin/moderation", icon: <Icon.Flag /> },
@@ -91,8 +89,15 @@ export function BurgerMenu() {
   const menuItems = getMenuItems(role as Role, t);
   const badge = badgeConfig[role as Role] ?? badgeConfig.guest;
 
-  const isActive = (href: string) =>
-    href === "/" ? location.pathname === "/" : location.pathname.startsWith(href);
+  // Ne retient que la correspondance la plus spécifique (la plus longue) pour éviter
+  // qu'un item parent (ex. /admin/moderation) reste actif en même temps qu'un item
+  // dont le chemin le contient comme préfixe (ex. /admin/moderation/utilisateurs).
+  const activeHref = menuItems
+    .map((item) => item.href)
+    .filter((href) => (href === "/" ? location.pathname === "/" : location.pathname.startsWith(href)))
+    .sort((a, b) => b.length - a.length)[0];
+
+  const isActive = (href: string) => href === activeHref;
 
   const handleItemClick = (href: string, label: string) => {
     if (label === "Déconnexion") {

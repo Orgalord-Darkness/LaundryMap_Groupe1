@@ -390,6 +390,7 @@ export function FicheUtilisateur() {
         open={blockDrawerOpen}
         onOpenChange={setBlockDrawerOpen}
         onSuccess={() => {
+          setBlockDrawerOpen(false)
           announce(t('fiche_utilisateur_bloque_succes', { name: `${prenom} ${nom}` }))
           loadData()
         }}
