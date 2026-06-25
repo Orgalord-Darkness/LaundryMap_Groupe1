@@ -886,8 +886,8 @@ class LaverieController extends AbstractController
         $paiementParLaverie = $methodePaiementRepository->findPaiementsByLaverieIds($ids);
 
         // Formatage de la réponse en camelCase
-        $result = array_map(function (array $laverie) {
-     
+        $result = array_map(function (array $laverie) use ($paiementParLaverie) {
+
             return [
                 'id'               => $laverie['id'],
                 'nomEtablissement' => $laverie['nomEtablissement'],
@@ -904,10 +904,18 @@ class LaverieController extends AbstractController
                 ],
                 'distanceMetres'   => (float) $laverie['distanceMetres'],
                 'logoUrl'          => $laverie['logoUrl'] ?? null,
-                'isFavorite' => (bool) ($laverie['isFavorite'] ?? false),
-                'paiements' => $paiementParLaverie[$laverie['id']] ?? []
+                'isFavorite'       => (bool) ($laverie['isFavorite'] ?? false),
+                'paiements'        => $paiementParLaverie[$laverie['id']] ?? [],
             ];
         }, $laveries);
+
+        // Attacher les créneaux horaires (nécessaires pour le StatusBadge côté front)
+        $ids = array_column($result, 'id');
+        $fermeturesParLaverie = $laverieRepository->findFermeturesByLaverieIds($ids);
+        $result = array_map(function (array $laverie) use ($fermeturesParLaverie) {
+            $laverie['fermetures'] = $fermeturesParLaverie[$laverie['id']] ?? [];
+            return $laverie;
+        }, $result);
 
         return $this->json($result, Response::HTTP_OK);
     }

@@ -1599,6 +1599,61 @@ class AppFixtures extends Fixture
             $manager->persist($n);
         }
 
+        // ── HORAIRES + SERVICES + PAIEMENTS + ÉQUIPEMENTS — Groupe A (hors [3] et [9] déjà traités) ──
+        // Sans horaires le StatusBadge reste muet dans les search cards.
+        $survilliersIndices = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14];
+        foreach ($survilliersIndices as $idx) {
+            $lav = $laveriesGeo[$idx];
+            foreach ($services as $service)         { $lav->addService($service); }
+            foreach ($methodePaiements as $methode) { $lav->addMethodePaiement($methode); }
+        }
+
+        // Équipements — 2 par laverie (refs 35–60, hors 10-14 et 20-34 déjà utilisés)
+        $survilliersRefBase = 35;
+        foreach ($survilliersIndices as $i => $idx) {
+            $offset = $i * 2;
+            foreach ([
+                ['ref' => $survilliersRefBase + $offset,     'nom' => 'Machine à laver', 'type' => EquipementEnum::MACHINE_A_LAVER, 'capacite' => 7,  'tarif' => 3.00, 'duree' => 30],
+                ['ref' => $survilliersRefBase + $offset + 1, 'nom' => 'Sèche-linge',      'type' => EquipementEnum::SECHE_LINGE,     'capacite' => 8,  'tarif' => 1.50, 'duree' => 20],
+            ] as $d) {
+                $eq = new LaverieEquipement();
+                $eq->setLaverie($laveriesGeo[$idx])
+                   ->setEquipementReference($d['ref'])
+                   ->setNom($d['nom'])
+                   ->setType($d['type'])
+                   ->setCapacite($d['capacite'])
+                   ->setTarif($d['tarif'])
+                   ->setDuree($d['duree']);
+                $manager->persist($eq);
+            }
+        }
+
+        // Horaires — même planning que $horairesGeo pour toutes les laveries Groupe A manquantes
+        foreach ($survilliersIndices as $idx) {
+            foreach ($horairesGeo as [$jour, $debAm, $finAm, $debPm, $finPm]) {
+                $fam = new LaverieFermeture();
+                $fam->setLaverie($laveriesGeo[$idx])
+                    ->setJour($jour)
+                    ->setDateAjout(new \DateTime('2026-02-01 09:00:00'))
+                    ->setDateModification(new \DateTime('2026-02-01 09:00:00'))
+                    ->setHeureDebut(new \DateTime("1970-01-01 {$debAm}:00"))
+                    ->setHeureFin(new \DateTime("1970-01-01 {$finAm}:00"));
+                $manager->persist($fam);
+
+                if ($debPm !== null) {
+                    $fpm = new LaverieFermeture();
+                    $fpm->setLaverie($laveriesGeo[$idx])
+                        ->setJour($jour)
+                        ->setDateAjout(new \DateTime('2026-02-01 09:00:00'))
+                        ->setDateModification(new \DateTime('2026-02-01 09:00:00'))
+                        ->setHeureDebut(new \DateTime("1970-01-01 {$debPm}:00"))
+                        ->setHeureFin(new \DateTime("1970-01-01 {$finPm}:00"));
+                    $manager->persist($fpm);
+                }
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         $geoImageCounts = [3, 5, 2, 8, 4, 1, 6, 3, 7, 2, 5, 1, 4, 8, 3, 6, 2, 5, 4, 1];
         $imgOffset      = 0;
         foreach ($laveriesGeo as $i => $lav) {
