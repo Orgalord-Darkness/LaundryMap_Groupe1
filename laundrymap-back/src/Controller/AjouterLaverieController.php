@@ -217,6 +217,11 @@ class AjouterLaverieController extends AbstractController
             $equipement->setCapacite(isset($machineData['capacity']) ? (int) $machineData['capacity'] : null);
             $equipement->setDuree(isset($machineData['duration'])   ? (int) $machineData['duration']   : null);
             $equipement->setTarif(isset($machineData['price'])      ? (float) $machineData['price']    : null);
+            $equipement->setEquipementReference(
+                isset($machineData['equipement_reference']) && $machineData['equipement_reference'] !== ''
+                    ? (int) $machineData['equipement_reference']
+                    : null
+            );
 
             $this->em->persist($equipement);
         }
