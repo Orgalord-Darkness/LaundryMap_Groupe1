@@ -188,7 +188,7 @@ export default function Connexion() {
                                     <GoogleLoginButton
                                         route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`}
                                         title={t("connexion_avec_google")}
-                                        onSuccess={() => setSuccessMessage(t("connexion_google_succes"))}
+                                        onSuccess={() => { setSuccessMessage(t("connexion_google_succes")); navigate("/") }}
                                     />
  
                                     <FieldDescription className="text-center">

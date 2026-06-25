@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import apiClient from "@/lib/apiClient"
 import { Button } from "@/components/ui/button"
@@ -83,21 +84,33 @@ function getInitialsColor(initials: string): string {
   return colors[initials.charCodeAt(0) % colors.length]
 }
 
-function getReportSeverity(count: number) {
-  if (count >= 10) return { label: "Critique", className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" }
-  if (count >= 5)  return { label: "Élevé",    className: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800" }
-  return                  { label: "Modéré",   className: "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800" }
+type SeverityTier = "modere" | "eleve" | "critique"
+
+const SEVERITY_CLASSNAMES: Record<SeverityTier, string> = {
+  critique: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
+  eleve:    "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800",
+  modere:   "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800",
+}
+
+function getSeverityTier(count: number): SeverityTier {
+  if (count >= 10) return "critique"
+  if (count >= 5)  return "eleve"
+  return "modere"
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDeleted }: ModerationCardProps) {
+  const { t } = useTranslation()
   const [deleteDrawerOpen, setDeleteDrawerOpen] = useState(false)
   const [deleteMotif, setDeleteMotif] = useState("")
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const severity           = getReportSeverity(comment.reportCount)
+  const severityTier       = getSeverityTier(comment.reportCount)
+  const severityLabel      = t(`severite_${severityTier}`)
+  const severityLegende    = t(`severite_${severityTier}_legende`)
+  const severityClassName  = SEVERITY_CLASSNAMES[severityTier]
   const initialsColorClass = getInitialsColor(comment.author.initials)
 
   const handleDelete = async () => {
@@ -232,10 +245,10 @@ export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDel
                 {comment.reportCount}
                 <Badge
                   variant="outline"
-                  className={`text-xs px-1.5 py-0 ${severity.className}`}
-                  aria-label={`Niveau de sévérité : ${severity.label}`}
+                  className={`text-xs px-1.5 py-0 ${severityClassName}`}
+                  aria-label={`${t('severite_aria_label')} ${severityLabel}, ${severityLegende}`}
                 >
-                  {severity.label}
+                  {severityLabel}
                 </Badge>
               </dd>
             </div>

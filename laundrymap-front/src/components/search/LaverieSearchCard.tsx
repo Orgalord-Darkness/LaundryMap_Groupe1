@@ -3,6 +3,7 @@ import { MapPin } from "lucide-react"
 import type { LaverieSearch } from "@/components/utils/type"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { StatusBadge } from "@/components/utils/StatusBadge"
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
@@ -24,6 +25,7 @@ interface LaverieSearchCardProps {
 
 export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchCardProps) {
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     function todayHours(fermetures: LaverieSearch["fermetures"]): string | null {
         const currentDay = new Date().toLocaleDateString("fr-FR", { weekday: "long" }).toLowerCase()
@@ -79,8 +81,11 @@ export function LaverieSearchCard({ laverie, selected, onClick }: LaverieSearchC
                     </span>
                 )}
 
-                {/* Badge distance */}
-                <span className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-card/90 text-foreground shadow-sm font-medium flex items-center gap-1">
+                {/* Badge distance — la légende explicative est affichée une seule fois au-dessus de la liste (LaverieList) */}
+                <span
+                    className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-card/90 text-foreground shadow-sm font-medium flex items-center gap-1"
+                    aria-label={`${t('distance_badge_aria')} ${formatDistance(laverie.distanceMetres)}`}
+                >
                     <MapPin className="w-2.5 h-2.5" aria-hidden="true" />
                     {formatDistance(laverie.distanceMetres)}
                 </span>

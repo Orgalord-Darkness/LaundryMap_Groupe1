@@ -164,7 +164,7 @@ export default function Router() {
       } />
       
       <Route path="/pro/laverie/:id" element={
-        <ProtectedRoute allowedRoles={["professionnel"]}>
+        <ProtectedRoute allowedRoles={["professionnel", "administrateur"]}>
           <FormEditLaverie />
         </ProtectedRoute>
       } />

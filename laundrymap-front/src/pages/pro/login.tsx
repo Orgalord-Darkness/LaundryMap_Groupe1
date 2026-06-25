@@ -122,12 +122,6 @@ function ProLogin() {
                                 <Field>
                                     <div className="flex items-center">
                                         <FieldLabel htmlFor="mot_de_passe">{t("mot_de_passe")}</FieldLabel>
-                                        <a
-                                        href="/pro/mot-de-passe-oublie"
-                                        className="ml-auto text-sm underline-offset-4 hover:underline"
-                                        >
-                                        {t("mot_de_passe_oublie")}
-                                        </a>
                                     </div>
 
                                     <div className="relative">
