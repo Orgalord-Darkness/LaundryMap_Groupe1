@@ -20,6 +20,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\LaverieNote;
 use App\Enum\StatutEnum;
 use App\Service\SendEmailService;
+use App\Service\WiLineService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 
@@ -125,6 +126,7 @@ class FicheLaverieController extends AbstractController
         $equipements = $this->laverieEquipementRepository->findBy(['laverie' => $laverie]);
         $machines = array_values(array_map(
             fn($equipement) => [
+                'id'       => $equipement->getId(),
                 'type'     => $equipementLabels[$equipement->getType()->value] ?? $equipement->getType()->value,
                 'capacity' => $equipement->getCapacite(),
                 'duration' => $equipement->getDuree(),
@@ -236,8 +238,67 @@ class FicheLaverieController extends AbstractController
     }
 
 
-    
-    
+    // GET /api/v1/fiche-laverie/{id}/machines-statut  (accès public)
+    // Interrogé en boucle par le frontend (toutes les 30s) pour rafraîchir le statut des machines
+    // sans recharger toute la fiche. Toujours appelé en direct chez Wi-Line (jamais mis en cache).
+    #[Route('/fiche-laverie/{id}/machines-statut', name: 'api_fiche_laverie_machines_statut', methods: ['GET'])]
+    public function machinesStatut(int $id, WiLineService $wiLineService): JsonResponse
+    {
+        $laverie = $this->laverieRepository->find($id);
+
+        if (!$laverie || $laverie->getSupprimeLe() !== null) {
+            return $this->json(['message' => 'Laverie introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // Laverie pas (encore) reliée à une centrale Wi-Line : rien à afficher
+        if (!$laverie->getWiLineReference()) {
+            return $this->json(['statuts' => []]);
+        }
+
+        $data = $wiLineService->getCentraleDataCached($laverie->getWiLineReference());
+        $machineList = $data['machines'] ?? [];
+
+        $equipements = $this->laverieEquipementRepository->findBy(['laverie' => $laverie]);
+
+        $statuts = [];
+        foreach ($equipements as $equipement) {
+            $equipementReference = $equipement->getEquipementReference();
+            if ($equipementReference === null) {
+                continue; // On ignore les équipements sans référence Wi-Line
+            }
+
+            // $machineList est une liste (pas un tableau indexé par machine_number) :
+            // on cherche la machine dont le champ machine_number correspond.
+            $machineData = null;
+            foreach ($machineList as $machine) {
+                if (($machine['machine_number'] ?? null) === $equipementReference) {
+                    $machineData = $machine;
+                    break;
+                }
+            }
+
+            if ($machineData !== null) {
+                $statuts[] = [
+                    'equipementId' => $equipement->getId(),
+                    'status'       => $machineData['status'] ?? null,
+                    'statusText'   => $machineData['status_text'] ?? null,
+                ];
+            } else {
+                // Aucune machine Wi-Line ne correspond à cet équipement
+                $statuts[] = [
+                    'equipementId' => $equipement->getId(),
+                    'status'       => null,
+                    'statusText'   => null, // ou un message par défaut comme "Statut inconnu"
+                ];
+            }
+        }
+
+        return $this->json(['statuts' => $statuts]);
+    }
+
+
+
+
     // Toggle : ajoute ou retire la laverie des favoris de l'utilisateur (connecté uniquement)
 
     #[Route('/user/fiche-laverie/{id}/favori', name: 'api_user_fiche_laverie_favori', methods: ['POST'])]

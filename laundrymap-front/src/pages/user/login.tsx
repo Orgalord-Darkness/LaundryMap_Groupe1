@@ -8,6 +8,8 @@ import GoogleLoginButton from "@/components/utils/google"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field"
+import { Eye, EyeOff } from "lucide-react"
+import { Ec2eLogo } from "@/components/layout/Ec2eLogo"
 
 
 type Inputs = {
@@ -21,6 +23,7 @@ export default function Connexion() {
     const { t } = useTranslation()
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
     
     useEffect(() => {
         if (successMessage) {
@@ -66,7 +69,7 @@ export default function Connexion() {
 
             login({ email: data.email, role: data.role })
 
-            setSuccessMessage("Connexion réussie !")
+            setSuccessMessage(t("connexion_succes"))
             navigate('/')
 
         } catch (erreur) {
@@ -88,7 +91,7 @@ export default function Connexion() {
 
             setError("email", {
                 type: "server",
-                message: "Erreur lors de la connexion. Veuillez vérifier vos identifiants.",
+                message: t("erreur_connexion"),
             })
         }
 
@@ -103,8 +106,8 @@ export default function Connexion() {
             <div className="flex flex-col gap-4 lg:gap-0 p-6 md:p-10">
 
                 <div className="flex justify-center gap-2">
-                    <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-                        <img src="/logo_ec2e.png"  alt="Image" className="w-82" />
+                    <a href="https://ec2e.com/" target="_blank" className="flex items-center font-medium">
+                        <Ec2eLogo />
                     </a>
                 </div>
 
@@ -121,7 +124,7 @@ export default function Connexion() {
                                     </p>
                                 </div>
 
-                                <a href="/pro/login" className="text-center text-sm text-foreground underline font-medium cursor-pointer" aria-label="Se connecter en tant que professionnel">
+                                <a href="/pro/login" className="text-center text-sm text-foreground underline font-medium cursor-pointer" aria-label={t("connexion_pro_aria")}>
                                     {t('connexion')} {t('en_tant_que_professionnel')} ?
                                 </a>
 
@@ -134,7 +137,17 @@ export default function Connexion() {
 
                                 <Field>
                                     <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
-                                    <Input id="email" type="email" placeholder="email@example.com" required {...register("email", { required: true })}/>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="email@example.com"
+                                        required
+                                        aria-describedby={errors.email ? "email-error" : undefined}
+                                        {...register("email", { required: true })}
+                                    />
+                                    {errors.email && (
+                                        <p id="email-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>
+                                    )}
                                 </Field>
 
                                 <Field>
@@ -145,13 +158,20 @@ export default function Connexion() {
                                         </a>
                                     </div>
 
-                                    <Input id="password" type="password" required {...register("mot_de_passe", { required: true })}/>
+                                    <div className="relative">
+                                        <Input id="password" type={showPassword ? "text" : "password"}  required {...register("mot_de_passe", { required: true })} className="pr-10" />
 
-                                    {errors.email && (
-                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>
-                                    )}
+                                        {/* Bouton œil positionné */}
+                                        <button type="button"  onClick={() => setShowPassword((prev) => !prev)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                            aria-label={showPassword ? t("mdp_masquer") : t("mdp_afficher")}
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+
                                     {errors.mot_de_passe && (
-                                        <p className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">
+                                        <p id="mot_de_passe-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">
                                             {errors.mot_de_passe.message}
                                         </p>
                                     )}
@@ -168,7 +188,7 @@ export default function Connexion() {
                                     <GoogleLoginButton
                                         route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`}
                                         title={t("connexion_avec_google")}
-                                        onSuccess={() => setSuccessMessage("Connexion Google réussie !")}
+                                        onSuccess={() => { setSuccessMessage(t("connexion_google_succes")); navigate("/") }}
                                     />
  
                                     <FieldDescription className="text-center">

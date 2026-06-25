@@ -55,6 +55,12 @@ export default function FormEditLaverie() {
     const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null)
 
     const [selectedMachines, setSelectedMachines] = useState<EquipementFormData[]>([])
+    // Machines brutes renvoyées par Wi-Line (machine_number, category_text, type_name, status...)
+    // Alimente le sélecteur permettant de lier une machine locale à son équivalent Wi-Line.
+    const [wilineMachines, setWilineMachines] = useState<any[]>([])
+    // Index des machines dont le lien Wi-Line est en cours de modification manuelle
+    // (sinon, une machine déjà liée affiche juste un résumé en lecture, pas le select)
+    const [editingLinkIndices, setEditingLinkIndices] = useState<Set<number>>(new Set())
 
     const [allServices, setAllServices]   = useState<{ id: number; nom: string }[]>([])
     const [allPaiements, setAllPaiements] = useState<{ id: number; nom: string }[]>([])
@@ -82,6 +88,20 @@ export default function FormEditLaverie() {
         setSelectedMachines(prev => prev.filter((_, i) => i !== index))
     }
 
+    const handleSetEquipementReference = (index: number, machineNumber: number | null) => {
+        setSelectedMachines(prev => prev.map((m, i) =>
+            i === index ? { ...m, equipement_reference: machineNumber } : m
+        ))
+    }
+
+    const toggleEditLink = (index: number) => {
+        setEditingLinkIndices(prev => {
+            const next = new Set(prev)
+            next.has(index) ? next.delete(index) : next.add(index)
+            return next
+        })
+    }
+
     // ─── Import Wi-Line ───────────────────────────────────────────────────────
 
     const handleWilineImport = async () => {
@@ -106,6 +126,7 @@ export default function FormEditLaverie() {
                 PRODUCTS: 'distributeur_de_lessive',
             }
             if (Array.isArray(d.machines)) {
+                setWilineMachines(d.machines)
                 const imported: EquipementFormData[] = d.machines
                     .filter((m: any) => categoryMap[m.category_text])
                     .map((m: any) => ({
@@ -114,6 +135,7 @@ export default function FormEditLaverie() {
                         capacite: parseCapacite(m.type_name),
                         tarif:    m.price    > 0 ? m.price / 100                : null,
                         duree:    m.duration > 0 ? Math.round(m.duration / 60)  : null,
+                        equipement_reference: m.machine_number ?? null,
                     }))
                 setSelectedMachines(imported)
             }
@@ -232,6 +254,7 @@ export default function FormEditLaverie() {
                         capacite: eq.capacite != null ? Number(eq.capacite) : null,
                         tarif:    eq.tarif    != null ? Number(eq.tarif)    : null,
                         duree:    eq.duree    != null ? Number(eq.duree)    : null,
+                        equipement_reference: eq.equipement_reference != null ? Number(eq.equipement_reference) : null,
                     }
                 })
                 setSelectedMachines(normalizedEq)
@@ -531,7 +554,7 @@ export default function FormEditLaverie() {
                 <h2 className="font-semibold text-lg text-center mb-2">{t('edit_laundry_machines_title')}</h2>
 
                 {selectedMachines.length === 0 && (
-                    <p className="text-gray-400 text-sm text-center mb-3">{t('edit_laundry_no_equipment')}</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-sm text-center mb-3">{t('edit_laundry_no_equipment')}</p>
                 )}
 
                 {selectedMachines.map((machine, index) => (
@@ -541,8 +564,48 @@ export default function FormEditLaverie() {
                             capacity={machine.capacite ?? 0}
                             duration={machine.duree ?? 0}
                             price={machine.tarif ?? 0}
-                            available={true}
                         />
+                        {machine.equipement_reference != null && !editingLinkIndices.has(index) ? (
+                            <div className="mt-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                                <span>
+                                    {t('edit_laundry_liee_wiline', { ref: machine.equipement_reference })}
+                                    {(() => {
+                                        const matched = wilineMachines.find(
+                                            wm => wm.machine_number === machine.equipement_reference
+                                        )
+                                        return matched ? ` (${matched.category_text})` : ""
+                                    })()}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => toggleEditLink(index)}
+                                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                >
+                                    {t('edit_laundry_modifier')}
+                                </button>
+                            </div>
+                        ) : (
+                            <select
+                                className="mt-2 w-full border rounded-md text-sm p-2 bg-white dark:bg-gray-800"
+                                value={machine.equipement_reference ?? ""}
+                                disabled={wilineMachines.length === 0}
+                                onChange={e => handleSetEquipementReference(
+                                    index,
+                                    e.target.value === "" ? null : Number(e.target.value)
+                                )}
+                            >
+                                <option value="">
+                                    {wilineMachines.length === 0
+                                        ? t('edit_laundry_wiline_importer_pour_lier')
+                                        : t('edit_laundry_wiline_selectionner')}
+                                </option>
+                                {wilineMachines.map((wilineMachine) => (
+                                    <option key={wilineMachine.machine_number} value={wilineMachine.machine_number}>
+                                        {wilineMachine.machine_number} - {wilineMachine.category_text}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                         <button
                             type="button"
                             onClick={() => handleRemoveMachine(index)}

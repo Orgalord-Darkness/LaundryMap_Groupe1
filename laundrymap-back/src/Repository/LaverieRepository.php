@@ -129,7 +129,7 @@ class LaverieRepository extends ServiceEntityRepository
 
         // ── Équipements : SQL natif car OneToMany non déclaré ────────────────────
         $equipements = $conn->fetchAllAssociative(
-            'SELECT id, nom, type, capacite, tarif, duree
+            'SELECT id, nom, type, capacite, tarif, duree, equipement_reference
             FROM laverie_equipement
             WHERE laverie_id = :id',
             ['id' => $id]
@@ -387,5 +387,19 @@ class LaverieRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+
+    /**
+     * Compte les laveries dont le statut est EN_ATTENTE de validation.
+     * LaverieStatutEnum::EN_ATTENTE = 'EN_ATTENTE'
+     */
+    public function countPending(): int
+    {
+        return (int) $this->createQueryBuilder('l')
+            ->select('COUNT(l.id)')
+            ->where('l.statut = :statut')
+            ->setParameter('statut', LaverieStatutEnum::EN_ATTENTE)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 
 }

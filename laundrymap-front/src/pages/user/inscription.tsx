@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useForm, type SubmitHandler } from "react-hook-form"
+import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
@@ -8,6 +9,7 @@ import axios from "axios"
 import { Field, FieldDescription, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field"
 import { useTranslation } from "react-i18next"
 import PasswordChecklist from "react-password-checklist"
+import { Ec2eLogo } from "@/components/layout/Ec2eLogo"
 
 type Inputs = {
     prenom: string
@@ -33,6 +35,7 @@ function loadDraft(): Partial<Inputs> {
 export default function Inscription() {
 
     const { t } = useTranslation()
+    const navigate = useNavigate()
 
     const [successMessage, setSuccessMessage] = useState("");
     const [cguAccepted, setCguAccepted] = useState(
@@ -79,7 +82,7 @@ export default function Inscription() {
             console.log(reponse.status); 
 
             sessionStorage.removeItem(INSCRIPTION_DRAFT_KEY);
-            setSuccessMessage("Inscription réussie ! Vérifiez votre email.");
+            setSuccessMessage(t("inscription_succes"));
             
         } catch (erreur) {
             if (axios.isAxiosError(erreur) && erreur.response) {
@@ -108,8 +111,8 @@ export default function Inscription() {
             <div className="flex flex-col gap-4 lg:gap-0 p-6 md:p-10">
 
                 <div className="flex justify-center gap-2">
-                    <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-                        <img src="../public/logo_ec2e.png"  alt="Image" className="w-82" />
+                    <a href="https://ec2e.com/" target="_blank" className="flex items-center font-medium">
+                        <Ec2eLogo />
                     </a>
                 </div>
 
@@ -126,7 +129,7 @@ export default function Inscription() {
                                     </p>
                                 </div>
 
-                                <a href="/pro/inscription" className="text-center text-sm text-foreground underline font-medium cursor-pointer" aria-label="S'inscrire en tant que professionnel">
+                                <a href="/pro/inscription" className="text-center text-sm text-foreground underline font-medium cursor-pointer" aria-label={t("inscription_pro_aria")}>
                                     {t('inscription')} {t('en_tant_que_professionnel')} ?
                                 </a>
 
@@ -180,20 +183,20 @@ export default function Inscription() {
 
                                 <Field>
                                     <FieldLabel htmlFor="confirmation_mot_de_passe">{t("confirm_password")}<strong className="text-orange-500" aria-hidden="true">*</strong></FieldLabel>
-                                    <Input aria-label="Confirmation du mot de passe" id="confirmation_mot_de_passe" type="password" aria-describedby={ errors.confirmation_mot_de_passe ? "confirmation-error" : undefined } tabIndex={5} {...register("confirmation_mot_de_passe", { required: true })} />
+                                    <Input aria-label={t("confirm_password")} id="confirmation_mot_de_passe" type="password" aria-describedby={ errors.confirmation_mot_de_passe ? "confirmation-error" : undefined } tabIndex={5} {...register("confirmation_mot_de_passe", { required: true })} />
                                     {errors.confirmation_mot_de_passe && ( <p id="confirmation-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1"> {errors.confirmation_mot_de_passe.message} </p> )}
                                 </Field>
 
                                 <CGUAcceptCheckbox checked={cguAccepted} onChange={setCguAccepted} />
 
                                 <Field>
-                                    <Button type="submit" tabIndex={6} aria-label="Confirmer l'inscription" disabled={!cguAccepted}>{t("inscription")}</Button>
+                                    <Button type="submit" tabIndex={6} aria-label={t("inscription_confirmer_aria")} disabled={!cguAccepted}>{t("inscription")}</Button>
                                 </Field>
 
                                 <FieldSeparator>{t("continuer_avec")}</FieldSeparator>
 
                                 <Field>
-                                    <GoogleLoginButton route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`} title="S'inscrire avec Google" onSuccess={() => setSuccessMessage("Connexion Google réussie !")} />
+                                    <GoogleLoginButton route={`${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/inscription/google`} title={t("inscription_avec_google")} onSuccess={() => { setSuccessMessage(t("connexion_google_succes")); navigate("/") }} />
  
                                     <FieldDescription className="text-center">
                                         {t("already_account")}{" "}

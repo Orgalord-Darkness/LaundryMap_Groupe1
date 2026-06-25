@@ -104,7 +104,7 @@ export function LaverieList({
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-2 px-1">
+            <div className="flex items-center justify-between mb-1 px-1">
                 <span className="text-xs text-muted-foreground">
                     {laveries.length} résultat{laveries.length > 1 ? "s" : ""}
                 </span>
@@ -119,6 +119,9 @@ export function LaverieList({
                     </SelectContent>
                 </Select>
             </div>
+            <p className="text-[11px] text-muted-foreground mb-2 px-1">
+                {t("distance_legende")}
+            </p>
             {isMobile ? (
                 <ScrollArea className="h-[400px]" aria-label="Liste des laveries trouvées">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-1">

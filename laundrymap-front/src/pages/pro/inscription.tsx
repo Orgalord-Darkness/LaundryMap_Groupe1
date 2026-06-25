@@ -8,6 +8,7 @@ import { CGUAcceptCheckbox } from "@/components/ui/CGUAcceptCheckbox"
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import { useTranslation } from "react-i18next"
 import PasswordChecklist from "react-password-checklist"
+import { Ec2eLogo } from "@/components/layout/Ec2eLogo"
 import { CountrySelect } from "@/components/ui/CountrySelect"
 
  
@@ -98,17 +99,17 @@ function ProInscription() {
     const confirmPasswordError = "";
 
     const newErrors = {
-      lastname:        !lastname   ? "Le nom est requis"      : "",
-      firstname:       !firstname  ? "Le prénom est requis"   : "",
-      email:           !email      ? "L'email est requis" : (!email.includes("@") || !email.includes(".")) ? "Email invalide" : "",
-      password:        !password   ? "Le mot de passe est requis" : password.length < 8 ? "Le mot de passe doit contenir au moins 8 caractères" : "",
+      lastname:        !lastname   ? t("pro_erreur_nom_requis")      : "",
+      firstname:       !firstname  ? t("pro_erreur_prenom_requis")   : "",
+      email:           !email      ? t("pro_erreur_email_requis") : (!email.includes("@") || !email.includes(".")) ? t("pro_erreur_email_invalide") : "",
+      password:        !password   ? t("pro_erreur_mdp_requis") : password.length < 8 ? t("pro_erreur_mdp_court") : "",
       confirmPassword: confirmPasswordError,
-      siren:           !siren      ? "Le numéro SIREN est requis" : !/^\d{9}$/.test(siren) ? "Le SIREN doit contenir exactement 9 chiffres" : "",
-      adress:          !adress     ? "L'adresse est requise"     : "",
-      rue:             !rue        ? "La rue est requise"        : "",
-      codePostal:      !codePostal ? "Le code postal est requis" : "",
-      city:            !city       ? "La ville est requise"      : "",
-      country:         !country    ? "Le pays est requis"        : "",
+      siren:           !siren      ? t("pro_erreur_siren_requis") : !/^\d{9}$/.test(siren) ? t("pro_erreur_siren_format") : "",
+      adress:          !adress     ? t("validation_address_required")     : "",
+      rue:             !rue        ? t("pro_erreur_rue_requise")        : "",
+      codePostal:      !codePostal ? t("validation_postal_required") : "",
+      city:            !city       ? t("validation_city_required")      : "",
+      country:         !country    ? t("validation_country_required")        : "",
     };
 
     setErrors(newErrors);
@@ -138,17 +139,17 @@ function ProInscription() {
         country,
       }, { withCredentials: true })
 
-      setSuccess(response.data.message) 
-      setSuccess("Inscription réussie ! Votre compte professionnel est maintenant en attente de validation par un administrateur.")
+      setSuccess(response.data.message)
+      setSuccess(t("pro_inscription_succes_attente"))
       navigate("/pro/login")
 
     } catch (error: any) {
 
       const message = error.response?.data?.message
-      setApiError(message || "Une erreur est survenue lors de l'inscription.")
+      setApiError(message || t("pro_inscription_erreur"))
     }
 
-    setSuccess("Inscription réussie ! Vous pouvez maintenant vous connecter.")
+    setSuccess(t("pro_inscription_succes_connexion"))
     navigate("/pro/login")
   }
 
@@ -159,8 +160,8 @@ function ProInscription() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
 
         <div className="flex justify-center gap-2">
-          <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-              <img src="/logo_ec2e.png"  alt="Image" className="w-30" />
+          <a href="https://ec2e.com/" target="_blank" className="flex items-center font-medium">
+              <Ec2eLogo className="h-13" />
             </a>
         </div>
 
@@ -259,20 +260,20 @@ function ProInscription() {
                     </Button>
                   </div>
                   {sirenPrefilled && !sirenLoading && (
-                    <p className="text-green-600 dark:text-green-400 text-sm mt-1">✓ Informations de l'entreprise importées depuis le SIREN.</p>
+                    <p className="text-green-600 dark:text-green-400 text-sm mt-1">{t("pro_siren_importe")}</p>
                   )}
                   {errors.siren && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.siren}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="rue">{t("street_number")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="rue" type="text" placeholder="Ex : 12" value={rue} className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''} onChange={(e) => setRue(e.target.value)} />
+                  <Input id="rue" type="text" placeholder={t("pro_exemple_numero")} value={rue} className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''} onChange={(e) => setRue(e.target.value)} />
                   {errors.rue && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.rue}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="adress">{t("street_name")}<span className='text-orange-600'>*</span></FieldLabel>
-                  <Input id="adress" type="text" placeholder="Ex : Rue de la place" value={adress} className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''} onChange={(e) => setAdress(e.target.value)} />
+                  <Input id="adress" type="text" placeholder={t("pro_exemple_rue")} value={adress} className={sirenPrefilled ? 'border-green-400 dark:border-green-700 bg-green-50' : ''} onChange={(e) => setAdress(e.target.value)} />
                   {errors.adress && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.adress}</p>}
                 </Field>
 
@@ -321,7 +322,7 @@ function ProInscription() {
                   </GoogleOAuthProvider>
                   {googlePrefilled && (
                       <p className="text-green-600 dark:text-green-400 text-sm">
-                          ✓ Nom, prénom et email importés depuis Google — complétez les champs restants.
+                          {t("pro_google_importe")}
                       </p>
                   )}
                 </div> 

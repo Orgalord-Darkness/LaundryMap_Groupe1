@@ -96,7 +96,7 @@ export default function MonProfi() {
                 if (!(donnees.mot_de_passe_actuel || "").trim()) {
                     setError("mot_de_passe_actuel", {
                         type: "manual",
-                        message: "Le mot de passe actuel est requis pour modifier le mot de passe.",
+                        message: t("erreur_mdp_actuel_requis"),
                     })
                     return
                 }
@@ -107,7 +107,7 @@ export default function MonProfi() {
                 if (donnees.mot_de_passe !== donnees.confirmation_mot_de_passe) {
                     setError("confirmation_mot_de_passe", {
                         type: "server",
-                        message: "La confirmation du mot de passe ne correspond pas.",
+                        message: t("erreur_confirmation_mdp"),
                     })
                     return
                 }
@@ -170,7 +170,7 @@ export default function MonProfi() {
 
             setError("nom", {
                 type: "server",
-                message: "Impossible de modifier vos informations. Réessayez plus tard.",
+                message: t("erreur_modif_infos"),
             })
         }
     }
@@ -179,8 +179,8 @@ export default function MonProfi() {
             <div className="bg-card px-4 pt-6 pb-0">
                 <div className="max-w-lg mx-auto">
                     <div className="text-center mb-4">
-                        <h1 className="text-xl font-bold text-foreground">Espace personnel</h1>
-                        <p className="text-sm text-muted-foreground mt-0.5">Mon profil</p>
+                        <h1 className="text-xl font-bold text-foreground">{t('espace_personnel')}</h1>
+                        <p className="text-sm text-muted-foreground mt-0.5">{t('profil_titre')}</p>
                     </div>
                     <PersonalSpaceNavbar active="Profil" onChange={handleTabChange} />
                 </div>
@@ -205,26 +205,31 @@ export default function MonProfi() {
                     )}
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Prénom</label>
+                        <label htmlFor="prenom" className="text-sm font-medium mb-1">{t('firstname')}</label>
                         <Input
+                            id="prenom"
                             type="text"
+                            aria-describedby={errors.prenom ? "prenom-error" : undefined}
                             {...register("prenom", { required: false })}
                         />
-                        {errors.prenom && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.prenom.message}</p>}
+                        {errors.prenom && <p id="prenom-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.prenom.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Nom</label>
+                        <label htmlFor="nom" className="text-sm font-medium mb-1">{t('lastname')}</label>
                         <Input
+                            id="nom"
                             type="text"
+                            aria-describedby={errors.nom ? "nom-error" : undefined}
                             {...register("nom", { required: false })}
                         />
-                        {errors.nom && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.nom.message}</p>}
+                        {errors.nom && <p id="nom-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.nom.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Email</label>
+                        <label htmlFor="email" className="text-sm font-medium mb-1">{t('email')}</label>
                         <Input
+                            id="email"
                             type="email"
                             {...register("email", { required: false })}
                             disabled={true}
@@ -232,38 +237,44 @@ export default function MonProfi() {
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Mot de passe actuel</label>
+                        <label htmlFor="mot_de_passe_actuel" className="text-sm font-medium mb-1">{t('label_mot_de_passe_actuel')}</label>
                         <Input
+                            id="mot_de_passe_actuel"
                             type="password"
+                            aria-describedby={errors.mot_de_passe_actuel ? "mot_de_passe_actuel-error" : undefined}
                             {...register("mot_de_passe_actuel", { required: false })}
                         />
-                        {errors.mot_de_passe_actuel && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.mot_de_passe_actuel.message}</p>}
+                        {errors.mot_de_passe_actuel && <p id="mot_de_passe_actuel-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.mot_de_passe_actuel.message}</p>}
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Nouveau Mot de passe</label>
+                        <label htmlFor="mot_de_passe" className="text-sm font-medium mb-1">{t('label_nouveau_mot_de_passe')}</label>
                         <p className="text-xs text-muted-foreground mt-1">
-                            Longueur minimal : 8 caractères<br />
-                            Utiliser minimum 1 majuscule, 1 minuscule, 1 caractère spécial
+                            {t('mdp_regle_longueur')}<br />
+                            {t('mdp_regle_complexite')}
                         </p>
                         <Input
+                            id="mot_de_passe"
                             type="password"
+                            aria-describedby={errors.mot_de_passe ? "mot_de_passe-error" : undefined}
                             {...register("mot_de_passe", { required: false })}
                         />
-                        {errors.mot_de_passe && <p className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">{errors.mot_de_passe.message}<br /></p>}
+                        {errors.mot_de_passe && <p id="mot_de_passe-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1 whitespace-pre-wrap">{errors.mot_de_passe.message}<br /></p>}
                     </div>
 
                     <div className="flex flex-col">
-                        <label className="text-sm font-medium mb-1">Confirmation du nouveau mot de passe</label>
+                        <label htmlFor="confirmation_mot_de_passe" className="text-sm font-medium mb-1">{t('profil_confirmation_mdp_label')}</label>
                         <Input
+                            id="confirmation_mot_de_passe"
                             type="password"
+                            aria-describedby={errors.confirmation_mot_de_passe ? "confirmation_mot_de_passe-error" : undefined}
                             {...register("confirmation_mot_de_passe", { required: false })}
                         />
-                        {errors.confirmation_mot_de_passe && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.confirmation_mot_de_passe.message}</p>}
+                        {errors.confirmation_mot_de_passe && <p id="confirmation_mot_de_passe-error" role="alert" className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.confirmation_mot_de_passe.message}</p>}
                     </div>
 
                     <Button type="submit" className="mt-4 w-full">
-                        Confirmation
+                        {t('confirmer')}
                     </Button>
 
                     {/* <p className="text-center text-sm text-foreground underline font-medium mt-2 cursor-pointer">

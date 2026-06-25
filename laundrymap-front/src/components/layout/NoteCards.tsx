@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import apiClient from "@/lib/apiClient"
 import { Button } from "@/components/ui/button"
@@ -74,30 +75,42 @@ interface ModerationCardProps {
 
 function getInitialsColor(initials: string): string {
   const colors = [
-    "bg-emerald-100 text-emerald-700",
-    "bg-blue-100 text-blue-700",
-    "bg-amber-100 text-amber-700",
-    "bg-rose-100 text-rose-700",
-    "bg-violet-100 text-violet-700",
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+    "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
+    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
   ]
   return colors[initials.charCodeAt(0) % colors.length]
 }
 
-function getReportSeverity(count: number) {
-  if (count >= 10) return { label: "Critique", className: "bg-red-100 text-red-700 border-red-200" }
-  if (count >= 5)  return { label: "Élevé",    className: "bg-orange-100 text-orange-700 border-orange-200" }
-  return                  { label: "Modéré",   className: "bg-yellow-100 text-yellow-700 border-yellow-200" }
+type SeverityTier = "modere" | "eleve" | "critique"
+
+const SEVERITY_CLASSNAMES: Record<SeverityTier, string> = {
+  critique: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
+  eleve:    "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800",
+  modere:   "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800",
+}
+
+function getSeverityTier(count: number): SeverityTier {
+  if (count >= 10) return "critique"
+  if (count >= 5)  return "eleve"
+  return "modere"
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDeleted }: ModerationCardProps) {
+  const { t } = useTranslation()
   const [deleteDrawerOpen, setDeleteDrawerOpen] = useState(false)
   const [deleteMotif, setDeleteMotif] = useState("")
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const severity           = getReportSeverity(comment.reportCount)
+  const severityTier       = getSeverityTier(comment.reportCount)
+  const severityLabel      = t(`severite_${severityTier}`)
+  const severityLegende    = t(`severite_${severityTier}_legende`)
+  const severityClassName  = SEVERITY_CLASSNAMES[severityTier]
   const initialsColorClass = getInitialsColor(comment.author.initials)
 
   const handleDelete = async () => {
@@ -160,7 +173,7 @@ export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDel
                 {isAuthorBlocked && (
                   <Badge
                     variant="outline"
-                    className="border-red-200 bg-red-50 text-red-700 text-xs gap-1 mt-0.5"
+                    className="border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400 text-xs gap-1 mt-0.5"
                     aria-label="Utilisateur bloqué"
                   >
                     <ShieldBan className="h-3 w-3" aria-hidden="true" />
@@ -232,10 +245,10 @@ export function ModerationCard({ comment, isAuthorBlocked = false, onKept, onDel
                 {comment.reportCount}
                 <Badge
                   variant="outline"
-                  className={`text-xs px-1.5 py-0 ${severity.className}`}
-                  aria-label={`Niveau de sévérité : ${severity.label}`}
+                  className={`text-xs px-1.5 py-0 ${severityClassName}`}
+                  aria-label={`${t('severite_aria_label')} ${severityLabel}, ${severityLegende}`}
                 >
-                  {severity.label}
+                  {severityLabel}
                 </Badge>
               </dd>
             </div>

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Card,
   CardAction,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -13,7 +14,14 @@ import {
 } from "@/components/ui/card";
 import { LaverieActions } from "@/components/ui/optionsButton"
 
-// Valeurs de LaverieStatutEnum::value
+interface Adresse {
+  adresse: string | null;
+  rue: string | null;
+  ville: string | null;
+  code_postal: string | null;
+}
+
+
 interface Laundry {
   id: number;
   nom: string;
@@ -21,6 +29,8 @@ interface Laundry {
   logoUrl: string | null;
   rating: number | null;
   avis: number;
+  adresse: Adresse | null;     
+  date_ajout: string | null;
 }
 
 
@@ -36,7 +46,7 @@ const statutConfig: Record<
 function ProDashboard() {
   const [laundries, setLaundries] = useState<Laundry[]>([]);
   const [total, setTotal]        = useState<number>(0);
-
+  const [noteMoyenneGlobale, setNoteMoyenneGlobale] = useState<number | null>(null);
   const [loading, setLoading]     = useState<boolean>(true);
   const [error, setError]        = useState<string | null>(null);
   const navigate = useNavigate();
@@ -48,6 +58,7 @@ function ProDashboard() {
       .then((response) => {
         setLaundries(response.data.laveries);
         setTotal(response.data.total);
+        setNoteMoyenneGlobale(response.data.noteMoyenneGlobale);
       })
       .catch(() => setError('Impossible de charger vos laveries.'))
       .finally(() => setLoading(false));
@@ -63,10 +74,18 @@ function ProDashboard() {
         <h1 className="font-bold text-2xl mt-6">Tableau de bord</h1>
         <p className="text-muted-foreground text-center mt-2">Bienvenue dans votre espace professionnel</p>
 
-        <div className="w-[150px] my-12">
-          <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center">
+        <div className="flex gap-4 my-12">
+
+          <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center w-[140px]">
             <p className="text-lg font-semibold">{total}</p>
             <p className="text-sm">Laveries</p>
+          </div>
+
+          <div className="bg-[#0077B6] text-white p-4 rounded-lg shadow-md text-center w-[140px]">
+            <p className="text-lg font-semibold">
+              {noteMoyenneGlobale !== null ? `★ ${noteMoyenneGlobale}` : '—'}
+            </p>
+            <p className="text-sm">Note moyenne</p>
           </div>
         </div>
 
@@ -113,7 +132,6 @@ function ProDashboard() {
 
                     <CardHeader>
                       <CardAction>
-                        
                         <Badge variant={config.variant} className="mt-2">
                           {config.label}
                         </Badge>
@@ -122,23 +140,32 @@ function ProDashboard() {
                       <CardTitle>{laundry.nom}</CardTitle>
 
                       <CardDescription>
-
                         {laundry.rating !== null ? (
                           <>
                             <span className="text-yellow-500">★ {laundry.rating}</span>
                             <span className="text-muted-foreground ml-2">{laundry.avis} avis</span>
                           </>
                         ) : (
-                          <span className="text-gray-400 italic">Aucun avis</span>
+                          <span className="text-gray-400 dark:text-gray-500 italic">Aucun avis</span>
                         )}
                       </CardDescription>
                     </CardHeader>
 
+                    <CardContent className="flex-1 flex flex-col justify-end gap-1 pb-2">
+                      {laundry.adresse && (
+                        <p className="text-sm text-muted-foreground">
+                          {laundry.adresse.adresse}, {laundry.adresse.rue}, {laundry.adresse.code_postal} {laundry.adresse.ville}
+                        </p>
+                      )}
+                      {laundry.date_ajout && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Crée le {laundry.date_ajout}
+                        </p>
+                      )}
+                    </CardContent>
+
                     <CardFooter>
-                      <Button
-                        className="w-full"
-                        onClick={() => navigate(`/pro/laverie/${laundry.id}`)}
-                      >
+                      <Button className="w-full" onClick={() => navigate(`/pro/laverie/${laundry.id}`)} >
                         Voir la laverie
                       </Button>
                     </CardFooter>

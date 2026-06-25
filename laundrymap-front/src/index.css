@@ -18,13 +18,13 @@
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
+    --muted-foreground: oklch(0.54 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.58 0.22 27);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --ring: oklch(0.66 0 0);
     --chart-1: oklch(0.809 0.105 251.813);
     --chart-2: oklch(0.623 0.214 259.815);
     --chart-3: oklch(0.546 0.245 262.881);
@@ -92,6 +92,12 @@
  .leaflet-control-locate a:focus-visible {
      outline: 2px solid #0077B6;
      outline-offset: 2px;
+ }
+
+ /* Le compteur des clusters hérite sinon de text-foreground (body), quasi blanc en dark mode,
+    illisible sur les cercles colorés fixes du plugin marker-cluster */
+ .marker-cluster span {
+     color: #000;
  }
 
 @theme inline {

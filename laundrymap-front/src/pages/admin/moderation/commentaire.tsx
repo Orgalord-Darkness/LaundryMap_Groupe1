@@ -1,4 +1,5 @@
 import { useState, useMemo, useId, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { FilterTabs } from "@/components/layout/Filter"
 import { ModerationCard, type ModerationComment } from "@/components/layout/NoteCards"
@@ -8,16 +9,20 @@ import apiClient from "@/lib/apiClient"
 
 type SeverityFilter = "TOUS" | "MODERE" | "ELEVE" | "CRITIQUE"
 
-const SEVERITY_TABS = [
-  { label: "Tous",     value: "TOUS"     as SeverityFilter },
-  { label: "Modéré",   value: "MODERE"   as SeverityFilter },
-  { label: "Élevé",    value: "ELEVE"    as SeverityFilter },
-  { label: "Critique", value: "CRITIQUE" as SeverityFilter },
-]
+function getSeverityTabs(t: (key: string) => string) {
+  return [
+    { label: t('moderation_filter_tous'), value: "TOUS"     as SeverityFilter },
+    { label: t('severite_modere'),        value: "MODERE"   as SeverityFilter },
+    { label: t('severite_eleve'),         value: "ELEVE"    as SeverityFilter },
+    { label: t('severite_critique'),       value: "CRITIQUE" as SeverityFilter },
+  ]
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ModerationPage() {
+  const { t } = useTranslation()
+  const SEVERITY_TABS = getSeverityTabs(t)
   const [comments, setComments]             = useState<ModerationComment[]>([])
   const [filter, setFilter]                 = useState<SeverityFilter>("TOUS")
   const [loading, setLoading]               = useState(true)
@@ -112,6 +117,11 @@ export function ModerationPage() {
         </p>
 
         <FilterTabs tabs={SEVERITY_TABS} active={filter} onChange={setFilter} />
+
+        {/* Légende des seuils de sévérité — un seul endroit, pas répété sur chaque carte */}
+        <p className="text-xs text-muted-foreground mt-2 mb-4">
+          {t('severite_modere')} : {t('severite_modere_legende')} · {t('severite_eleve')} : {t('severite_eleve_legende')} · {t('severite_critique')} : {t('severite_critique_legende')}
+        </p>
 
         {/* Compteur */}
         {!loading && !error && (

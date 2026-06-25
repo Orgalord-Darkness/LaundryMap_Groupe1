@@ -4,6 +4,7 @@ export function Footer() {
   const legalLinks = [
     { label: "CGU", href: "/cgu" },
     { label: "Mentions légales", href: "/mentions-legales" },
+    { label: "Accessibilité", href: "/accessibilite" },
   ];
 
   return (

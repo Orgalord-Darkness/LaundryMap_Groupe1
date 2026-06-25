@@ -7,6 +7,8 @@ import { Field, FieldDescription, FieldLabel, FieldGroup } from "@/components/ui
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { Eye, EyeOff } from "lucide-react"
+import { Ec2eLogo } from "@/components/layout/Ec2eLogo"
 
 
 
@@ -23,6 +25,7 @@ function ProLogin() {
 
     const { login } = useAuth()
     const [successMessage, setSuccessMessage] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -85,8 +88,8 @@ function ProLogin() {
             <div className="flex flex-col gap-4 lg:gap-0 p-6 md:p-10">
 
                 <div className="flex justify-center gap-2">
-                    <a href="https://ec2e.com/" target="_blank" className="flex items-center gap-2 font-medium">
-                        <img src="/logo_ec2e.png"  alt="Image" className="w-82" />
+                    <a href="https://ec2e.com/" target="_blank" className="flex items-center font-medium">
+                        <Ec2eLogo />
                     </a>
                 </div>
 
@@ -119,14 +122,19 @@ function ProLogin() {
                                 <Field>
                                     <div className="flex items-center">
                                         <FieldLabel htmlFor="mot_de_passe">{t("mot_de_passe")}</FieldLabel>
-                                        <a
-                                        href="/pro/mot-de-passe-oublie"
-                                        className="ml-auto text-sm underline-offset-4 hover:underline"
-                                        >
-                                        {t("mot_de_passe_oublie")}
-                                        </a>
                                     </div>
-                                    <Input id="mot_de_passe" type="password" required {...register("mot_de_passe", { required: "Le mot de passe est requis" })}/>
+
+                                    <div className="relative">
+                                        <Input id="mot_de_passe" type={showPassword ? "text" : "password"} required {...register("mot_de_passe", { required: "Le mot de passe est requis" })} className="pr-10" />
+
+                                        <button type="button" onClick={() => setShowPassword((prev) => !prev)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                    
                                     {errors.mot_de_passe && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.mot_de_passe.message}</p>}
                                 </Field>
 

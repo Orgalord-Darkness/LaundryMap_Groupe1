@@ -104,7 +104,7 @@ export default function FormProfessionnelValidation() {
                 <span className="text-sm text-muted-foreground">Statut actuel :</span>
                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                     pro.statut === 'en attente'
-                        ? 'bg-orange-100 text-orange-600'
+                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
                         : pro.statut === 'validé'
                         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                         : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
@@ -181,7 +181,7 @@ export default function FormProfessionnelValidation() {
             <div className="flex gap-3 mt-8 mb-12">
                 <Button
                     type="button"
-                    className="h-10 px-6 bg-red-500 hover:bg-red-600 text-sm"
+                    className="h-10 px-6 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-sm"
                     onClick={() => handleAction('REFUSE')}
                     disabled={submitting}
                 >
@@ -190,7 +190,7 @@ export default function FormProfessionnelValidation() {
 
                 <Button
                     type="button"
-                    className="h-10 px-6 bg-green-600 hover:bg-green-700 text-sm"
+                    className="h-10 px-6 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-sm"
                     onClick={() => handleAction('VALIDE')}
                     disabled={submitting}
                 >
