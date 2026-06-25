@@ -107,17 +107,23 @@ function AddLaundry() {
           if (d.card_accepted     === true) setSelectedPayments((prev) => [...prev, 'Carte Bleue'])
           if (d.fidelity_accepted === true) setSelectedPayments((prev) => [...prev, 'Carte Fidélité'])
 
-          // Machines (WASH, DRY, PRODUCTS) → converties au format Machine[] du formulaire
-          const categoryFilter = ['WASH', 'DRY', 'PRODUCTS']
+          // Machines (WASH → machine_a_laver, DRY → seche_linge, PRODUCTS → distributeur_de_lessive)
+          const categoryMap: Record<string, string> = {
+              WASH:     'machine_a_laver',
+              DRY:      'seche_linge',
+              PRODUCTS: 'distributeur_de_lessive',
+          }
           if (Array.isArray(d.machines)) {
               const imported = d.machines
-                  .filter((m: any) => categoryFilter.includes(m.category_text))
+                  .filter((m: any) => categoryMap[m.category_text])
                   .map((m: any) => ({
                       name:      m.type_name || 'Équipement',
                       capacity:  parseCapacite(m.type_name) ?? 0,
                       duration:  m.duration > 0 ? Math.round(m.duration / 60) : 0,
                       price:     m.price    > 0 ? m.price / 100               : 0,
                       available: true,
+                      type:      categoryMap[m.category_text],
+                      equipement_reference: m.machine_number ?? null,
                   }))
               setMachines(imported)
           }
