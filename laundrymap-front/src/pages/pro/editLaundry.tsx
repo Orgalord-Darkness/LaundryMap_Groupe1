@@ -568,7 +568,7 @@ export default function FormEditLaverie() {
                         {machine.equipement_reference != null && !editingLinkIndices.has(index) ? (
                             <div className="mt-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                                 <span>
-                                    Liée à la machine Wi-Line n°{machine.equipement_reference}
+                                    {t('edit_laundry_liee_wiline', { ref: machine.equipement_reference })}
                                     {(() => {
                                         const matched = wilineMachines.find(
                                             wm => wm.machine_number === machine.equipement_reference
@@ -581,7 +581,7 @@ export default function FormEditLaverie() {
                                     onClick={() => toggleEditLink(index)}
                                     className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                                 >
-                                    Modifier
+                                    {t('edit_laundry_modifier')}
                                 </button>
                             </div>
                         ) : (
@@ -596,8 +596,8 @@ export default function FormEditLaverie() {
                             >
                                 <option value="">
                                     {wilineMachines.length === 0
-                                        ? "Importez depuis Wi-Line pour lier une machine"
-                                        : "Sélectionnez un équipement Wi-Line"}
+                                        ? t('edit_laundry_wiline_importer_pour_lier')
+                                        : t('edit_laundry_wiline_selectionner')}
                                 </option>
                                 {wilineMachines.map((wilineMachine) => (
                                     <option key={wilineMachine.machine_number} value={wilineMachine.machine_number}>

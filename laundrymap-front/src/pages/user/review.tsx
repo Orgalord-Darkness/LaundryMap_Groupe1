@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { PersonalSpaceNavbar, TAB_ROUTES, type PersonalSpaceTab } from "@/components/ui/PersonalSpaceNavbar"
 import axios from "axios"
 
@@ -21,8 +22,9 @@ const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/v1/utilisateur/review
 // ---------- Sous-composants ----------
 
 function StarRating({ note }: { note: number }) {
+    const { t } = useTranslation()
     return (
-        <div className="flex gap-0.5" aria-label={`Note : ${note} sur 5`}>
+        <div className="flex gap-0.5" aria-label={t('mes_avis_note_aria', { note })}>
             {[1, 2, 3, 4, 5].map((star) => (
                 <span
                     key={star}
@@ -54,14 +56,15 @@ function ConfirmDeleteModal({
     onCancel: () => void
     loading: boolean
 }) {
+    const { t } = useTranslation()
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-sm">
                 <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                    Supprimer cet avis ?
+                    {t('mes_avis_supprimer_titre')}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                    Cette action est irréversible. Votre note et votre commentaire seront définitivement supprimés.
+                    {t('mes_avis_supprimer_texte')}
                 </p>
                 <div className="flex gap-3">
                     <button
@@ -69,14 +72,14 @@ function ConfirmDeleteModal({
                         disabled={loading}
                         className="flex-1 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                        Annuler
+                        {t('annuler')}
                     </button>
                     <button
                         onClick={onConfirm}
                         disabled={loading}
                         className="flex-1 py-2 rounded-lg bg-red-500 dark:bg-red-600 text-white text-sm font-medium hover:bg-red-600 dark:hover:bg-red-700 transition-colors disabled:opacity-60"
                     >
-                        {loading ? "Suppression…" : "Supprimer"}
+                        {loading ? t('mes_avis_suppression_en_cours') : t('supprimer')}
                     </button>
                 </div>
             </div>
@@ -92,6 +95,7 @@ function ReviewCard({
     review: ReviewItem
     onDeleteRequest: (id: number) => void
 }) {
+    const { t } = useTranslation()
     return (
         <div className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-800 shadow-sm">
             {/* En-tête */}
@@ -102,8 +106,8 @@ function ReviewCard({
                 <button
                     onClick={() => onDeleteRequest(review.id)}
                     className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-400 transition-colors shrink-0 text-lg leading-none"
-                    aria-label="Supprimer cet avis"
-                    title="Supprimer"
+                    aria-label={t('mes_avis_supprimer_aria')}
+                    title={t('supprimer')}
                 >
                     ✕
                 </button>
@@ -112,7 +116,7 @@ function ReviewCard({
             {/* Note */}
             <StarRating note={review.note} />
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                Noté le {formatDate(review.note_le)}
+                {t('mes_avis_note_le', { date: formatDate(review.note_le) })}
             </p>
 
             {/* Commentaire */}
@@ -121,12 +125,12 @@ function ReviewCard({
                     <p className="text-sm text-gray-600 dark:text-gray-400">{review.commentaire}</p>
                     {review.commentaire_le && (
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                            Commenté le {formatDate(review.commentaire_le)}
+                            {t('mes_avis_commente_le', { date: formatDate(review.commentaire_le) })}
                         </p>
                     )}
                 </div>
             ) : (
-                <p className="mt-3 text-xs text-gray-400 dark:text-gray-500 italic">Aucun commentaire.</p>
+                <p className="mt-3 text-xs text-gray-400 dark:text-gray-500 italic">{t('mes_avis_aucun_commentaire')}</p>
             )}
         </div>
     )
@@ -136,6 +140,7 @@ function ReviewCard({
 
 export default function Review() {
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     const [reviews, setReviews]           = useState<ReviewItem[]>([])
     const [loading, setLoading]           = useState(true)
@@ -153,7 +158,7 @@ export default function Review() {
         axios
             .get<ReviewItem[]>(BASE_URL, { withCredentials: true })
             .then((res) => setReviews(res.data))
-            .catch(() => setError("Impossible de charger vos avis."))
+            .catch(() => setError(t("mes_avis_erreur_chargement")))
             .finally(() => setLoading(false))
     }, [])
 
@@ -169,7 +174,7 @@ export default function Review() {
             setReviews((prev) => prev.filter((r) => r.id !== deleteTargetId))
             setDeleteTargetId(null)
         } catch {
-            setError("La suppression a échoué. Veuillez réessayer.")
+            setError(t("supprimer_compte_erreur"))
             setDeleteTargetId(null)
         } finally {
             setDeleteLoading(false)
@@ -192,8 +197,8 @@ export default function Review() {
             <div className="bg-white dark:bg-gray-800 px-4 pt-6 pb-0">
                 <div className="max-w-lg mx-auto">
                     <div className="text-center mb-4">
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Espace personnel</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Mes avis</p>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('espace_personnel')}</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t('mes_avis_titre')}</p>
                     </div>
                     <PersonalSpaceNavbar active="Avis" onChange={handleTabChange} />
                 </div>
@@ -204,7 +209,7 @@ export default function Review() {
 
                 {loading && (
                     <p className="text-center py-10 text-gray-400 dark:text-gray-500 text-sm">
-                        Chargement de vos avis…
+                        {t('mes_avis_chargement')}
                     </p>
                 )}
 
@@ -217,7 +222,7 @@ export default function Review() {
                         {/* Compteur */}
                         {reviews.length > 0 && (
                             <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
-                                {reviews.length} avis{reviews.length > 1 ? "" : ""}
+                                {t('mes_avis_compteur', { count: reviews.length })}
                             </p>
                         )}
 
@@ -233,7 +238,7 @@ export default function Review() {
                             ) : (
                                 <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center shadow-sm">
                                     <p className="text-gray-400 dark:text-gray-500 text-sm">
-                                        Vous n'avez pas encore laissé d'avis.
+                                        {t('mes_avis_vide')}
                                     </p>
                                 </div>
                             )}

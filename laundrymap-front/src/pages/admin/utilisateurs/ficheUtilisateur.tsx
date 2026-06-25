@@ -52,11 +52,20 @@ interface SignalementEntry {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function deriveStatus(entry: HistoryEntry, isLast: boolean, isCurrentlyBlocked: boolean): string {
-  if (entry.action !== "banni") return "Levée de blocage"
-  if (isLast && isCurrentlyBlocked) return "Actif"
-  if (isLast && !isCurrentlyBlocked) return "Expiré"
-  return "Levé manuellement"
+type StatutCode = "levee_blocage" | "actif" | "expire" | "leve_manuellement"
+
+const STATUT_LABEL_KEYS: Record<StatutCode, string> = {
+  levee_blocage: "statut_levee_blocage",
+  actif: "statut_actif",
+  expire: "statut_expire",
+  leve_manuellement: "statut_leve_manuellement",
+}
+
+function deriveStatus(entry: HistoryEntry, isLast: boolean, isCurrentlyBlocked: boolean): StatutCode {
+  if (entry.action !== "banni") return "levee_blocage"
+  if (isLast && isCurrentlyBlocked) return "actif"
+  if (isLast && !isCurrentlyBlocked) return "expire"
+  return "leve_manuellement"
 }
 
 function getInitialsColor(initials: string): string {
@@ -120,7 +129,7 @@ export function FicheUtilisateur() {
         const sig = signalementsRes.data.find((s) => s.utilisateur.id === userId) ?? null
         setSignalement(sig)
       })
-      .catch(() => setError("Impossible de charger les informations de l'utilisateur."))
+      .catch(() => setError(t('fiche_utilisateur_erreur_chargement')))
       .finally(() => setLoading(false))
   }
 
@@ -165,7 +174,7 @@ export function FicheUtilisateur() {
             {[...Array(2)].map((_, i) => (
               <div key={i} className="bg-card rounded-2xl h-36 animate-pulse border border-border" />
             ))}
-            <span className="sr-only">Chargement…</span>
+            <span className="sr-only">{t('chargement')}</span>
           </div>
         )}
 
@@ -205,7 +214,7 @@ export function FicheUtilisateur() {
                       onClick={() => setBlockDrawerOpen(true)}
                     >
                       <ShieldBan className="h-4 w-4" aria-hidden="true" />
-                      Bloquer
+                      {t('moderation_bloquer')}
                     </Button>
                   )}
                 </div>
@@ -221,7 +230,7 @@ export function FicheUtilisateur() {
                       blockedUntil={blockedUser!.blocked_until}
                       onUnblocked={() => {
                         setBlockedUser(null)
-                        announce("Blocage levé avec succès.")
+                        announce(t('fiche_blocage_leve_succes'))
                         loadData()
                       }}
                     />
@@ -233,7 +242,7 @@ export function FicheUtilisateur() {
                         onClick={() => setBlockDrawerOpen(true)}
                       >
                         <ShieldBan className="h-4 w-4" aria-hidden="true" />
-                        Modifier le blocage
+                        {t('fiche_modifier_blocage')}
                       </Button>
                     </div>
                   </CardContent>
@@ -249,7 +258,7 @@ export function FicheUtilisateur() {
                     <h2 className="text-base font-semibold">{t('fiche_commentaires_signales_titre')}</h2>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {signalement.total_signalements} signalement{signalement.total_signalements > 1 ? "s" : ""} cumulé{signalement.total_signalements > 1 ? "s" : ""}
+                        {t('badge_signalements_cumules', { count: signalement.total_signalements })}
                       </Badge>
                       {signalement.depasse_seuil_bannissement && (
                         <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-400 text-xs gap-1">
@@ -276,7 +285,7 @@ export function FicheUtilisateur() {
                         <div className="flex items-center gap-2">
                           <Flag className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
                           <Badge variant="outline" className={`text-xs px-1.5 py-0 ${severity}`}>
-                            {c.nb_signalements} signalement{c.nb_signalements > 1 ? "s" : ""}
+                            {t('badge_signalement_count', { count: c.nb_signalements })}
                           </Badge>
                         </div>
                         <p className={`text-sm text-foreground leading-snug ${isExpanded || !isLong ? "" : "line-clamp-2"}`}>
@@ -300,23 +309,23 @@ export function FicheUtilisateur() {
             {/* ── Historique des blocages ── */}
             <Card className="rounded-2xl shadow-sm">
               <CardHeader className="pb-3">
-                <h2 className="text-base font-semibold">Historique des actions</h2>
+                <h2 className="text-base font-semibold">{t('fiche_historique_actions_titre')}</h2>
               </CardHeader>
               <Separator />
               <CardContent className="pt-4 p-0">
                 {history.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-6 text-center">
-                    Aucune action enregistrée pour cet utilisateur.
+                    {t('fiche_historique_vide')}
                   </p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Action</th>
-                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Motif</th>
-                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Date</th>
-                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Statut</th>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">{t('th_action')}</th>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">{t('histo_laverie_col_motif')}</th>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">{t('histo_interactions_col_date')}</th>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">{t('statut_label')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -337,7 +346,7 @@ export function FicheUtilisateur() {
                                       : "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
                                   }
                                 >
-                                  {isBlock ? "Blocage" : "Levée"}
+                                  {isBlock ? t('action_blocage') : t('fiche_badge_levee')}
                                 </Badge>
                               </td>
                               <td className="px-4 py-3 text-muted-foreground max-w-48 truncate" title={entry.motif}>
@@ -351,14 +360,14 @@ export function FicheUtilisateur() {
                               <td className="px-4 py-3">
                                 <span
                                   className={
-                                    status === "Actif"
+                                    status === "actif"
                                       ? "text-red-600 dark:text-red-400 font-medium"
-                                      : status === "Expiré"
+                                      : status === "expire"
                                       ? "text-amber-600 dark:text-amber-400"
                                       : "text-muted-foreground"
                                   }
                                 >
-                                  {status}
+                                  {t(STATUT_LABEL_KEYS[status])}
                                 </span>
                               </td>
                             </tr>
@@ -381,7 +390,7 @@ export function FicheUtilisateur() {
         open={blockDrawerOpen}
         onOpenChange={setBlockDrawerOpen}
         onSuccess={() => {
-          announce(`${prenom} ${nom} a été bloqué avec succès.`)
+          announce(t('fiche_utilisateur_bloque_succes', { name: `${prenom} ${nom}` }))
           loadData()
         }}
       />

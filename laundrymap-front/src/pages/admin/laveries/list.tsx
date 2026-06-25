@@ -1,9 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilterTabs } from "@/components/layout/Filter"
 import apiClient from "@/lib/apiClient"
+import i18n from "@/i18n"
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
@@ -41,11 +43,13 @@ interface PaginationState {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const ONGLETS = [
-    { label: "En attente", value: "EN_ATTENTE" as StatutOnglet },
-    { label: "Validés",    value: "VALIDE"     as StatutOnglet },
-    { label: "Refusés",    value: "REFUSE"     as StatutOnglet },
-]
+function getOnglets(t: (key: string) => string) {
+    return [
+        { label: t("admin_onglet_en_attente"), value: "EN_ATTENTE" as StatutOnglet },
+        { label: t("admin_onglet_valides"),    value: "VALIDE"     as StatutOnglet },
+        { label: t("admin_onglet_refuses"),    value: "REFUSE"     as StatutOnglet },
+    ]
+}
 
 const BADGE_STYLES: Record<StatutOnglet, string> = {
     EN_ATTENTE: "bg-amber-100 text-amber-700 border border-amber-200",
@@ -53,10 +57,12 @@ const BADGE_STYLES: Record<StatutOnglet, string> = {
     REFUSE:     "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800",
 }
 
-const BADGE_LABELS: Record<StatutOnglet, string> = {
-    EN_ATTENTE: "En attente",
-    VALIDE:     "Validé",
-    REFUSE:     "Refusé",
+function getBadgeLabels(t: (key: string) => string): Record<StatutOnglet, string> {
+    return {
+        EN_ATTENTE: t("admin_badge_en_attente"),
+        VALIDE:     t("admin_badge_valide"),
+        REFUSE:     t("admin_badge_refuse"),
+    }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -72,10 +78,10 @@ function tempsEcoule(iso: string): string {
     const jours   = Math.floor(diff / 86_400_000)
     const heures  = Math.floor(diff / 3_600_000)
     const minutes = Math.floor(diff / 60_000)
-    if (jours > 0)   return `${jours} jour${jours > 1 ? "s" : ""}`
-    if (heures > 0)  return `${heures} heure${heures > 1 ? "s" : ""}`
-    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""}`
-    return "quelques secondes"
+    if (jours > 0)   return i18n.t("temps_jours", { count: jours })
+    if (heures > 0)  return i18n.t("temps_heures", { count: heures })
+    if (minutes > 0) return i18n.t("temps_minutes", { count: minutes })
+    return i18n.t("temps_instant")
 }
 
 function normaliser(raw: LaverieAPI): Laverie {
@@ -100,6 +106,7 @@ function ContextMenu({
     laverieId: number
     onClose: () => void
 }) {
+    const { t } = useTranslation()
     const ref = useRef<HTMLDivElement>(null)
 
     // Fermeture au clic extérieur
@@ -115,7 +122,7 @@ function ContextMenu({
 
     const items = [
         {
-            label: "Commentaires",
+            label: t('fiche_commentaires_titre'),
             icon: (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
@@ -125,7 +132,7 @@ function ContextMenu({
             href: `/admin/laverie/${laverieId}/commentaires`,
         },
         {
-            label: "Voir la demande",
+            label: t('admin_voir_demande'),
             icon: (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
@@ -135,7 +142,7 @@ function ContextMenu({
             href: `/admin/laverie/${laverieId}`,
         },
         {
-            label: "Éditer",
+            label: t('menu_editer'),
             icon: (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
@@ -145,7 +152,7 @@ function ContextMenu({
             href: `/pro/laverie/${laverieId}`,
         },
         {
-            label: "Supprimer",
+            label: t('supprimer'),
             icon: (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
@@ -161,7 +168,7 @@ function ContextMenu({
         <div
             ref={ref}
             role="menu"
-            aria-label="Actions"
+            aria-label={t('actions')}
             className="absolute right-0 bottom-10 z-20 bg-card rounded-2xl shadow-lg border border-border py-1 min-w-[170px] overflow-hidden"
         >
             {items.map(({ label, icon, href, danger }) => (
@@ -193,6 +200,7 @@ export function PaginationBar({
     totalPages: number
     onChange: (p: number) => void
 }) {
+    const { t } = useTranslation()
     const pages: (number | "…")[] = []
     if (totalPages <= 5) {
         for (let i = 1; i <= totalPages; i++) pages.push(i)
@@ -205,10 +213,10 @@ export function PaginationBar({
     }
 
     return (
-        <nav aria-label="Pagination" className="flex items-center justify-center gap-1 mt-8">
+        <nav aria-label={t('pagination_aria')} className="flex items-center justify-center gap-1 mt-8">
             <button
                 onClick={() => onChange(page - 1)} disabled={page === 1}
-                aria-label="Page précédente"
+                aria-label={t('pagination_precedente')}
                 className="w-9 h-9 flex items-center justify-center rounded-xl border border-border text-muted-foreground disabled:opacity-40 hover:bg-background transition-colors text-base"
             >‹</button>
 
@@ -220,7 +228,7 @@ export function PaginationBar({
                         key={p}
                         onClick={() => onChange(p as number)}
                         aria-current={p === page ? "page" : undefined}
-                        aria-label={`Page ${p}`}
+                        aria-label={t('pagination_page', { n: p })}
                         className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-medium transition-colors ${
                             p === page ? "bg-blue-600 text-white shadow-sm" : "border border-border text-muted-foreground hover:bg-background"
                         }`}
@@ -230,7 +238,7 @@ export function PaginationBar({
 
             <button
                 onClick={() => onChange(page + 1)} disabled={page === totalPages}
-                aria-label="Page suivante"
+                aria-label={t('pagination_suivante')}
                 className="w-9 h-9 flex items-center justify-center rounded-xl border border-border text-muted-foreground disabled:opacity-40 hover:bg-background transition-colors text-base"
             >›</button>
         </nav>
@@ -244,6 +252,8 @@ function LaverieCard({
 }: {
     laverie: Laverie
 }) {
+    const { t } = useTranslation()
+    const badgeLabels = getBadgeLabels(t)
     const [menuOpen, setMenuOpen] = useState(false)
 
     return (
@@ -253,7 +263,7 @@ function LaverieCard({
                 {laverie.image_url ? (
                     <img
                         src={laverie.image_url}
-                        alt={`Photo de ${laverie.nom_etablissement}`}
+                        alt={t('favoris_photo_alt', { name: laverie.nom_etablissement })}
                         className="w-full h-auto max-h-44 object-contain"
                     />
                 ) : (
@@ -265,7 +275,7 @@ function LaverieCard({
                     </div>
                 )}
                 <span className={`absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full ${BADGE_STYLES[laverie.statut]}`}>
-                    {BADGE_LABELS[laverie.statut]}
+                    {badgeLabels[laverie.statut]}
                 </span>
             </div>
 
@@ -276,28 +286,28 @@ function LaverieCard({
                         {laverie.nom_etablissement}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                        Propriétaire : {laverie.proprietaire_nom}
+                        {t('admin_proprietaire', { name: laverie.proprietaire_nom })}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                        Créé le {laverie.date_creation}
+                        {t('admin_cree_le', { date: laverie.date_creation })}
                     </p>
                 </div>
 
                 <div className="flex items-center justify-between">
-                    <Button asChild variant="default" size="sm" aria-label={`Voir la demande de ${laverie.nom_etablissement}`}>
-                        <Link to={`/admin/laverie/${laverie.id}`}>Voir la demande</Link>
+                    <Button asChild variant="default" size="sm" aria-label={t('admin_voir_demande_aria', { name: laverie.nom_etablissement })}>
+                        <Link to={`/admin/laverie/${laverie.id}`}>{t('admin_voir_demande')}</Link>
                     </Button>
 
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-400 dark:text-gray-500">
-                            Soumis il y a {laverie.soumis_il_y_a}
+                            {t('admin_soumis_il_y_a', { temps: laverie.soumis_il_y_a })}
                         </span>
 
                         {/* Bouton 3 points */}
                         <div className="relative">
                             <button
                                 onClick={() => setMenuOpen(v => !v)}
-                                aria-label="Plus d'actions"
+                                aria-label={t('plus_actions_aria')}
                                 aria-haspopup="true"
                                 aria-expanded={menuOpen}
                                 className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 dark:text-gray-500 hover:bg-muted hover:text-muted-foreground transition-colors"
@@ -326,6 +336,9 @@ function LaverieCard({
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function LaveriesValidation() {
+    const { t } = useTranslation()
+    const onglets = getOnglets(t)
+    const badgeLabels = getBadgeLabels(t)
     const [onglet, setOnglet]         = useState<StatutOnglet>("EN_ATTENTE")
     const [laveries, setLaveries]     = useState<Laverie[]>([])
     const [pagination, setPagination] = useState<PaginationState>({ page: 1, total_pages: 1, total: 0 })
@@ -346,11 +359,11 @@ export default function LaveriesValidation() {
                 total:       json.total       ?? 0,
             })
         } catch {
-            setError("Impossible de charger les laveries.")
+            setError(t("admin_laveries_erreur_chargement"))
         } finally {
             setLoading(false)
         }
-    }, [])
+    }, [t])
 
     useEffect(() => {
         fetchLaveries(onglet, 1)
@@ -368,17 +381,17 @@ export default function LaveriesValidation() {
         <div className="min-h-screen bg-background">
             <main className="max-w-2xl mx-auto px-4 py-6">
                 <h1 className="text-2xl font-semibold text-foreground mb-5">
-                    Demandes de laveries
+                    {t('admin_demandes_laveries_titre')}
                 </h1>
 
-                <FilterTabs tabs={ONGLETS} active={onglet} onChange={setOnglet} />
+                <FilterTabs tabs={onglets} active={onglet} onChange={setOnglet} />
 
                 {loading && (
                     <div role="status" aria-live="polite" className="flex flex-col gap-4">
                         {[...Array(4)].map((_, i) => (
                             <div key={i} className="bg-card rounded-2xl h-64 animate-pulse border border-border" />
                         ))}
-                        <span className="sr-only">Chargement…</span>
+                        <span className="sr-only">{t('chargement')}</span>
                     </div>
                 )}
 
@@ -390,7 +403,7 @@ export default function LaveriesValidation() {
 
                 {!loading && !error && laveries.length === 0 && (
                     <p className="text-center text-gray-400 dark:text-gray-500 py-12 text-sm">
-                        Aucune laverie dans cette catégorie.
+                        {t('admin_laveries_vide')}
                     </p>
                 )}
 
@@ -398,7 +411,7 @@ export default function LaveriesValidation() {
                     <>
                         <div
                             role="list"
-                            aria-label={`Laveries ${BADGE_LABELS[onglet].toLowerCase()}`}
+                            aria-label={t('admin_laveries_aria_liste', { statut: badgeLabels[onglet].toLowerCase() })}
                             className="flex flex-col gap-5"
                         >
                             {laveries.map(laverie => (
