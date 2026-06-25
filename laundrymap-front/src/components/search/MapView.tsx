@@ -249,9 +249,9 @@ export function MapView({ laveries, selectedId, onSelectLaverie, onLocationFound
                                 <div className="text-xs text-muted-foreground mt-0.5">
                                     {laverie.adresse.rue}, {laverie.adresse.ville}
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => navigate(`/user/fiche-laverie/${laverie.id}`)}
-                                    className="w-full text-xs bg-primary text-black px-3 py-1.5 rounded-lg hover:bg-card hover:text-primary hover:border hover:border-primary transition-colors cursor-pointer"
+                                    className="w-full text-xs bg-primary text-white font-bold dark:text-black px-3 py-1.5 rounded-lg hover:bg-card hover:text-primary hover:border hover:border-primary transition-colors cursor-pointer"
                                 >
 
                                     Voir la fiche
