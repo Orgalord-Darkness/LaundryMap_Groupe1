@@ -7,7 +7,7 @@ import axios from "axios";
 import CardMachine from "@/components/ui/cardMachine";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/utils/StatusBadge";
-import type { HoraireSlot } from "@/components/utils/type";
+import type { Lien, HoraireSlot } from "@/components/utils/type";
 import {
   Carousel,
   CarouselContent,
@@ -24,7 +24,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-
+import { Icon } from "@/components/ui/icons";
 
 // TYPES - à vérifier doublons dans un fichier types.ts / laundry.ts
 
@@ -78,6 +78,7 @@ interface Laverie {
   machines: Machine[];
   reviews: Review[];
   description: string;
+  liens: Lien[];
 }
 
 // Type pour la réponse brute de l'API (étend Laverie avec les champs spécifiques à l'utilisateur connecté)
@@ -428,6 +429,13 @@ const ModalAvis = ({
 
 const JOURS_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
+const iconParReseau: Record<string, () => React.ReactElement> = {
+    'facebook':  Icon.Facebook,
+    'instagram': Icon.Instagram,
+    'x':         Icon.X,
+    'linkedin':  Icon.Linkedin,
+    'site web':  Icon.Globe,
+}
 // COMPOSANT PRINCIPAL
 
 const DAY_TRANSLATION_KEYS: Record<string, string> = {
@@ -848,21 +856,39 @@ function FicheLaverie() {
             </div>
 
             <div className="mt-6">
-              <h3 className="text-foreground text-md font-semibold mb-3">{t('fiche_informations_titre')}</h3>
-              {laverie.email && (
-                <div className="flex items-center gap-2 text-[15px] text-muted-foreground font-medium">
-                  <span>{t('fiche_email_label')}</span>
-                  {emailVisible ? (
-                    <a href={`mailto:${laverie.email}`} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors" >
-                      {laverie.email}
-                    </a>
-                  ) : (
-                    <button onClick={() => setEmailVisible(true)} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer" >
-                      {t('fiche_afficher_email')}
-                    </button>
+            <h3 className="text-foreground text-md font-semibold mb-3">{t('fiche_informations_titre')}</h3>
+            {laverie.email && (
+              <div className="flex items-center gap-2 text-[15px] text-muted-foreground font-medium">
+                <span>{t('fiche_email_label')}</span>
+                {emailVisible ? (
+                  <a href={`mailto:${laverie.email}`} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors" >
+                    {laverie.email}
+                  </a>
+                ) : (
+                  <button onClick={() => setEmailVisible(true)} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer" >
+                    {t('fiche_afficher_email')}
+                  </button>
+                )}
+              </div>
+            )}
+            {laverie.liens && laverie.liens.filter(l => l.is_public).length > 0 && (
+                <div className="flex items-center gap-2 text-[15px] text-muted-foreground font-medium mt-4">
+                  <span>{t('fiche_lien_label')}</span>
+                  {laverie.liens.filter(l => l.is_public).map((lien) => 
+                    <a
+                      key={lien.social_media}
+                      href={lien.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={lien.texte_alternatif}
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                      >
+                        {(() => { const IconComponent = iconParReseau[lien.social_media] ?? Icon.Globe; return <IconComponent />; })()}
+                      </a> 
                   )}
+                                        
                 </div>
-              )}
+            )}
             </div>
           </div>
 

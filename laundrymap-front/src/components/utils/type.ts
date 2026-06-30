@@ -137,3 +137,14 @@ export interface SearchResult {
 }
 
 export type SortOrder = "distance_asc" | "distance_desc" | "name_asc"
+
+export interface Lien {
+    url: string
+    texte_alternatif: string
+    social_media: string
+    is_public: boolean
+}
+
+export type ReseauSocial = "facebook" | "instagram" | "x" | "linkedin"
+
+export const TOUS_RESEAUX_SOCIAUX: ReseauSocial[] = ["facebook", "instagram", "x", "linkedin"]

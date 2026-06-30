@@ -16,6 +16,7 @@ import type { AddressSelection } from '@/components/ui/AddressAutocomplete'
 import UppyImageUploader from '@/components/ui/UppyImageUploader'
 import CardMachine from '@/components/ui/cardMachine'
 import MachineModal, { type EquipementFormData } from '@/components/ui/MachineModal'
+import {TOUS_RESEAUX_SOCIAUX, type Lien, type ReseauSocial} from "@/components/utils/type.ts"; 
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
@@ -53,7 +54,10 @@ export default function FormEditLaverie() {
     const fieldsRef = useRef<Record<string,HTMLDivElement | null>>({})
     const [existingImages, setExistingImages] = useState<string[]>([])
     const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null)
-
+    const [liens, setLiens] = useState<Lien[]>([])
+    const [nouvelleUrl, setNouvelleUrl] = useState("")
+    const [nouveauReseauSocial, setNouveauReseauSocial] = useState<ReseauSocial | "">("")
+ 
     const [selectedMachines, setSelectedMachines] = useState<EquipementFormData[]>([])
     // Machines brutes renvoyées par Wi-Line (machine_number, category_text, type_name, status...)
     // Alimente le sélecteur permettant de lier une machine locale à son équivalent Wi-Line.
@@ -94,6 +98,26 @@ export default function FormEditLaverie() {
         ))
     }
 
+    const handleAddLiens = () => {
+        if (!nouvelleUrl || !nouveauReseauSocial) {
+            return 
+        }
+
+        setLiens(prev => [...prev, {
+            url: nouvelleUrl,
+            social_media: nouveauReseauSocial, 
+            texte_alternatif: nouveauReseauSocial, 
+            is_public: true, 
+        }])
+
+        setNouvelleUrl("")
+        setNouveauReseauSocial("")
+    }
+
+    const handleRemoveLien = (index: number) => {
+        setLiens(prev => prev.filter((_, i) => i !== index))
+    }
+
     const toggleEditLink = (index: number) => {
         setEditingLinkIndices(prev => {
             const next = new Set(prev)
@@ -101,6 +125,11 @@ export default function FormEditLaverie() {
             return next
         })
     }
+
+    const reseauxDejaUtilises = liens.map(l => l.social_media)
+    const reseauxDisponibles = TOUS_RESEAUX_SOCIAUX.filter(
+        r => !reseauxDejaUtilises.includes(r)
+    )
 
     // ─── Import Wi-Line ───────────────────────────────────────────────────────
 
@@ -287,6 +316,8 @@ export default function FormEditLaverie() {
                 })
                 setWeek(newWeek)
 
+                setLiens(data.liens ?? []);
+
             } catch (err) {
                 console.error("Erreur fetch:", err)
                 setError(t('edit_laundry_load_error'))
@@ -346,6 +377,7 @@ export default function FormEditLaverie() {
             formData.append('methodes_paiement', JSON.stringify(selectedPayments.map(Number)))
             formData.append('equipements', JSON.stringify(selectedMachines))
             formData.append('weekSchedule', JSON.stringify(week))
+            formData.append('liens', JSON.stringify(liens))
             if (logoFiles.length > 0) formData.append('logo', logoFiles[0])
             galleryFiles.forEach(file => formData.append('images[]', file))
 
@@ -479,6 +511,35 @@ export default function FormEditLaverie() {
                     <Input id="contactEmail" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="h-11" />
                 </Field>
             </div>
+
+            {/* Liens réseaux sociaux */}
+            <div ref={el => {fieldsRef.current.contactEmail = el}} className='w-full'>
+                <Field className="w-full mt-4">
+                    <FieldLabel>{t('edit_laundry_liens_title')}</FieldLabel>
+
+                    {liens.map((lien, index) => (
+                        <div key={index} className="flex items-center justify-between border rounded-md p-2 mb-2">
+                            <span className="text-sm">{lien.social_media} — {lien.url}</span>
+                            <button type="button" onClick={() => handleRemoveLien(index)} className="text-red-500 text-xs font-bold">✕</button>
+                        </div>
+                    ))}
+
+                    {reseauxDisponibles.length > 0 && (
+                        <div className="flex gap-2">
+                            <select
+                                value={nouveauReseauSocial}
+                                onChange={e => setNouveauReseauSocial(e.target.value as ReseauSocial)}
+                                className="h-11 border rounded-md p-2 text-sm"
+                            >
+                                <option value="">{t('edit_laundry_choisir_reseau')}</option>
+                                {reseauxDisponibles.map(r => <option key={r} value={r}>{r}</option>)}
+                            </select>
+                            <Input type="url" placeholder="https://..." value={nouvelleUrl} onChange={e => setNouvelleUrl(e.target.value)} className="h-11 flex-1" />
+                            <Button type="button" onClick={handleAddLiens} size="icon-lg">+</Button>
+                        </div>
+                    )}
+                </Field>
+                </div>
 
             <div ref={el => {fieldsRef.current.adresse = el}} className='w-full'>
                 {geoErreur && (
