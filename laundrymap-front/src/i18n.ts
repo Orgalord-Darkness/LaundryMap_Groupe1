@@ -257,6 +257,7 @@ const resources = {
       fiche_services_titre: 'Services',
       fiche_informations_titre: 'Informations',
       fiche_email_label: 'Email :',
+      fiche_lien_label: 'Liens :', 
       fiche_afficher_email: 'Afficher l\'adresse email',
       fiche_horaires_titre: 'Horaires',
       fiche_machines_titre: 'Liste des machines',
@@ -398,6 +399,8 @@ const resources = {
       edit_laundry_modifier: 'Modifier',
       edit_laundry_wiline_importer_pour_lier: 'Importez depuis Wi-Line pour lier une machine',
       edit_laundry_wiline_selectionner: 'Sélectionnez un équipement Wi-Line',
+      edit_laundry_liens_title: 'Liens : ', 
+      edit_laundry_choisir_reseau: 'Choisir un réseau',
     },
   },
   en: {
@@ -654,6 +657,7 @@ const resources = {
       fiche_services_titre: 'Services',
       fiche_informations_titre: 'Information',
       fiche_email_label: 'Email:',
+      fiche_lien_label: 'Links :', 
       fiche_afficher_email: 'Show email address',
       fiche_horaires_titre: 'Opening hours',
       fiche_machines_titre: 'Machine list',
@@ -795,6 +799,8 @@ const resources = {
       edit_laundry_modifier: 'Edit',
       edit_laundry_wiline_importer_pour_lier: 'Import from Wi-Line to link a machine',
       edit_laundry_wiline_selectionner: 'Select a Wi-Line unit',
+      edit_laundry_liens_title: 'Link : ',
+      edit_laundry_choisir_reseau: 'Select a network', 
     },
   },
 };

@@ -11,8 +11,10 @@ use App\Entity\Media;
 use App\Entity\LaverieMedia;
 use App\Entity\LaverieEquipement;  
 use App\Entity\LaverieFermeture; 
+use App\Entity\Lien; 
 use App\Enum\EquipementEnum; 
 use App\Enum\ActionEnum;
+use App\Enum\MediaEnum;
 use App\Enum\LaverieStatutEnum;
 use App\Enum\JourEnum; 
 use App\Repository\UtilisateurRepository;
@@ -184,6 +186,25 @@ class LaverieController extends AbstractController
                         }
                     }'
                 ),
+ 
+                // Liens réseaux sociaux
+                new OA\Property(
+                    property: 'liens',
+                    type: 'array',
+                    items: new OA\Items(
+                        type: 'object',
+                        properties: [
+                            new OA\Property(property: 'url', type: 'string', example: 'https://facebook.com/malaverie'),
+                            new OA\Property(property: 'social_media', type: 'string', example: 'FACEBOOK'),
+                            new OA\Property(property: 'texte_alternatif', type: 'string', example: 'Page Facebook de ma laverie'),
+                            new OA\Property(property: 'is_public', type: 'boolean', example: true),
+                        ]
+                    ),
+                    example: [
+                        ['url' => 'https://www.facebook.com', 'social_media' => 'FACEBOOK', 'texte_alternatif' => 'Facebook', 'is_public' => true],
+                        ['url' => 'https://instagram.com', 'social_media' => 'INSTAGRAM', 'texte_alternatif' => 'Instagram', 'is_public' => true],
+                    ]
+                ),
 
             ]
         )
@@ -239,6 +260,7 @@ class LaverieController extends AbstractController
         $methodes     = json_decode($donnees['methodes_paiement'] ?? '[]', true) ?? [];
         $equipements  = json_decode($donnees['equipements']       ?? '[]', true) ?? [];
         $weekSchedule = json_decode($donnees['weekSchedule']      ?? '{}', true) ?? [];
+        $liens = json_decode($donnees['liens'] ?? '[]', true) ?? []; 
 
         // ─────────────────────────────────────────────
         // 1. Champs simples
@@ -460,8 +482,51 @@ class LaverieController extends AbstractController
                 }
             }
         }
+
+        // 9. Liens
+
+        if (!empty($liens)) {
+            $lienRepository = $em->getRepository(Lien::class);
+            $anciensLiens = $lienRepository->findBy(['laverie' => $laverie]); 
+            foreach ($anciensLiens as $ancienLien) {
+                $em->remove($ancienLien);    
+            }
+
+            $reseauxSociauxVus = []; 
+
+            foreach($liens as $ligne) {
+
+                if (!filter_var($ligne['url'], FILTER_VALIDATE_URL)) {
+                    return $this->json(['message' => "URL invalide ".$ligne['url']], Response::HTTP_BAD_REQUEST); 
+                }
+
+                $reseauxSociauxEnum = MediaEnum::tryFrom($ligne['social_media'] ?? '');
+                if (!$reseauxSociauxEnum) {
+                    return $this->json(['message' => "réseau social invalide ".$ligne['social_media']], Response::HTTP_BAD_REQUEST); 
+                }
+
+                if (in_array($reseauxSociauxEnum->value, $reseauxSociauxVus)) {
+                    return $this->json(['message' => "Le réseau social {$reseauxSociauxEnum->value} est en double."], Response::HTTP_BAD_REQUEST); 
+                }
+
+                if (!str_contains($ligne['url'], $reseauxSociauxEnum)) {
+                    return $this->json(['message' => "Le réseau social est incorrect par rapport au liens ".$reseauxSociauxEnum], Response::HTTP_BAD_REQUEST); 
+                }
+
+                $reseauxSociauxVus[] = $reseauxSociauxEnum->value; 
+
+                $lien = new Lien(); 
+                $lien->setLaverieId($laverie); 
+                $lien->setUrl($ligne['url']);
+                $lien->setSocialMedia($reseauxSociauxEnum); 
+                $lien->setTexteAlternatif($ligne['texte_alternatif']); 
+                $lien->setIsPublic($ligne['is_public'] ?? true); 
+
+                $em->persist($lien); 
+            }
+        }
         // ─────────────────────────────────────────────
-        // 9. Sauvegarde
+        // 10. Sauvegarde
         // ─────────────────────────────────────────────
         $laverie->setDateModification(new \DateTime());
         $em->flush();

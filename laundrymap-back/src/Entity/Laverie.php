@@ -76,6 +76,12 @@ class Laverie
     #[ORM\JoinTable(name: 'laverie_favori')]
     private Collection $favoris;
 
+    /**
+     * @var Collection<int, Lien>
+     */
+    #[ORM\OneToMany(targetEntity: Lien::class, mappedBy: 'laverie')]
+    private Collection $liens;
+
 
     public function __construct()
     {
@@ -84,6 +90,7 @@ class Laverie
         $this->services = new ArrayCollection();
         $this->favoris = new ArrayCollection();
         $this->methodePaiements = new ArrayCollection();
+        $this->liens = new ArrayCollection(); 
     }
 
     public function getId(): ?int
@@ -349,6 +356,33 @@ class Laverie
     {
         $this->methodePaiements->removeElement($methodePaiement);
 
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Lien>
+     */
+    public function getLiens(): Collection
+    {
+        return $this->liens;
+    }
+
+    public function addLien(Lien $lien): static
+    {
+        if (!$this->liens->contains($lien)) {
+            $this->liens->add($lien);
+            $lien->setLaverieId($this);
+        }
+        return $this;
+    }
+
+    public function removeLien(Lien $lien): static
+    {
+        if ($this->liens->removeElement($lien)) {
+            if ($lien->getLaverieId() === $this) {
+                $lien->setLaverieId(null);
+            }
+        }
         return $this;
     }
 }

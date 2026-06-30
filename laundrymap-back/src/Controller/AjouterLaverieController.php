@@ -9,10 +9,12 @@ use App\Entity\Laverie;
 use App\Entity\LaverieFermeture;
 use App\Entity\LaverieEquipement;
 use App\Entity\LaverieMedia;
+use App\Entity\Lien;
 use App\Enum\EquipementEnum;
 use App\Enum\GeoStatutEnum;
 use App\Enum\JourEnum;
 use App\Enum\LaverieStatutEnum;
+use App\Enum\MediaEnum;
 use App\Repository\MethodePaiementRepository;
 use App\Repository\ProfessionnelRepository;
 use App\Repository\ServiceRepository;
@@ -86,7 +88,6 @@ class AjouterLaverieController extends AbstractController
         $wilineCode   = trim((string) $request->request->get('wilineCode',    ''));
         $contactEmail = trim((string) $request->request->get('contact_email', ''));
 
-
         // ──Validation des champs obligatoires ────────────────
 
         if(!isset($latRaw)) {
@@ -129,6 +130,7 @@ class AjouterLaverieController extends AbstractController
         $paymentValues    = json_decode((string) $request->request->get('paymentMethods', '[]'), true) ?? [];
         $weekScheduleData = json_decode((string) $request->request->get('weekSchedule',   '{}'), true) ?? [];
         $machinesData     = json_decode((string) $request->request->get('machines',       '[]'), true) ?? [];
+        $liensData = json_decode((string) $request->request->get('liens', '[]'), true) ?? [];
 
         // ── Création de l'Adresse ────────────────────────────────
         $adresse = new Adresse();
@@ -282,6 +284,42 @@ class AjouterLaverieController extends AbstractController
             }
         }
 
+        // AJout de liens de réseaux sociaux
+        
+        if (!empty($liensData)) {
+            $reseauxSociauxVus = []; 
+
+            foreach($liensData as $ligne) {
+
+                if (!filter_var($ligne['url'], FILTER_VALIDATE_URL)) {
+                    return $this->json(['message' => "URL invalide ".$ligne['url']], Response::HTTP_BAD_REQUEST); 
+                }
+
+                $reseauxSociauxEnum = MediaEnum::tryFrom($ligne['social_media'] ?? '');
+                if (!$reseauxSociauxEnum) {
+                    return $this->json(['message' => "réseau social invalide ".$ligne['social_media']], Response::HTTP_BAD_REQUEST); 
+                }
+
+                if (in_array($reseauxSociauxEnum->value, $reseauxSociauxVus)) {
+                    return $this->json(['message' => "Le réseau social {$reseauxSociauxEnum->value} est en double."], Response::HTTP_BAD_REQUEST); 
+                }
+
+                if (!str_contains($ligne['url'], $reseauxSociauxEnum)) {
+                    return $this->json(['message' => "Le réseau social est incorrect par rapport au liens ".$reseauxSociauxEnum], Response::HTTP_BAD_REQUEST); 
+                }
+
+                $reseauxSociauxVus[] = $reseauxSociauxEnum->value; 
+
+                $lien = new Lien(); 
+                $lien->setLaverieId($laverie); 
+                $lien->setUrl($ligne['url']);
+                $lien->setSocialMedia($reseauxSociauxEnum); 
+                $lien->setTexteAlternatif($ligne['texte_alternatif']); 
+                $lien->setIsPublic($ligne['is_public'] ?? true); 
+
+                $this->em->persist($lien); 
+            }
+        }
 
 
         // ── Flush ────────

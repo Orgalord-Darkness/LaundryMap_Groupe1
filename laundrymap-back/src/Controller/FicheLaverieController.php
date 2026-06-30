@@ -12,6 +12,7 @@ use App\Repository\LaverieNoteSignalementRepository;
 use App\Repository\MotInjurieuxRepository;
 use App\Entity\Laverie;
 use App\Entity\Utilisateur;
+use App\Entity\Lien;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -135,6 +136,15 @@ class FicheLaverieController extends AbstractController
             $equipements
         ));
 
+        // Liens
+        $liens = $laverie->getLiens()->map(fn($lien) => [
+            'id'               => $lien->getId(),
+            'url'              => $lien->getUrl(),
+            'social_media'     => $lien->getSocialMedia()->value,
+            'texte_alternatif' => $lien->getTexteAlternatif(),
+            'is_public'        => $lien->isPublic(),
+        ])->toArray();
+
 
         // Notes & commentaires (LaverieNote) 
         //   Toutes les notes non supprimées pour calculer la moyenne
@@ -234,6 +244,7 @@ class FicheLaverieController extends AbstractController
             'horaires'       => $horaires,
             'machines'       => $machines,
             'reviews'        => $reviews,
+            'liens' => $liens, 
         ]);
     }
 

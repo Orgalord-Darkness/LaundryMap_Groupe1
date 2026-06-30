@@ -16,6 +16,8 @@ import { CountrySelect } from '@/components/ui/CountrySelect'
 import { normalizeCountry } from '@/components/utils/countries'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import type { AddressSelection } from '@/components/ui/AddressAutocomplete'
+import { TOUS_RESEAUX_SOCIAUX, type Lien, type ReseauSocial } from "@/components/utils/type"
+import { Icon } from "@/components/ui/icons"
 
 function AddLaundry() {
 
@@ -38,6 +40,10 @@ function AddLaundry() {
 
   const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
+
+  const [liens, setLiens] = useState<Lien[]>([])
+  const [nouvelleUrl, setNouvelleUrl] = useState("")
+  const [nouveauReseauSocial, setNouveauReseauSocial] = useState<ReseauSocial | "">("")
 
   // const [allServices, setAllServices]   = useState<{ id: number; nom: string }[]>([])
   // const [allPaiements, setAllPaiements] = useState<{ id: number; nom: string }[]>([])
@@ -160,6 +166,24 @@ function AddLaundry() {
       }
   }
 
+  const handleAddLien = () => {
+    if (!nouvelleUrl || !nouveauReseauSocial) return
+
+    setLiens(prev => [...prev, {
+        url: nouvelleUrl,
+        social_media: nouveauReseauSocial,
+        texte_alternatif: nouveauReseauSocial,
+        is_public: true,
+    }])
+
+    setNouvelleUrl("")
+    setNouveauReseauSocial("")
+}
+
+const handleRemoveLien = (index: number) => {
+    setLiens(prev => prev.filter((_, i) => i !== index))
+}
+
   // Ordre de priorité pour le scroll : latitude/longitude pointent vers le champ adresse
   const fieldScrollOrder: { key: keyof typeof errors; refKey: string }[] = [
     { key: 'name',       refKey: 'name'      },
@@ -180,6 +204,11 @@ function AddLaundry() {
     setErrors(newErrors)
     return { valid: Object.values(newErrors).every(e => e === ""), newErrors }
   }
+
+  const reseauxDejaUtilises = liens.map(l => l.social_media)
+  const reseauxDisponibles = TOUS_RESEAUX_SOCIAUX.filter(
+    r => !reseauxDejaUtilises.includes(r)
+  )
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -210,6 +239,7 @@ function AddLaundry() {
     formData.append("paymentMethods", JSON.stringify(selectedPayments))
     formData.append("weekSchedule", JSON.stringify(week))
     formData.append("machines", JSON.stringify(machines))
+    formData.append("liens", JSON.stringify(liens))
 
     if (logoFiles.length > 0) {
       formData.append("logo", logoFiles[0])
@@ -318,6 +348,35 @@ function AddLaundry() {
             {errors.adress && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.adress}</p>}
           </Field>
         </div>
+        <Field className="w-85 m-auto items-center justify-center mt-5" id="liens-field">
+          <FieldLabel>{t('edit_laundry_liens_title')}</FieldLabel>
+
+          {liens.map((lien, index) => {
+              return (
+                  <div key={index} className="flex items-center justify-between border rounded-md p-2 mb-2">
+                      <span className="flex items-center gap-2 text-sm">
+                          {lien.url}
+                      </span>
+                      <button type="button" onClick={() => handleRemoveLien(index)} className="text-red-500 text-xs font-bold">✕</button>
+                  </div>
+              )
+          })}
+
+          {reseauxDisponibles.length > 0 && (
+              <div className="flex gap-2">
+                  <select
+                      value={nouveauReseauSocial}
+                      onChange={e => setNouveauReseauSocial(e.target.value as ReseauSocial)}
+                      className="h-11 border rounded-md p-2 text-sm"
+                  >
+                      <option value="">{t('edit_laundry_choisir_reseau')}</option>
+                      {reseauxDisponibles.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <Input type="url" placeholder="https://..." value={nouvelleUrl} onChange={e => setNouvelleUrl(e.target.value)} className="h-11 flex-1" />
+                  <Button type="button" onClick={handleAddLien} size="icon">+</Button>
+              </div>
+          )}
+      </Field>
 
         <div ref={el => { fieldRefs.current.codePostal = el }}>
           <Field className='w-85 m-auto items-center justify-center mt-5' id='zip-field'>
