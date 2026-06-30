@@ -39,6 +39,7 @@ export default function FormEditLaverie() {
 
     const [name, setName]                     = useState("")
     const [contactEmail, setContactEmail]     = useState("")
+    const [tel, setTel]                       = useState("")
     const [description, setDescription]       = useState("")
     const [wilineCode, setWilineCode]         = useState("")
     const [adresse, setAdresse]               = useState("")
@@ -214,6 +215,7 @@ export default function FormEditLaverie() {
 
                 setName(data.nom_etablissement ?? "")
                 setContactEmail(data.contact_email ?? "")
+                setTel(data.tel ?? "")
                 setDescription(data.description ?? "")
                 setWilineCode(String(data.wi_line_reference ?? ""))
 
@@ -337,6 +339,7 @@ export default function FormEditLaverie() {
             formData.append('nom_etablissement', name)
             formData.append('description', description)
             formData.append('contact_email', contactEmail)
+            formData.append('tel', tel)
             formData.append('wi_line_reference', wilineCode.trim() || '')
             formData.append('adresse', adresse)
             formData.append('code_postal', codePostal)
@@ -479,6 +482,11 @@ export default function FormEditLaverie() {
                     <Input id="contactEmail" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="h-11" />
                 </Field>
             </div>
+
+            <Field className='w-85 m-auto items-center justify-center mt-5' id='tel-field'>
+                <FieldLabel htmlFor="input-field-tel">{t('laundry_form_tel_label')}</FieldLabel>
+                <Input id="input-field-tel" type="text" value={tel} onChange={(e) => setTel(e.target.value)} className='h-11'/>
+            </Field>
 
             <div ref={el => {fieldsRef.current.adresse = el}} className='w-full'>
                 {geoErreur && (

@@ -305,6 +305,7 @@ class LaverieRepository extends ServiceEntityRepository
                 l.id,
                 l.nom_etablissement  AS nomEtablissement,
                 l.contact_email      AS contactEmail,
+                l.tel                AS tel, 
                 l.description,
                 a.adresse,
                 a.rue,

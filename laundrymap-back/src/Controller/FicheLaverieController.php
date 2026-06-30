@@ -223,6 +223,7 @@ class FicheLaverieController extends AbstractController
             'userReview'     => $userReview,
             'description'    => $laverie->getDescription(),
             'email'          => $laverie->getContactEmail(),
+            'tel' => $laverie->getTel(), 
             'address'        => $adresse?->getAdresse(),
             'rue'            => $adresse?->getRue(),
             'city'           => $adresse?->getVille(),

@@ -67,6 +67,7 @@ class AjouterLaverieController extends AbstractController
         // ─ form-data ─────
         $name       = trim((string) $request->request->get('name',       ''));
         $adress     = trim((string) $request->request->get('adress',     ''));
+        $tel        = trim((int) $request->request->get('tel', '')); 
         $codePostal = trim((string) $request->request->get('codePostal', ''));
         $city       = trim((string) $request->request->get('city',       ''));
         $country    = trim((string) $request->request->get('country',    ''));
@@ -98,6 +99,7 @@ class AjouterLaverieController extends AbstractController
 
         if ($name       === '') { $errors['name']       = 'Le nom de la laverie est requis.'; }
         if ($adress     === '') { $errors['adress']     = "L'adresse est requise."; }
+        if ($tel     === '') { $errors['tel']     = "Le numéro de téléphone est requis"; }
         if ($codePostal === '') { $errors['codePostal'] = 'Le code postal est requis.'; }
         if ($city       === '') { $errors['city']       = 'La ville est requise.'; }
         if ($country    === '') { $errors['country']    = 'Le pays est requis.'; }
@@ -151,6 +153,7 @@ class AjouterLaverieController extends AbstractController
             $laverie->setContactEmail($contactEmail !== '' ? $contactEmail : null);
             $laverie->setStatut(LaverieStatutEnum::EN_ATTENTE);
             $laverie->setAdresse($adresse);
+            $laverie->setAdresse($tel);
             $laverie->setProfessionnel($professionnel);
             $laverie->setDateAjout(new \DateTime());
             $laverie->setDateModification(new \DateTime());

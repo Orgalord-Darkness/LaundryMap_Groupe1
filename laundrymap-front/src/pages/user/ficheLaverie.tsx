@@ -66,6 +66,7 @@ interface Laverie {
   isFavorite: boolean;
   isProfessional: boolean;    // ← l'utilisateur connecté est-il le propriétaire ?
   address: string;
+  tel: number; 
   rue: string;
   city: string;
   postalCode: string;
@@ -461,6 +462,7 @@ function FicheLaverie() {
   const [submitSuccess,  setSubmitSuccess]  = useState<boolean>(false);
   const [submitError,    setSubmitError]    = useState<string | null>(null);
   const [emailVisible, setEmailVisible] = useState(false);
+  const [telVisible, setTelVisible] = useState(false);
   const [userReview,     setUserReview]     = useState<{ note: number; commentaire: string } | null>(null);
   const [signalementReviewId, setSignalementReviewId] = useState<number | null>(null);
   const [machineStatuts, setMachineStatuts] = useState<Record<number, { status: number | null; statusText: string | null }>>({});
@@ -859,6 +861,21 @@ function FicheLaverie() {
                   ) : (
                     <button onClick={() => setEmailVisible(true)} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer" >
                       {t('fiche_afficher_email')}
+                    </button>
+                  )}
+                </div>
+              )}
+              <h3 className="text-foreground text-md font-semibold mb-3">{t('fiche_informations_titre')}</h3>
+              {laverie.tel && (
+                <div className="flex items-center gap-2 text-[15px] text-muted-foreground font-medium">
+                  <span>{t('fiche_tel_label')}</span>
+                  {telVisible ? (
+                    <a href={`tel:${laverie.tel}`} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors" >
+                      {laverie.tel}
+                    </a>
+                  ) : (
+                    <button onClick={() => setTelVisible(true)} className="rounded-full bg-primary/10 text-primary border border-primary/20 px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer" >
+                      {t('fiche_afficher_tel')}
                     </button>
                   )}
                 </div>

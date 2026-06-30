@@ -35,6 +35,7 @@ function AddLaundry() {
   const [wilineError, setWilineError]       = useState<string | null>(null)
   const [machines, setMachines] = useState<Machine[]>([])
   const [contactEmail, setContactEmail] = useState("")
+  const [tel, setTel] = useState("")
 
   const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
@@ -173,6 +174,7 @@ function AddLaundry() {
     const newErrors = {
       name:       name.trim()       ? "" : t('validation_name_required'),
       adress:     adress.trim()     ? "" : t('validation_address_required'),
+      tel:     tel.trim()     ? "" : t('validation_address_required'),
       codePostal: codePostal.trim() ? "" : t('validation_postal_required'),
       city:       city.trim()       ? "" : t('validation_city_required'),
       country:    country.trim()    ? "" : t('validation_country_required'),
@@ -205,6 +207,7 @@ function AddLaundry() {
     formData.append("country", country);
     formData.append("description", description);
     formData.append("contact_email", contactEmail);
+    formData.append("tel", tel);
     formData.append("wilineCode", wilineCode);
     formData.append("equipment", JSON.stringify(selectedEquipments))
     formData.append("paymentMethods", JSON.stringify(selectedPayments))
@@ -298,6 +301,11 @@ function AddLaundry() {
         <Field className='w-85 m-auto items-center justify-center mt-5' id='email-field'>
           <FieldLabel htmlFor="input-field-email">{t('laundry_form_email_label')}</FieldLabel>
           <Input id="input-field-email" type="email" placeholder={t('laundry_form_email_placeholder')} value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className='h-11'/>
+        </Field>
+
+        <Field className='w-85 m-auto items-center justify-center mt-5' id='tel-field'>
+          <FieldLabel htmlFor="input-field-tel">{t('laundry_form_tel_label')}</FieldLabel>
+          <Input id="input-field-tel" type="text" value={tel} onChange={(e) => setTel(e.target.value)} className='h-11'/>
         </Field>
 
         <div ref={el => { fieldRefs.current.adress = el }}>

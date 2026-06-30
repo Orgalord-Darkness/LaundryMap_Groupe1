@@ -120,6 +120,7 @@ class LaverieController extends AbstractController
                 new OA\Property(property: 'nom_etablissement', type: 'string', example: 'Ma Laverie'),
                 new OA\Property(property: 'description', type: 'string', example: 'Une laverie moderne et bien équipée'),
                 new OA\Property(property: 'contact_email', type: 'string', example: 'contact@malaverie.fr'),
+                new OA\Property(property: 'tel', type: 'int', example: 0601020304),
 
                 // Adresse
                 new OA\Property(property: 'adresse', type: 'string', example: '12 rue de la Paix'),
@@ -204,6 +205,7 @@ class LaverieController extends AbstractController
                         new OA\Property(property: 'nom_etablissement', type: 'string', example: 'Ma Laverie'),
                         new OA\Property(property: 'description', type: 'string', example: 'Une laverie moderne'),
                         new OA\Property(property: 'contact_email', type: 'string', example: 'contact@malaverie.fr'),
+                        new OA\Property(property: 'tel', type: 'string', example: '0601020304'),
                         new OA\Property(property: 'statut', type: 'string', example: 'actif'),
                     ]
                 ),
@@ -257,6 +259,12 @@ class LaverieController extends AbstractController
                 return $this->json(['message' => 'Email de contact invalide.'], Response::HTTP_BAD_REQUEST);
             }
             $laverie->setContactEmail($donnees['contact_email']);
+        }
+        if (isset($donnees['tel'])) {
+            if (empty($donnees['tel'])) {
+                $laverie->setTel(null);
+            }
+            $laverie->setTel($donnees['tel']);
         }
         if (array_key_exists('wi_line_reference', $donnees)) {
             $laverie->setWiLineReference($donnees['wi_line_reference'] ?: null);
@@ -475,6 +483,7 @@ class LaverieController extends AbstractController
                 'nom_etablissement' => $laverie->getNomEtablissement(),
                 'description' => $laverie->getDescription(),
                 'contact_email' => $laverie->getContactEmail(),
+                'tel' => $laverie->getTel(), 
                 'statut' => $laverie->getStatut(),
             ]
         ], Response::HTTP_OK);

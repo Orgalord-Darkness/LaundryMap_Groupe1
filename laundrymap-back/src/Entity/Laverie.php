@@ -29,6 +29,9 @@ class Laverie
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $contact_email = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $tel = null; 
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
@@ -144,6 +147,18 @@ class Laverie
     public function setContactEmail(?string $contact_email): static
     {
         $this->contact_email = $contact_email;
+
+        return $this;
+    }
+
+    public function getTel(): ?string
+    {
+        return $this->tel;
+    }
+
+    public function setTel(?string $tel): static
+    {
+        $this->tel = $tel;
 
         return $this;
     }

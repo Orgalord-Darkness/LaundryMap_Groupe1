@@ -441,6 +441,7 @@ class AppFixtures extends Fixture
                 'wi_line_reference' => 2,
                 'nom_etablissement' => 'AutoLaverie',
                 'contact_email'     => 'contact@autolaverie.com',
+                'tel'               => '0601020304', 
                 'description'       => 'AutoLaverie, Laverie rapide partout en France.',
                 'adresse'           => $adresses[2],
                 'date_ajout'        => new \DateTime('2026-01-03 20:41:20'),
