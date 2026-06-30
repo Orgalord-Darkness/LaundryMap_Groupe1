@@ -40,7 +40,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use App\Service\SendEmailService;
-
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/v1/laverie')]
 class LaverieController extends AbstractController 
@@ -221,6 +221,7 @@ class LaverieController extends AbstractController
         TagAwareCacheInterface $cachePool,
         GeolocationService $geolocationService,
         FileUploader $fileUploader,
+        ValidatorInterface $validator,
     ): JsonResponse {
         $utilisateur = $this->getUser();
 
@@ -260,6 +261,23 @@ class LaverieController extends AbstractController
         }
         if (array_key_exists('wi_line_reference', $donnees)) {
             $laverie->setWiLineReference($donnees['wi_line_reference'] ?: null);
+        }
+
+        // ── Réseaux sociaux — vide/absent → null ──
+        if (array_key_exists('facebook_url', $donnees)) {
+            $laverie->setFacebookUrl($donnees['facebook_url'] ?: null);
+        }
+        if (array_key_exists('instagram_url', $donnees)) {
+            $laverie->setInstagramUrl($donnees['instagram_url'] ?: null);
+        }
+        if (array_key_exists('x_url', $donnees)) {
+            $laverie->setXUrl($donnees['x_url'] ?: null);
+        }
+        if (array_key_exists('linkedin_url', $donnees)) {
+            $laverie->setLinkedinUrl($donnees['linkedin_url'] ?: null);
+        }
+        if (array_key_exists('site_web_url', $donnees)) {
+            $laverie->setSiteWebUrl($donnees['site_web_url'] ?: null);
         }
 
         // ─────────────────────────────────────────────
@@ -460,6 +478,35 @@ class LaverieController extends AbstractController
                 }
             }
         }
+
+        // ─────────────────────────────────────────────
+        // 8.5 Validation des contraintes de l'entité (dont Assert\Url)
+        // ─────────────────────────────────────────────
+        $violations = $validator->validate($laverie); 
+        if (count($violations) > 0) {
+            $propertyPathMap = [
+                'facebook_url'  => 'facebookUrl',
+                'instagram_url' => 'instagramUrl',
+                'x_url'         => 'xUrl',
+                'linkedin_url'  => 'linkedinUrl',
+                'site_web_url'  => 'siteWebUrl',
+            ];
+
+            $validationErrors = [];
+            foreach ($violations as $violation) {
+                $propertyPath = $violation->getPropertyPath();
+                $key = $propertyPathMap[$propertyPath] ?? $propertyPath;
+                $validationErrors[$key] = $violation->getMessage();
+            }
+
+            return $this->json(
+                ['message' => 'Données invalides.', 'errors' => $validationErrors],
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+
+
         // ─────────────────────────────────────────────
         // 9. Sauvegarde
         // ─────────────────────────────────────────────
@@ -476,6 +523,11 @@ class LaverieController extends AbstractController
                 'description' => $laverie->getDescription(),
                 'contact_email' => $laverie->getContactEmail(),
                 'statut' => $laverie->getStatut(),
+                'facebook_url'  => $laverie->getFacebookUrl(),
+                'instagram_url' => $laverie->getInstagramUrl(),
+                'x_url'         => $laverie->getXUrl(),
+                'linkedin_url'  => $laverie->getLinkedinUrl(),
+                'site_web_url'  => $laverie->getSiteWebUrl(),
             ]
         ], Response::HTTP_OK);
     }
@@ -513,6 +565,10 @@ class LaverieController extends AbstractController
         ];
         return $map[strtolower($dayEn)] ?? $dayEn;
     }
+
+
+
+
 
     #[Route('/admin/valider/{id}', name: 'laverie_valider', methods: ['POST'])]
     #[OA\Tag(name: 'Laverie')]
