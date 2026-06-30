@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LaverieRepository::class)]
 class Laverie
@@ -31,6 +32,26 @@ class Laverie
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url(message: 'L\'URL Facebook n\'est pas valide.')]
+    private ?string $facebook_url = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url(message: 'L\'URL Instagram n\'est pas valide.')]
+    private ?string $instagram_url = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url(message: 'L\'URL X (Twitter) n\'est pas valide.')]
+    private ?string $x_url = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url(message: 'L\'URL LinkedIn n\'est pas valide.')]
+    private ?string $linkedin_url = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url(message: 'L\'URL du site web n\'est pas valide.')]
+    private ?string $site_web_url = null;
 
     #[ORM\Column]
     private ?\DateTime $date_ajout = null;
@@ -215,6 +236,61 @@ class Laverie
     public function setAdresse(?Adresse $adresse): static
     {
         $this->adresse = $adresse;
+        return $this;
+    }
+
+    public function getFacebookUrl(): ?string
+    {
+        return $this->facebook_url;
+    }
+
+    public function setFacebookUrl(?string $facebook_url): static
+    {
+        $this->facebook_url = $facebook_url;
+        return $this;
+    }
+
+    public function getInstagramUrl(): ?string
+    {
+        return $this->instagram_url;
+    }
+
+    public function setInstagramUrl(?string $instagram_url): static
+    {
+        $this->instagram_url = $instagram_url;
+        return $this;
+    }
+
+    public function getXUrl(): ?string
+    {
+        return $this->x_url;
+    }
+
+    public function setXUrl(?string $x_url): static
+    {
+        $this->x_url = $x_url;
+        return $this;
+    }
+
+    public function getLinkedinUrl(): ?string
+    {
+        return $this->linkedin_url;
+    }
+
+    public function setLinkedinUrl(?string $linkedin_url): static
+    {
+        $this->linkedin_url = $linkedin_url;
+        return $this;
+    }
+
+    public function getSiteWebUrl(): ?string
+    {
+        return $this->site_web_url;
+    }
+
+    public function setSiteWebUrl(?string $site_web_url): static
+    {
+        $this->site_web_url = $site_web_url;
         return $this;
     }
 

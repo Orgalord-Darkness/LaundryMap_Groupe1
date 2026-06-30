@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
 #[Route('/api/v1/professionnel', name: 'api_pro_')]
@@ -44,6 +45,7 @@ class AjouterLaverieController extends AbstractController
         private readonly ServiceRepository         $serviceRepository,
         private readonly MethodePaiementRepository $methodePaiementRepository,
         private readonly FileUploader              $fileUploader,
+        private readonly ValidatorInterface           $validator,
     ) {}
 
     
@@ -86,6 +88,11 @@ class AjouterLaverieController extends AbstractController
         $wilineCode   = trim((string) $request->request->get('wilineCode',    ''));
         $contactEmail = trim((string) $request->request->get('contact_email', ''));
 
+        $facebookUrl  = trim((string) $request->request->get('facebookUrl',  ''));
+        $instagramUrl = trim((string) $request->request->get('instagramUrl', ''));
+        $xUrl = trim((string) $request->request->get('xUrl', ''));
+        $linkedinUrl  = trim((string) $request->request->get('linkedinUrl',  ''));
+        $siteWebUrl   = trim((string) $request->request->get('siteWebUrl',   ''));
 
         // ──Validation des champs obligatoires ────────────────
 
@@ -157,6 +164,37 @@ class AjouterLaverieController extends AbstractController
 
             if ($wilineCode !== '') {
                 $laverie->setWiLineReference($wilineCode);
+            }
+
+            $laverie->setFacebookUrl($facebookUrl !== '' ? $facebookUrl : null);
+            $laverie->setInstagramUrl($instagramUrl !== '' ? $instagramUrl : null);
+            $laverie->setXUrl($xUrl !== '' ? $xUrl : null);
+            $laverie->setLinkedinUrl($linkedinUrl !== '' ? $linkedinUrl : null);
+            $laverie->setSiteWebUrl($siteWebUrl !== '' ? $siteWebUrl : null);
+
+           
+            $violations = $this->validator->validate($laverie);
+            if (count($violations) > 0) {
+                
+                $propertyPathMap = [
+                    'facebook_url'  => 'facebookUrl',
+                    'instagram_url' => 'instagramUrl',
+                    'x_url'         => 'xUrl',
+                    'linkedin_url'  => 'linkedinUrl',
+                    'site_web_url'  => 'siteWebUrl',
+                ];
+
+                $validationErrors = [];
+                foreach ($violations as $violation) {
+                    $propertyPath = $violation->getPropertyPath();
+                    $key = $propertyPathMap[$propertyPath] ?? $propertyPath;
+                    $validationErrors[$key] = $violation->getMessage();
+                }
+
+                return $this->json(
+                    ['message' => 'Données invalides.', 'errors' => $validationErrors],
+                    Response::HTTP_UNPROCESSABLE_ENTITY
+                );
             }
 
             $this->em->persist($laverie);

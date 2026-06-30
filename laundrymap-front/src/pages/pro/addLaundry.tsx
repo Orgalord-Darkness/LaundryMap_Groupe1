@@ -62,6 +62,12 @@ function AddLaundry() {
     country: "",
   });
 
+  const [facebookUrl, setFacebookUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [xUrl, setXUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [siteWebUrl, setSiteWebUrl] = useState("");
+
 
   // ─── Utilitaires ─────────────────────────────────────────────────────────
 
@@ -210,6 +216,11 @@ function AddLaundry() {
     formData.append("paymentMethods", JSON.stringify(selectedPayments))
     formData.append("weekSchedule", JSON.stringify(week))
     formData.append("machines", JSON.stringify(machines))
+    formData.append("facebookUrl", facebookUrl)
+    formData.append("instagramUrl", instagramUrl)
+    formData.append("xUrl", xUrl)
+    formData.append("linkedinUrl", linkedinUrl)
+    formData.append("siteWebUrl", siteWebUrl)
 
     if (logoFiles.length > 0) {
       formData.append("logo", logoFiles[0])
@@ -353,6 +364,57 @@ function AddLaundry() {
           <FieldDescription>{t('laundry_form_description_hint')}</FieldDescription>
           <Textarea id="textarea-description" placeholder={t('laundry_form_description_placeholder')} className='h-32' value={description}
           onChange={(e) => setDescription(e.target.value)} />
+        </Field>
+
+        {/* Réseaux sociaux */}
+        <Field className="w-full max-w-md mx-auto mt-6" id='social-links-field'>
+            <FieldLabel htmlFor="facebookUrl">Résaux sociaux</FieldLabel>
+            <FieldDescription>
+                Ajout des Résaux sociaux
+            </FieldDescription>
+
+            <div className="flex flex-col gap-2 mt-2 w-full">
+                <Input
+                    id="facebookUrl"
+                    type="url"
+                    value={facebookUrl}
+                    onChange={e => setFacebookUrl(e.target.value)}
+                    className="h-11"
+                    placeholder="Facebook"
+                />
+                <Input
+                    id="instagramUrl"
+                    type="url"
+                    value={instagramUrl}
+                    onChange={e => setInstagramUrl(e.target.value)}
+                    className="h-11"
+                    placeholder="Instagram"
+                />
+                <Input
+                    id="xUrl"
+                    type="url"
+                    value={xUrl}
+                    onChange={e => setXUrl(e.target.value)}
+                    className="h-11"
+                    placeholder="Twitter"
+                />
+                <Input
+                    id="linkedinUrl"
+                    type="url"
+                    value={linkedinUrl}
+                    onChange={e => setLinkedinUrl(e.target.value)}
+                    className="h-11"
+                    placeholder="LinkedIn"
+                /> 
+                <Input
+                    id="siteWebUrl"
+                    type="url"
+                    value={siteWebUrl}
+                    onChange={e => setSiteWebUrl(e.target.value)}
+                    className="h-11"
+                    placeholder="Site Web"
+                />
+            </div>
         </Field>
 
         {/* Ajout Machines dynamiques pour une laverie */}

@@ -234,6 +234,13 @@ class FicheLaverieController extends AbstractController
             'horaires'       => $horaires,
             'machines'       => $machines,
             'reviews'        => $reviews,
+            'socialLinks'    => [
+                'facebook'  => $laverie->getFacebookUrl(),
+                'instagram' => $laverie->getInstagramUrl(),
+                'x'         => $laverie->getXUrl(),
+                'linkedin'  => $laverie->getLinkedinUrl(),
+                'siteWeb'   => $laverie->getSiteWebUrl(),
+            ],
         ]);
     }
 

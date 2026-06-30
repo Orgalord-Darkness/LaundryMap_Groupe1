@@ -66,6 +66,12 @@ export default function FormEditLaverie() {
     const [allPaiements, setAllPaiements] = useState<{ id: number; nom: string }[]>([])
     const [errors, setErrors]             = useState<Record<string, string>>({})
 
+    const [facebookUrl, setFacebookUrl]   = useState("")
+    const [instagramUrl, setInstagramUrl] = useState("")
+    const [xUrl, setXUrl] = useState("")
+    const [linkedinUrl, setLinkedinUrl]   = useState("")
+    const [siteWebUrl, setSiteWebUrl]     = useState("")
+
     // ─── Utilitaires ─────────────────────────────────────────────────────────
 
     const emptyDay = () => ({
@@ -217,6 +223,12 @@ export default function FormEditLaverie() {
                 setDescription(data.description ?? "")
                 setWilineCode(String(data.wi_line_reference ?? ""))
 
+                setFacebookUrl(data.facebook_url ?? "")
+                setInstagramUrl(data.instagram_url ?? "")
+                setXUrl(data.x_url ?? "")
+                setLinkedinUrl(data.linkedin_url ?? "")
+                setSiteWebUrl(data.site_web_url ?? "")
+
                 if (data.adresse) {
                     const adressVal = data.adresse.adresse ?? ""
                     const rueVal = data.adresse.rue ?? ""
@@ -346,6 +358,11 @@ export default function FormEditLaverie() {
             formData.append('methodes_paiement', JSON.stringify(selectedPayments.map(Number)))
             formData.append('equipements', JSON.stringify(selectedMachines))
             formData.append('weekSchedule', JSON.stringify(week))
+            formData.append('facebook_url', facebookUrl)
+            formData.append('instagram_url', instagramUrl)
+            formData.append('x_url', xUrl)
+            formData.append('linkedin_url', linkedinUrl)
+            formData.append('site_web_url', siteWebUrl)
             if (logoFiles.length > 0) formData.append('logo', logoFiles[0])
             galleryFiles.forEach(file => formData.append('images[]', file))
 
@@ -548,6 +565,56 @@ export default function FormEditLaverie() {
                     />
                 </Field>
             </div>
+
+            {/* Réseaux sociaux */}
+            <Field className="w-full max-w-md mx-auto mt-6">
+                <FieldLabel htmlFor="facebookUrl">Réseaux sociaux</FieldLabel>
+                <FieldDescription>
+                    Résseaux sociaux
+                </FieldDescription> 
+                <div className="flex flex-col gap-2 mt-2 w-full">
+                    <Input
+                        id="facebookUrl"
+                        type="url"
+                        value={facebookUrl}
+                        onChange={e => setFacebookUrl(e.target.value)}
+                        className="h-11"
+                        placeholder="Facebook"
+                    />
+                    <Input
+                        id="instagramUrl"
+                        type="url"
+                        value={instagramUrl}
+                        onChange={e => setInstagramUrl(e.target.value)}
+                        className="h-11"
+                        placeholder="Instagram"
+                    />
+                    <Input
+                        id="xUrl"
+                        type="url"
+                        value={xUrl}
+                        onChange={e => setXUrl(e.target.value)}
+                        className="h-11"
+                        placeholder="Twitter / X"
+                    />
+                    <Input
+                        id="linkedinUrl"
+                        type="url"
+                        value={linkedinUrl}
+                        onChange={e => setLinkedinUrl(e.target.value)}
+                        className="h-11"
+                        placeholder="LinkedIn"
+                    />
+                    <Input
+                        id="siteWebUrl"
+                        type="url"
+                        value={siteWebUrl}
+                        onChange={e => setSiteWebUrl(e.target.value)}
+                        className="h-11"
+                        placeholder="Site Web"
+                    />
+                </div>
+            </Field>
 
             {/* Machines */}
             <div className="my-5 w-full">

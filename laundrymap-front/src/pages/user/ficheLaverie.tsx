@@ -24,9 +24,18 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Facebook, Instagram, Linkedin, Globe } from 'lucide-react'
 
 
 // TYPES - à vérifier doublons dans un fichier types.ts / laundry.ts
+
+interface SocialLinks {
+  facebook: string | null;
+  instagram: string | null;
+  x: string | null;
+  linkedin: string | null;
+  siteWeb: string | null;
+}
 
 interface Machine {
   id: number;
@@ -78,11 +87,13 @@ interface Laverie {
   machines: Machine[];
   reviews: Review[];
   description: string;
+  socialLinks: SocialLinks;
 }
 
 // Type pour la réponse brute de l'API (étend Laverie avec les champs spécifiques à l'utilisateur connecté)
 interface LaverieApiResponse extends Laverie {
   userReview?: { note: number; commentaire: string } | null;
+  socialLinks: SocialLinks;
 }
 
 
@@ -423,6 +434,50 @@ const ModalAvis = ({
 
 // -- Fin ajout - note & avis ----
 
+// ------- résaux sociaux ----
+
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
+
+// Affiche uniquement les liens réellement renseignés (les autres sont null côté API)
+function SocialLinksRow({ socialLinks }: { socialLinks: SocialLinks }) {
+  const links = [
+    { url: socialLinks.facebook,  Icon: Facebook,   label: 'Facebook'  },
+    { url: socialLinks.instagram, Icon: Instagram,  label: 'Instagram' },
+    { url: socialLinks.x,    Icon: XIcon, label: 'X'    },
+    { url: socialLinks.linkedin,  Icon: Linkedin,   label: 'LinkedIn'  },
+    { url: socialLinks.siteWeb,   Icon: Globe,      label: 'Site web'  },
+  ].filter(link => link.url !== null && link.url !== '')
+
+  if (links.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="flex items-center gap-3 mt-2">
+      {links.map(({ url, Icon, label }) => (
+        <a
+          key={label}
+          href={url!}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={label}
+          className="text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Icon className="w-5 h-5" />
+        </a>
+      ))}
+    </div>
+  )
+}
+
+// -------- Fin résaux sociaux ----
 
 
 
@@ -741,6 +796,8 @@ function FicheLaverie() {
               </div>
             </div>
           </div>
+
+          <SocialLinksRow socialLinks={laverie.socialLinks} />
 
           <p className="mt-4 text-muted-foreground text-sm leading-relaxed lg:ml-20">
             {laverie.description}
